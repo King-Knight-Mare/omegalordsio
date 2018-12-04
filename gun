@@ -1,0 +1,67 @@
+    class GunType {
+        constructor(name, stats){
+            Guns.types[name] = class extends Entity{
+                constructor(x,y){
+                    super(name, x, y)
+                    this.stats = stats
+                    this.owned = false
+                    Guns.list.push(this);
+                }
+                collect(ownerId, list){
+                    Players.list = list
+                    for(var i = 0; i < Players.list.length;i++){
+                        if(Players.list[i].id == ownerId){
+                            this.owner = Players.list[i]
+                        }
+                    }
+                    //console.log(Players.list.find(function(element){element.id == ownerId}), ownerId)
+                    this.owner.inventory.push(this);
+                    this.position = this.owner.hposfr.copy()
+                    var self = this
+                    Guns.list.splice(Guns.list.findIndex(function(element){return element === self}),1);
+                    this.owned = true;
+                }
+                update(){
+                    if(this.owned){
+                        this.position = this.owner.hposfr.copy()
+                        if(this.stats.reload.timer > 0){
+                            this.stats.reload.timer --
+                        }
+                    }
+                }
+                use(){
+                    if(this.stats.reload.timer <= 0){
+                        var b = new Bullet(Math.random(), this.position.x, this.position.y, this.owner.move.ang, this.stats, this.owner.id);
+                        b.position.x = this.position.x;
+                        b.position.y = this.position.y;
+                        this.stats.reload.timer = this.stats.reload.speed
+                        this.owner.bullets.push(b.id);
+                    }
+                }
+            }
+            
+        }
+        
+    }
+    Guns = {
+        list:[],
+        types:[],
+        update:function(){
+            var pack = []
+            Guns.list.forEach(function(gun){
+                gun.update()
+                pack.push({
+                    x:gun.position.x,
+                    y:gun.position.y,
+                    img:gun.id
+                })
+            })
+            return pack
+        }
+    }
+
+
+
+
+    this.GunType = GunType
+    this.Guns = Guns
