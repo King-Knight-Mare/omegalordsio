@@ -1,0 +1,153 @@
+body {
+	margin:0;
+}
+#canvas {
+	width:100%;
+	height:100%;
+	display: none;
+}
+.modal {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: #474e5d;
+	position: fixed; /* Stay in place */
+	z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+	}
+.modal-content {
+	border-radius: 25px;
+	background-color: #fefefe;
+  margin: 5% auto auto auto; /* 5% from the top, 15% from the bottom and centered */
+  border: 1px solid #888;
+  width: 50%; /* Could be more or less, depending on screen size */
+}
+#changelog {
+  padding: 20px;
+  position:absolute;
+  left:76%;
+  top:10%;
+	border-radius: 25px;
+	background-color: #fefefe;
+    border: 1px solid #888;
+    width: 20%; /* Could be more or less, depending on screen size */
+  height:50%;
+    overflow:auto;
+}
+#helpus {
+  padding: 20px;
+  position:absolute;
+  left:1%;
+  top:10%;
+	border-radius: 25px;
+	background-color: #fefefe;
+    border: 1px solid #888;
+    width: 20%; /* Could be more or less, depending on screen size */
+  height:21%;
+    font-family:'Zorque';
+    overflow:hidden;
+}
+#werebeggingyou {
+  padding: 20px;
+  position:absolute;
+  left:1%;
+  top:40%;
+	border-radius: 25px;
+	background-color: #fefefe;
+    border: 1px solid #888;
+    width: 20%; /* Could be more or less, depending on screen size */
+  height:16%;
+    font-family:'Zorque';
+    overflow:hidden;
+}
+#symptoms {
+    padding: 20px;
+    position:absolute;
+    left:1%;
+    top:65%;
+    border-radius: 25px;
+    background-color: #fefefe;
+    border: 1px solid #888;
+    width: 20%; /* Could be more or less, depending on screen size */
+    height: 20%;
+    overflow:auto;
+}
+#avoidance {
+    padding: 20px;
+    position:absolute;
+    left:25%;
+    top:70%;
+    border-radius: 25px;
+    background-color: #fefefe;
+    border: 1px solid #888;
+    width: 20%; /* Could be more or less, depending on screen size */
+    height: 20%;
+    overflow:auto;
+}
+#title { 
+	font-size: 50px;
+	font-family:'Zorque';
+	text-align:center;
+	margin-top:80px;
+	margin-bottom:30px;
+}
+#loadingScreen {
+    display:none;
+}
+#loadingTitle {
+  font-size: 100px;
+	font-family:'Zorque';
+	text-align:center;
+	margin-top:80px;
+	margin-bottom:80px;
+}
+#nameyourself {
+	text-align:center;
+	padding-left:60px;
+	padding-right:60px;
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+#enter-label {
+	display: block;
+	text-align:center;
+	margin-top:30px;
+	margin-bottom:30px;
+}
+#server-label {
+    display:block;
+    text-align:center;
+    margin-top:40px;
+    margin-bottom:20px
+}
+#server {
+    padding:10px;
+    border:none;
+    border-radius:25px;
+    width:200px
+}
+#enter {
+	text-align:center;
+}
+#chat {
+	width: 220.141px;
+	position:absolute;
+	left:0;
+	top:0;
+}
+@font-face {
+	font-family: "Zorque";
+	src:url("/client/img/Zorque.woff") format("woff")
+}
+body { 
+	font: 13px Helvetica, Arial; 
+}
+#messages { list-style-type: none; margin: 0; padding: 0; }
+/*#messages li { padding: 5px 10px; }*/
+#messages li:nth-child(odd) { background: #eee; }
+#clist {
+	/*margin-bottom: 40px;*/
+	height: 150px;
+	overflow:auto;
+}

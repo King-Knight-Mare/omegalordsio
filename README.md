@@ -1,2 +1,0 @@
-# omegalordsio
-My app thing
