@@ -30,8 +30,8 @@ module.exports = function (nsp, ns) {
     let sunpertree = 1
     engine.world.gravity.y = 0
     this.map = {
-        width:2105,
-        height:1488
+        width:1500,
+        height:1500
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
@@ -146,10 +146,8 @@ module.exports = function (nsp, ns) {
                     }
                 })
             })
-            console.log(item)
             inventory.addItem(new Slot(item, 1, output.image, output.stackSize, output.equipable))
-            //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})
-            console.log(`Crafted item ${item}`)
+            //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})\
         }
     }
     //console.log(new Timeout(() => {}, 3000).timeLeft)
@@ -390,14 +388,6 @@ module.exports = function (nsp, ns) {
                             this.targets.push(p)
                         }
                     }
-                    for (var i = 0; i < AIs.list.length; i++) {
-                        var p = AIs.list[i]
-                        if ((
-                            Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad || 
-                            Vector.getDistance(this.hposfl, p.body.position) < p.rad + this.hrad) && this.id != p.id) {
-                            this.targets.push(p)
-                        }
-                    }
                     this.game.STrees.list.forEach(tree => {
                         if ((Vector.getDistance(
                             hposfl, {x: tree.x, y:tree.y + tree.acumheight}) < axerad - tree.acumheight || 
@@ -443,18 +433,10 @@ module.exports = function (nsp, ns) {
                         this.targets.push(p)
                     }
                 }
-                for (var i = 0; i < AIs.list.length; i++) {
-                    var p = AIs.list[i]
-                    if ((
-                        Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad || 
-                        Vector.getDistance(this.hposfl, p.body.position) < p.rad + this.hrad) && this.id != p.id) {
-                        this.targets.push(p)
-                    }
-                }
                 this.game.STrees.list.forEach(tree => {
                     if ((Vector.getDistance(
-                        this.hposfr, {x: tree.x, y:tree.y + tree.acumheight}) < this.hrad - tree.acumheight || 
-                        Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y - tree.acumheight}) < this.hrad + tree.acumheight)) {
+                        this.hposfr, {x: tree.x, y:tree.y}) < this.hrad - tree.acumheight || 
+                        Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y}) < this.hrad + tree.acumheight)) {
                         this.treetargs.push(tree)
                     }
                 })
@@ -533,416 +515,6 @@ module.exports = function (nsp, ns) {
             this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
             this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
             Vector.add(this.body.position, this.hposfr, this.hposfr)
-        }
-    }
-    class AI extends EventEmitter{
-        /**
-         * @param {String} id 
-         * @param {String} usr 
-         */
-        constructor(game) {
-            super()
-            this.game = game
-            this.id = Math.random()
-            this.rad = 30
-            this.body = Bodies.circle(Math.getRandomNum(this.rad, this.game.map.width - this.rad), Math.getRandomNum(this.rad, this.game.map.height - this.rad), this.rad, {friction:0.8, restitution:0.15})
-            World.addBody(this.game.engine.world, this.body)
-            //new Guns.types['pistol'](getRandomNum(25, 2090), getRandomNum(25,1463))
-            this.inventory = new Inventory()
-            this.crafter = new Crafter()
-            this.mainHand = '-1'
-            this.admin = false;
-            this.bullets = [];
-            this.score = 0
-            this.punch = {
-                ready:true,
-                reload: {
-                    speed: 20,
-                    timer: 0
-                },
-                damage: 2,
-                health: 1,
-            }
-            this.axe = {
-                ready:true,
-                reload: {
-                    speed: 40,
-                    timer: 0
-                },
-                damage: 1/2,
-            }
-            this.hands = {
-                l: {
-                    hit: false,
-                },
-                r: {
-                    hit: false,
-                }
-            }
-            this.ram = 1;
-            this.move = {
-                r: false,
-                l: false,
-                u: false,
-                d: false,
-                att: false,
-                run:false,
-                ang: 0
-            }
-            this.hrad = this.rad/25 * 7.5
-            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            Vector.add(this.body.position, this.hposfl, this.hposfl)
-
-            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            Vector.add(this.body.position, this.hposfr, this.hposfr)
-            this.next = 'l'
-            this.lhit = false
-            this.rhit = false
-            this.maxSpd = 3;
-            this.health = 20;
-            this.maxHealth = 20;
-            this.stamina = 20
-            this.maxStamina = 20
-            var self = this
-            this.bulletSpeed = 1;
-            this.targets = []
-            this.treetargs = []
-            this.stonetargs = []
-            this.kills = 0;
-            this.needsUpdate = false
-            this.needsSelfUpdate = false
-            this.mainHands = 'hand'
-            this.dead = false;
-            initPack.ai.push({
-                usr:this.usr,
-                x: this.body.position.x,
-                y: this.body.position.y,
-                health: 20,
-                mainHand: 'hand',
-                id: this.id,
-                maxHp: this.maxHealth,
-                angle: this.move.ang,
-                lhit: this.lhit,
-                rhit: this.rhit
-            })
-            AIs.list.push(this);
-            this.on('unable',function(msg){
-                game.nsp.to(this.id).emit('unable', msg)
-            })
-            this.on('death', function(){
-                game.nsp.to(this.id).emit('death')
-            })
-        }
-        updateSpd() {
-            let start = new Date()
-            let getRealPoint = (node) => {
-                if(!node) return {x:0,y:0}
-                /*
-                    get this.position
-                    get pd - 50 to be corner space
-                    return new Vector(pd)
-                    return this.body.position when node = 50, 50
-                    return {x : pos + pd, y:pos } when node = 51, 50
-                */
-                let x, y
-                x = this.pd * (node.x - 25) * 2
-                y = this.pd * -(node.y - 25) * 2
-                return Vector.create(this.body.position.x + x, this.body.position.y + y)
-            }
-            var m = this.move
-            //this.acc = Vector.create(0, 0)
-            if(!this.path) this.updatePath()
-            if(!this.path){
-                this.acc = Vector.create(0, this.maxSpd/3500)
-                let angNum = Math.getRandomNum(this.move.ang - 2, this.move.ang + 2)
-                if(angNum > 360) angNum += 360
-                if(angNum < 360) angNum -= 360
-                this.move.ang = angNum
-                Vector.rotate(this.acc, angNum, this.acc)
-                Body.applyForce(this.body, this.body.position, this.acc)
-                return
-            }
-            if(this.lowest.health <= 0) return this.path = null
-            
-            this.acc = Vector.create(0, 0)
-            if(Vector.getDistance(this.pos, this.body.position) < 150){ 
-                this.pathPos += 1;
-                this.pos = getRealPoint(this.path[this.pathPos])
-                //while(Vector.getDistance(this.lowest.body.position, this.body.position) < Vector.getDistance(this.pos, this.lowest.body.position)){ this.pathPos ++; if(this.pathPos <= this.path.length) this.updatePath();this.pos = getRealPoint(this.path[this.pathPos])}
-            }
-            if(this.pathPos <= this.path.length) this.updatePath()
-            
-            let pos = getRealPoint(this.path[this.pathPos])
-            if(this.pos.x > this.body.position.x) this.acc.x += this.maxSpd/3500
-            else this.acc.x += this.maxSpd/3500
-            if(this.pos.y < this.body.position.y) this.acc.y += this.maxSpd/3500
-            else this.acc.y += this.maxSpd/3500
-            let ang = Vector.angle(this.body.position, this.lowest.body.position) * 180/Math.PI
-            m.ang = ang
-            Vector.rotate(this.acc, ang <= 0 ? ang : ang + 180, this.acc)
-            Body.applyForce(this.body, this.body.position, this.acc)
-            if(Vector.getDistance(this.body.position, this.lowest.body.position) <= this.rad + this.lowest.rad + 16) this.hit()
-        }
-        update() {
-            let map = []
-            /*
-            if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
-                this.maxSpd = 2
-                this.stamina -= this.maxStamina/5/60
-                this.needsSelfUpdate = true
-            }else if(this.stamina < this.maxStamina){
-                this.maxSpd = 1
-                if(Vector.magnitude(this.acc) <= 0) this.stamina += this.maxStamina/25/60
-                else this.stamina += this.maxStamina/100/60
-                this.needsSelfUpdate = true
-            }*/
-            this.health += this.maxStamina/50/60
-            if(this.crafter.checkCraft(this.inventory)) this.needsUpdate = true
-            if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
-            if(this.health > this.maxHealth) this.health = this.maxHealth
-            this.updateSpd();
-            if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
-            this.targets = []
-            this.treetargs = []
-            this.stonetargs = []
-            this.setHands()
-
-            if (this.axe.reload.timer > 0) {
-                this.axe.reload.timer--
-            }
-            if (this.punch.reload.timer > 0) {
-                this.punch.reload.timer--
-            }
-            if (this.inventory.get(this.mainHand) == undefined) {
-                this.mainHands = 'hand'
-            } else {
-                this.mainHands = this.inventory.get(this.mainHand).id
-                if (this.axe.ready && this.move.att) {
-                    if(this.axe.timeout) clearTimeout(this.axe.timeout.timeout)
-                    let axerad = this.rad/25 * 15
-                    let hposfl = Vector.create(0, -60 * this.rad/25)
-                    hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
-                    hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
-                    Vector.add(this.body.position, hposfl, hposfl)
-
-                    let hposfr = Vector.create(0, -60 * this.rad/25)
-                    hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
-                    hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
-                    Vector.add(this.body.position, hposfr, hposfr)
-                    this.axe.ready = false
-                    this.axeHit = true
-                    this.axe.timeout = new Timeout(() => {
-                        this.axeHit = false
-                        this.axe.timeout = null
-                        this.axe.ready = true
-                    }, 5000/3)
-                    for (var i = 0; i < Players.list.length; i++) {
-                        var p = Players.list[i]
-                        if ((Vector.getDistance(hposfr, p.body.position) < p.rad + axerad || 
-                             Vector.getDistance(hposfl, p.body.position) < p.rad + axerad) && this.id != p.id) {
-                            this.targets.push(p)
-                        }
-                    }
-                    this.game.STrees.list.forEach(tree => {
-                        if ((Vector.getDistance(
-                            hposfl, {x: tree.x, y:tree.y + tree.acumheight}) < axerad - tree.acumheight || 
-                            Vector.getDistance(hposfl, {x: tree.x, y:tree.y - tree.acumheight}) < axerad + tree.acumheight)) {
-                            this.treetargs.push(tree)
-                        }
-                    })
-                    this.axe.reload.timer = this.axe.reload.speed
-                    this.targets.forEach( p => {
-                        p.health -= this.axe.damage
-                        if (p.health <= 0) {
-                            this.score += p.score/2 + 80
-                        }
-                    })
-                    this.treetargs.forEach(tree => {
-                        this.inventory.addItem(new Slot('wood', 8, 'draw', 255, false))
-                        this.score += 32
-                        this.needsSelfUpdate = true
-                    })
-                }
-            }
-            if (this.move.att) {
-                if (this.inventory.get(this.mainHand) == undefined) {
-                    this.hit()
-                }
-            }
-        }
-        hit() {        
-            if (this.punch.ready) {
-                //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
-                this.punch.ready = false
-                this.punch.timeout = new Timeout(() => {
-                    this.punch.timeout = null
-                    this.punch.ready = true
-                    this.lhit =  false
-                    this.rhit = false
-                }, 750/3)
-                for (var i = 0; i < Players.list.length; i++) {
-                    var p = Players.list[i]
-                    if ((
-                        Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad || 
-                        Vector.getDistance(this.hposfl, p.body.position) < p.rad + this.hrad) && this.id != p.id) {
-                        this.targets.push(p)
-                    }
-                }
-                this.game.STrees.list.forEach(tree => {
-                    if ((Vector.getDistance(
-                        this.hposfr, {x: tree.x, y:tree.y + tree.acumheight}) < this.hrad - tree.acumheight || 
-                        Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y - tree.acumheight}) < this.hrad + tree.acumheight)) {
-                        this.treetargs.push(tree)
-                    }
-                })
-                
-                this.game.Stones.list.forEach(stone => {
-                    if ((Vector.getDistance(
-                        this.hposfr, {x: stone.x, y:stone.y}) < this.hrad + 50 || 
-                        Vector.getDistance(this.hposfl, {x: stone.x, y:stone.y}) < this.hrad + 50)) {
-                        this.stonetargs.push(stone)
-                    }
-                })
-                if (this.next == 'l' && this.lhit == false && this.rhit == false) {
-                    this.lhit = true
-                    this.next = 'r'
-                } else if (this.next == 'r' && this.lhit == true) {
-                    this.lhit = false
-                } else if (this.next == 'r' && this.rhit == false) {
-                    this.rhit = true
-                    this.next = 'l'
-                } else if (this.next == 'l' && this.rhit == true) {
-                    this.rhit = false
-                }
-                this.punch.reload.timer = this.punch.reload.speed
-                this.targets.forEach( p => {
-                    p.health -= this.punch.damage
-                    if (p.health <= 0) {
-                        this.score += p.score/2 + 80
-                    }
-                })
-                this.treetargs.forEach(tree => {
-                    this.inventory.addItem(new Slot('wood', 1, 'draw', 255, false))
-                    this.score += 8
-                    this.needsSelfUpdate = true;
-                })
-                this.stonetargs.forEach(tree => {
-                    this.inventory.addItem(new Slot('stone', 1, 'draw', 255, false))
-                    this.score += 12
-                    this.needsSelfUpdate = true
-                })
-            }
-        }
-        getUpdatePack() {
-            var pack = {
-                usr:this.usr,
-                x: this.body.position.x,
-                y: this.body.position.y,
-                health: this.health,
-                mainHand: this.mainHands,
-                id: this.id,
-                maxHp: this.maxHealth,
-                angle: this.move.ang,
-                lhit: this.lhit,
-                rhit: this.rhit,
-                axeHit: this.axeHit
-            }
-            if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
-            if(this.axeHit) pack.axeper = Math.roundToDeci(this.axe.timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this.axe.timeout.percntDone, 1000)
-            return pack
-        }
-        setHands(){
-            this.hrad = this.rad/25 * 7.5
-            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            Vector.add(this.body.position, this.hposfl, this.hposfl)
-
-            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            Vector.add(this.body.position, this.hposfr, this.hposfr)
-        }
-        updatePath(){
-              let getRealPoint = (node) => {
-                  if(!node) node = { x:0, y:0}
-                  /*
-                      get this.position
-                      get pd - 50 to be corner space
-                      return new Vector(pd)
-                      return this.body.position when node = 50, 50
-                      return {x : pos + pd, y:pos } when node = 51, 50
-                  */
-                  let x, y
-                  x = this.pd * (node.x - 25) * 2
-                  y = this.pd * -(node.y - 25) * 2
-                  return Vector.create(this.body.position.x + x, this.body.position.y + y)
-              }
-              let posTargs = new Map()
-              Players.list.forEach(player => {
-                  if(Vector.getDistance(this.body.position, player.body.position) <= 500 + this.rad + player.rad) posTargs.set(Vector.getDistance(this.body.position, player.body.position) ,player)
-              })
-              if(!posTargs.size) return
-              let lowestVal = null
-              for (const [key, val] of posTargs) {
-                  if(!lowestVal) lowestVal = [key, val]
-                  else {
-                      if(lowestVal[0] > key) lowestVal = [key, val]
-                  }
-              }
-              let lowest = lowestVal[1]
-              this.lowest = lowest
-              Math.abs(Math.floor(this.body.position.x - lowest.body.position.x))
-              let b, x, y, bd, pd, cx, cy
-              let xDis = Math.abs(this.body.position.x - lowest.body.position.x)
-              let yDis = Math.abs(this.body.position.y - lowest.body.position.y)
-              if(xDis > yDis){ b = 'x'; bd = xDis}
-              else {b = 'y'; bd = yDis}
-              this.pd = bd/50
-              let t = []
-              if(b == 'x'){
-                  if(this.body.position.x < lowest.body.position.x) x = 50 
-                  else x = 0
-                  if(this.body.position.y > lowest.body.position.y) y = Math.round(yDis/xDis * 25) + 25
-                  else y = Math.floor(yDis/xDis * 50)
-              }else {
-                  if(this.body.position.y > lowest.body.position.y) y = 50
-                  else y = 0
-                  if(this.body.position.x < lowest.body.position.x) x = Math.round(xDis/yDis * 25) + 25
-                  else x = Math.floor(xDis/yDis * 50) 
-              }
-              for(let i = 0;i < 101; i++){
-                  let r = []
-                  for(let j = 0;j < 101; j++){
-                      let block = false
-                      /*STrees.list.forEach(tree => {
-                          if(Vector.getDistance(getRealPoint({x: i, y: j}), tree) < this.rad + 75){
-                              if(block) return
-                              r.push(0)
-                              block = true
-                          }
-                      })
-                      Stones.list.forEach(stone => {
-                          if(Vector.getDistance(getRealPoint({x: i, y: j}), stone) < this.rad + 70){
-                              if(block) return
-                              r.push(0)
-                              block = true
-                          }
-                      })*/
-                      if(!block) r.push(1)
-                  }
-                  t.push(r)
-              }
-              let graph = new Graph(t, {diagonal:true})
-              let start = graph.grid[50][50]
-              let end = graph.grid[x][y]
-              this.pathPos = 1
-              this.path = astar.search(graph, start, end, {closest:true, diagonal:true})
-              this.pos = getRealPoint(this.path[this.pathPos])
         }
     }
     class Bullet extends mover {
@@ -1031,14 +603,14 @@ module.exports = function (nsp, ns) {
             this.growInterval = setInterval(() => {
                 this.wood += 1
             }, 1000)
+            this.acumheight = 50
             setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.tree.push(this.id)
                 STrees.list.splice(STrees.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
             }, 600000)
-            this.acumheight = 114/2
-            this.body = Bodies.circle(this.x, this.y - this.acumheight, this.acumheight, {isStatic:true})
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.toplayer = 8
             this.baselen = baselen
@@ -1170,39 +742,6 @@ module.exports = function (nsp, ns) {
             return pack;
         }
     }
-    let AIs = {
-        list: [],
-        update: function () {
-            var pack = [];
-            for (var i = 0; i < AIs.list.length; i++) {
-                /**
-                 * @type {Player}
-                 */
-                var ai = AIs.list[i];
-                
-                pack.push(ai.getUpdatePack())
-            }
-            return pack;
-        }
-    }
-    setInterval(() => {
-        for (var i = 0; i < AIs.list.length; i++) {
-            var ai = AIs.list[i];
-            ai.update();
-            if(ai.needsSelfUpdate){
-                ai.needsSelfUpdate = false
-                game.nsp.to(ai.id).emit('selfUpdate', ai.getSelfUpdatePack())
-            }
-            if (ai.health <= 0) {
-                removePack.ai.push(ai.id)
-                Players.list.splice(Players.list.findIndex(function (element) {
-                    return element.id === ai.id
-                }), 1);
-                World.remove(engine.world, ai.body)
-                leaderboard.removePlayer(ai.id)
-            }
-        }
-    }, 1000/60)
     var Bullets = {
         list: [],
         update: function () {
@@ -1235,36 +774,37 @@ module.exports = function (nsp, ns) {
         player: [],
         bullet: [],
         tree:[],
-        stone:[],
-        ai:[]
+        stone:[]
     }
-    new Stone(400, 400)
     var removePack = {
         player: [],
         bullet: [],
         tree:[],
-        stone:[],
-        ai:[],
+        stone:[]
     }   
     var self = this
-    new STree(Math.random() * 1900 + 40, Math.random() * 1300 + 40 , 10)
+    //console.log(Math.getRandomInt(0, 30) * 100 + 50)
     setInterval(function(){
-        if(STrees.list.length >= 15) return
-        let tempx = Math.random() * (game.map.width - 200) + 100
-        let tempy = Math.random() * (game.map.height - 200) + 100
+        if(STrees.list.length >= 10) return
+        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
+        //console.log(tempx)
+        //let tempx = Math.getRandomInt(0, 30) * 100 + 50
+        //let tempy = Math.getRandomInt(0, 30) * 100 + 50
         let inWay = false
         STrees.list.forEach(tree => {
-            if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
+            if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 1) inWay = true
         })
         Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 200) inWay = true
+            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
         })
         Stones.list.forEach(stone => {
-            if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 200) inWay = true
+            if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 1) inWay = true
         })
+        //console.log(inWay)
         while(inWay){
-            tempx = Math.random() * (game.map.width - 200) + 100 
-            tempy = Math.random() * (game.map.height - 200) + 100
+            let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
             inWay = false
             STrees.list.forEach(tree => {
                 if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
@@ -1277,25 +817,25 @@ module.exports = function (nsp, ns) {
             })
         }
         new STree(tempx, tempy)
-    }, 5000)
-    new STree(Math.random() * 1900 + 40, Math.random() * 1300 + 40 , 10)
+    }, 1000)
+    
     setInterval(function(){
-        if(Stones.list.length >= 5) return
-        let tempx = Math.random() * (game.map.width - 200) + 100
-        let tempy = (game.map.height - 200) + 100
+        if(Stones.list.length >= 7) return
+        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
         let inWay = false
         STrees.list.forEach(tree => {
-            if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
+            if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 1) inWay = true
         })
         Players.list.forEach(player => {
             if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 200) inWay = true
         })
         Stones.list.forEach(stone => {
-            if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 200) inWay = true
+            if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 1) inWay = true
         })
         while(inWay){
-            tempx = Math.random() * (game.map.width - 200) + 100
-            tempy = Math.random() * (game.map.height - 200) + 100
+            let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
             inWay = false
             STrees.list.forEach(tree => {
                 if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
@@ -1308,7 +848,7 @@ module.exports = function (nsp, ns) {
             })
         }
         new Stone(tempx, tempy, 10)
-    }, 7000)
+    }, 1000)
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
@@ -1342,14 +882,12 @@ module.exports = function (nsp, ns) {
                 tree: [],
                 stone:[],
                 leaderboard: leaderboard.getUpdate(),
-                ai:[]
             }
             Players.list.forEach(function (player) {
                 pack.player.push(player.getUpdatePack())
             })
             Stones.list.forEach( stone => pack.stone.push(stone.getInitPack()))
             STrees.list.forEach( tree => pack.tree.push(tree.getInitPack()))
-            AIs.list.forEach( ai => pack.ai.push(ai.getUpdatePack()))
 
             /*
             Bullets.list.forEach(function(bullet){
@@ -1369,43 +907,35 @@ module.exports = function (nsp, ns) {
             bullet: Bullets.update(),
             tree:STrees.update(),
             stone:Stones.update(),
-            leaderboard: leaderboard.getUpdate(),
-            ai:AIs.update()
+            leaderboard: leaderboard.getUpdate()
         }
-        if (initPack.player.length > 0 || initPack.bullet.length > 0 || initPack.leaderboard > 0 || initPack.tree.length > 0 || initPack.stone.length > 0 || initPack.ai.length > 0) {
+        if (initPack.player.length > 0 || initPack.bullet.length > 0 || initPack.leaderboard > 0 || initPack.tree.length > 0 || initPack.stone.length > 0) {
             self.nsp.emit('initPack', initPack)
             initPack = {
                 player: [],
                 bullet: [],
                 tree:[],
-                stone:[],
-                ai:[]
+                stone:[]
             }
         }
         self.nsp.emit('state', pack)
-        if (removePack.player.length > 0 || removePack.bullet.length > 0 || removePack.leaderboard > 0 || removePack.tree.length > 0 || initPack.stone.length > 0 || initPack.ai.length > 0) {
+        if (removePack.player.length > 0 || removePack.bullet.length > 0 || removePack.leaderboard > 0 || removePack.tree.length > 0 || initPack.stone.length > 0) {
             self.nsp.emit('removePack', removePack)
             removePack = {
                 player: [],
                 bullet: [],
                 tree:[],
                 stone:[],
-                ai:[]
             }
         }
     }, 1000 / 60);
-    this.AIs = AIs
     this.STrees = STrees
     this.Stones = Stones
     this.Entity = Entity;
     this.Bullet = Bullet;
     this.Bullets = Bullets;
     this.Player = Player;
+  
     this.Players = Players;
-    new AI(game)
-    new AI(game)
-    new AI(game)
-    new AI(game)
-    new AI(game)
     global.games.push(this)
 }

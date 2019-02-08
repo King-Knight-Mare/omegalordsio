@@ -208,122 +208,6 @@ var init = function(name) {
     window.moveinterval = setInterval(function() {
         socket.emit('movement', movement);
     }, 1000 / 60);
-    let AIs = []
-    
-    class AI {
-        /**
-         * Creates a new Player
-         * @param {Number} x 
-         * @param {Number} y 
-         * @param {String} mainHand 
-         */
-        constructor(initPack) {
-            this.x = initPack.x
-            this.y = initPack.y
-            this.hp = initPack.health
-            this.maxHp = initPack.maxHp
-            this.mainHand = initPack.mainHand
-            this.id = initPack.id
-            this.angle = initPack.angle
-            this.lhit = initPack.lhit
-            this.rhit = initPack.rhit
-            this.rad = 30
-            AIs.push(this)
-        }
-        draw(x, y) {
-            ctx.restore()
-            ctx.save()
-            ctx.scale(this.rad/25, this.rad/25)
-            var hpBar = 80 * this.rad/25 * this.hp / this.maxHp
-            var currx = (this.x + x)/(this.rad/25)
-            var curry = (this.y + y)/(this.rad/25)
-            if(currx < -this.rad || currx > canvas.width + this.rad) return
-            if(curry < -this.rad || curry > canvas.height + this.rad) return
-            ctx.save();
-            ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
-            ctx.fillStyle = 'red';
-            ctx.textAlign = "center"
-            ctx.font = '18px Zorque';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.strokeText('DAMNED', currx, curry + 55 * this.rad/25);
-            ctx.fillStyle = 'white';
-            ctx.fillText('DAMNED', currx, curry + 55 * this.rad/25);
-            ctx.translate(currx, curry)
-            ctx.rotate((Math.PI / 180) * this.angle)
-            ctx.scale(this.rad/25, this.rad/25)
-            ctx.fillStyle = 'black'
-            ctx.beginPath()
-            ctx.arc(0 + 9, 0 + 8, 6, 0, 2*Math.PI);
-            ctx.arc(0 + 9, 0 - 8, 6, 0, 2*Math.PI);
-            ctx.fill()
-            ctx.fillStyle = 'white'
-            ctx.beginPath()
-            ctx.arc(0 + 6.5, 0 + 7, 2.5, 0, 2*Math.PI);
-            ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
-            ctx.fill()
-            if (this.mainHand == 'hand') {
-                if (!(this.rhit)) {
-                    ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
-                } else {
-                    ctx.save();
-                    ctx.translate(32 - 7.5, 15 - 7.5);
-                    ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-160 * this.punchper + 80) + 80)))
-                    ctx.drawImage(Img.hand, 0, 0, 15, 15)
-                    ctx.restore()
-                }
-                if (!(this.lhit)) {
-                    ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
-                } else {
-                    ctx.save();
-                    ctx.translate(32 - 7.5, -(15 - 7.5));
-                    ctx.rotate((Math.PI / 180) * (0 + (-Math.abs(-160 * this.punchper + 80) + 80)))
-                    ctx.drawImage(Img.hand, 0, 0 - 15, 15, 15)
-                    ctx.restore();
-                }
-            } else {
-                switch(this.mainHand){ 
-                    case 'Axe': 
-                        ctx.save()
-                        if(this.axeHit) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.axeper + 60) + 60)))
-                        ctx.drawImage(Img.hand, 32 - 7.5 + 5, 15 - 7.5 - 5, 15, 15)
-                        ctx.drawImage(Img.hand, 32 - 7.5 + 5, 15 - 2 - 7.5 - 30, 15, 15)
-                        ctx.beginPath()
-                        ctx.translate(-2.5 + 75/2, -30 + 75/2)
-                        ctx.rotate((Math.PI / 180) * 180)
-                        ctx.drawImage(Img['axe'], 0 - 75/2, 0 - 75/2, 75, 75)
-                        //ctx.rect(0 ,0, 50, 50)
-                        ctx.stroke()
-                        ctx.restore()
-                        
-                }
-                //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
-            }
-            let chance = Math.random()
-            ctx.restore();
-            ctx.restore()
-        }
-        processInitpack(initPack) {
-            this.x = initPack.x
-            this.y = initPack.y
-            this.hp = initPack.health
-            this.maxHp = initPack.maxHp
-            this.mainHand = initPack.mainHand
-            this.id = initPack.id
-            this.angle = initPack.angle
-            this.lhit = initPack.lhit
-            this.rhit = initPack.rhit
-            this.axeHit = initPack.axeHit
-            this.punchper = initPack.punchper
-            this.axeper = initPack.axeper
-        }
-        processSelfInitPack(initPack) {
-            this.stamina = initPack.stamina
-            this.maxStamina = initPack.maxStamina
-            this.inventory = initPack.inventory
-            this.craftables = initPack.craftables
-        }
-    }
     class Player {
         /**
          * Creates a new Player
@@ -467,7 +351,7 @@ var init = function(name) {
             CTrees.set(this.id, this)
         }
         show(x, y){
-            ctx.drawImage(Img['tree1'], this.x - 114/2 + x, this.y - 114 + y, 114, 114)
+            ctx.drawImage(Img['tree1'], this.x - 100/2 + x, this.y - 100/2 + y, 100, 100)
         }
     }
     var Stones = new Map()
@@ -524,10 +408,6 @@ var init = function(name) {
         pack.stone.forEach((initPack)=>{
             new Stone(initPack)
         })
-        pack.ai.forEach((initPack) => {
-            if(AIs.find(ai => ai.id == initPack.id)) return
-            new AI(initPack)
-        })
     }
     /**
      * 
@@ -537,11 +417,6 @@ var init = function(name) {
     readRemovePack = function(pack) {
         pack.player.forEach(function(id) {
             Players.splice(Players.findIndex(function(element) {
-                return element.id == id
-            }), 1)
-        })
-        pack.ai.forEach(function(id) {
-            AIs.splice(AIs.findIndex(function(element) {
                 return element.id == id
             }), 1)
         })
@@ -571,21 +446,14 @@ var init = function(name) {
                 canvas.style.display = 'block'
                 var x = canvas.width / 2 - playa.x
                 var y = canvas.height / 2 - playa.y
-                ctx.drawImage(Img.map, canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2105, 1488)
+                ctx.fillStyle = '#876833'
+                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 1500, 1500)
+                //ctx.drawImage(Img.map, canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2105, 1488)
                 pack.player.forEach(function(package) {
                     /**
                      * @type {Player} toUpdate
                      */
                     var toUpdate = Players.find(function(element) {
-                        return element.id === package.id
-                    })
-                    toUpdate.processInitpack(package)
-                })
-                pack.ai.forEach(function(package) {
-                    /**
-                     * @type {Player} toUpdate
-                     */
-                    var toUpdate = AIs.find(function(element) {
                         return element.id === package.id
                     })
                     toUpdate.processInitpack(package)
@@ -655,9 +523,6 @@ var init = function(name) {
                 })
                 Players.forEach(function(player) {
                     player.draw(x, y)
-                })
-                AIs.forEach(function(ai) {
-                    ai.draw(x, y)
                 })
                 ctx.restore();
                 playa.inventory.forEach((slot, i) => {
