@@ -116,6 +116,21 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Pickaxe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'pickaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
                 //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
                 //['Black Ability', [{id:'wood', count:20}]]
             ])

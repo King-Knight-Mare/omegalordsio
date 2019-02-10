@@ -9,7 +9,7 @@ var canvas = document.getElementById('canvas');
 var m = document.getElementById('m');
 var clog = document.getElementById('changelog')
 var ut = document.createElement('h3')
-ut.textContent = "Current Features"
+ut.textContent = "New Features"
 clog.appendChild(ut)
 for(var i = 0; i < changelog.Updates.length; i++){
     var c = document.createElement('p')
@@ -39,6 +39,7 @@ let createImage = (src, extention) => {
 }
 createImage('tree1', 'png')
 createImage('axe',  'png')
+createImage('pickaxe',  'png')
 createImage('stone', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
@@ -500,7 +501,6 @@ var init = function(name) {
                 ctx.lineWidth = 0.5
                 ctx.strokeStyle = 'black'
                 ctx.font  = '10px Arial'
-                let craft = playa.craftables[0]
                 playa.craftables.forEach((craft, i) => {
                     switch(craft){
                         case 'Axe' :
@@ -519,6 +519,24 @@ var init = function(name) {
                             ctx.rotate(Math.PI/180 * 45)
                             ctx.drawImage(Img['axe'], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
+                            break;
+                        case 'Pickaxe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['pickaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
                     }
                 })
                 Players.forEach(function(player) {
@@ -584,6 +602,12 @@ var init = function(name) {
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 45)
                         ctx.drawImage(Img['axe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Pickaxe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['pickaxe'], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
                     }else if(slot.type == 'stone'){
                         ctx.save()

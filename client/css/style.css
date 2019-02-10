@@ -35,56 +35,6 @@ body {
   height:50%;
     overflow:auto;
 }
-#helpus {
-  padding: 20px;
-  position:absolute;
-  left:1%;
-  top:10%;
-	border-radius: 25px;
-	background-color: #fefefe;
-    border: 1px solid #888;
-    width: 20%; /* Could be more or less, depending on screen size */
-  height:21%;
-    font-family:'Zorque';
-    overflow:hidden;
-}
-#werebeggingyou {
-  padding: 20px;
-  position:absolute;
-  left:1%;
-  top:40%;
-	border-radius: 25px;
-	background-color: #fefefe;
-    border: 1px solid #888;
-    width: 20%; /* Could be more or less, depending on screen size */
-  height:16%;
-    font-family:'Zorque';
-    overflow:hidden;
-}
-#symptoms {
-    padding: 20px;
-    position:absolute;
-    left:1%;
-    top:65%;
-    border-radius: 25px;
-    background-color: #fefefe;
-    border: 1px solid #888;
-    width: 20%; /* Could be more or less, depending on screen size */
-    height: 20%;
-    overflow:auto;
-}
-#avoidance {
-    padding: 20px;
-    position:absolute;
-    left:25%;
-    top:70%;
-    border-radius: 25px;
-    background-color: #fefefe;
-    border: 1px solid #888;
-    width: 20%; /* Could be more or less, depending on screen size */
-    height: 20%;
-    overflow:auto;
-}
 #title { 
 	font-size: 50px;
 	font-family:'Zorque';
