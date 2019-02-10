@@ -240,17 +240,11 @@ var init = function(name) {
             if(currx < -this.rad || currx > canvas.width + this.rad) return
             if(curry < -this.rad || curry > canvas.height + this.rad) return
             ctx.save();
-          
-            //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
-            ctx.beginPath()
-            ctx.fillStyle = '#000010'
-            ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
-            ctx.fill()
             
-            ctx.beginPath()
-            ctx.fillStyle = '#C3C3C3'
-            ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
-            ctx.fill()
+            //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
+            
+            
+            ctx.save()
             ctx.beginPath()
             ctx.fillStyle = 'red';
             ctx.fillRect(currx - 40 * this.rad/25 , curry - 50 * this.rad/25, hpBar, 10);
@@ -269,16 +263,6 @@ var init = function(name) {
             ctx.translate(currx, curry)
             ctx.rotate((Math.PI / 180) * this.angle)
             ctx.scale(this.rad/25, this.rad/25)
-            ctx.fillStyle = 'black'
-            ctx.beginPath()
-            ctx.arc(0 + 9, 0 + 8, 6, 0, 2*Math.PI);
-            ctx.arc(0 + 9, 0 - 8, 6, 0, 2*Math.PI);
-            ctx.fill()
-            ctx.fillStyle = 'white'
-            ctx.beginPath()
-            ctx.arc(0 + 6.5, 0 + 7, 2.5, 0, 2*Math.PI);
-            ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
-            ctx.fill()
             if (this.mainHand == 'hand') {
                 if (!(this.rhit)) {
                     ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
@@ -303,39 +287,56 @@ var init = function(name) {
                     case 'Axe': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
-                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-60 * this.per + 30) + 30)))
-                        
-                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
-                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
-                        ctx.beginPath()
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
                         ctx.rotate((Math.PI / 180) * 180)
                         ctx.drawImage(Img['axe'], 0 - 75/2, 0 - 75/2, 75, 75)
-                        ctx.fillRect(0, 0, 10, 10)
-                        //ctx.rect(0 ,0, 50, 50)
-                        ctx.stroke()
                         ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
                         break;
                     case 'Pickaxe': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
-                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-60 * this.per + 30) + 30)))
-                        
-                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
-                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
-                        ctx.beginPath()
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
                         ctx.rotate((Math.PI / 180) * 180)
                         ctx.drawImage(Img['pickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
-                        ctx.fillRect(0, 0, 10, 10)
-                        //ctx.rect(0 ,0, 50, 50)
-                        ctx.stroke()
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.restore()
                         break;
                 }
                 //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
             }
-            let chance = Math.random()
+
+            
+            ctx.restore()
+            ctx.beginPath()
+            ctx.fillStyle = '#000010'
+            ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.beginPath()
+            ctx.fillStyle = '#C3C3C3'
+            ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.translate(currx, curry)
+            ctx.rotate((Math.PI / 180) * this.angle)
+            ctx.fillStyle = 'black'
+            ctx.beginPath()
+            ctx.arc(0 + 9, 0 + 8, 6, 0, 2*Math.PI);
+            ctx.arc(0 + 9, 0 - 8, 6, 0, 2*Math.PI);
+            ctx.fill()
+            ctx.fillStyle = 'white'
+            ctx.beginPath()
+            ctx.arc(0 + 6.5, 0 + 7, 2.5, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
+            ctx.fill()
             ctx.restore();
             ctx.restore()
         }
