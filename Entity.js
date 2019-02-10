@@ -256,10 +256,18 @@ module.exports = function (nsp, ns) {
             this.axe = {
                 ready:true,
                 reload: {
-                    speed: 40,
+                    speed: 20,
                     timer: 0
                 },
                 damage: 3.75,
+            }
+            this.pickaxe = {
+                ready:true,
+                reload: {
+                    speed: 20,
+                    timer: 0
+                },
+                damage: 1.75,
             }
             this.hands = {
                 l: {
@@ -377,7 +385,7 @@ module.exports = function (nsp, ns) {
                 this.mainHands = 'hand'
             } else {
                 this.mainHands = this.inventory.get(this.mainHand).id
-                if (this.axe.ready && this.move.att) {
+                if (this.axe.ready && this.move.att && this.mainHands == 'Axe') {
                     if(this.axe.timeout) clearTimeout(this.axe.timeout.timeout)
                     let axerad = this.rad/25 * 15
                     let hposfl = Vector.create(0, -60 * this.rad/25)
@@ -390,9 +398,9 @@ module.exports = function (nsp, ns) {
                     hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
                     Vector.add(this.body.position, hposfr, hposfr)
                     this.axe.ready = false
-                    this.axeHit = true
+                    this.hitting = true
                     this.axe.timeout = new Timeout(() => {
-                        this.axeHit = false
+                        this.hitting = false
                         this.axe.timeout = null
                         this.axe.ready = true
                     }, 5000/3)
@@ -418,8 +426,55 @@ module.exports = function (nsp, ns) {
                         }
                     })
                     this.treetargs.forEach(tree => {
-                        this.inventory.addItem(new Slot('wood', 8, 'draw', 255, false))
+                        this.inventory.addItem(new Slot('wood', 4, 'draw', 255, false))
                         this.score += 32
+                        this.needsSelfUpdate = true
+                    })
+                }
+                if (this.pickaxe.ready && this.move.att && this.mainHands == 'Pickaxe') {
+                    console.log(this.mainHands)
+                    if(this.pickaxe.timeout) clearTimeout(this.pickaxe.timeout.timeout)
+                    let axerad = this.rad/25 * 15
+                    let hposfl = Vector.create(0, -60 * this.rad/25)
+                    hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
+                    hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
+                    Vector.add(this.body.position, hposfl, hposfl)
+
+                    let hposfr = Vector.create(0, -60 * this.rad/25)
+                    hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
+                    hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
+                    Vector.add(this.body.position, hposfr, hposfr)
+                    this.pickaxe.ready = false
+                    this.hitting = true
+                    this.pickaxe.timeout = new Timeout(() => {
+                        this.hitting = false
+                        this.pickaxe.timeout = null
+                        this.pickaxe.ready = true
+                    }, 5000/3)
+                    for (var i = 0; i < Players.list.length; i++) {
+                        var p = Players.list[i]
+                        if ((Vector.getDistance(hposfr, p.body.position) < p.rad + axerad || 
+                             Vector.getDistance(hposfl, p.body.position) < p.rad + axerad) && this.id != p.id) {
+                            this.targets.push(p)
+                        }
+                    }
+                    this.game.Stones.list.forEach(stone => {
+                        if ((Vector.getDistance(
+                            hposfl, {x: stone.x, y:stone.y + 50}) < axerad - 50 || 
+                            Vector.getDistance(hposfl, {x: stone.x, y:stone.y - 50}) < axerad + 50)) {
+                            this.treetargs.push(stone)
+                        }
+                    })
+                    this.pickaxe.reload.timer = this.axe.reload.speed
+                    this.targets.forEach( p => {
+                        p.health -= this.pickaxe.damage
+                        if (p.health <= 0) {
+                            this.score += p.score/2 + 2
+                        }
+                    })
+                    this.treetargs.forEach(tree => {
+                        this.inventory.addItem(new Slot('stone', 4, 'draw', 255, false))
+                        this.score += 16
                         this.needsSelfUpdate = true
                     })
                 }
@@ -505,10 +560,10 @@ module.exports = function (nsp, ns) {
                 angle: this.move.ang,
                 lhit: this.lhit,
                 rhit: this.rhit,
-                axeHit: this.axeHit
+                hitting: this.hitting
             }
             if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
-            if(this.axeHit) pack.axeper = Math.roundToDeci(this.axe.timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this.axe.timeout.percntDone, 1000)
+            if(this.hitting) pack.per = Math.roundToDeci(this[this.inventory.get(this.mainHand).image].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.inventory.get(this.mainHand).image].timeout.percntDone, 1000)
             return pack
         }
         getSelfUpdatePack() {
@@ -819,7 +874,7 @@ module.exports = function (nsp, ns) {
         //console.log(inWay)
         while(inWay){
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
+            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             inWay = false
             STrees.list.forEach(tree => {
                 if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
@@ -837,7 +892,7 @@ module.exports = function (nsp, ns) {
     setInterval(function(){
         if(Stones.list.length >= 7) return
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
         let inWay = false
         STrees.list.forEach(tree => {
             if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 1) inWay = true
@@ -850,7 +905,7 @@ module.exports = function (nsp, ns) {
         })
         while(inWay){
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
+            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             inWay = false
             STrees.list.forEach(tree => {
                 if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true

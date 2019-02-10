@@ -302,17 +302,36 @@ var init = function(name) {
                 switch(this.mainHand){ 
                     case 'Axe': 
                         ctx.save()
-                        if(this.axeHit) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.axeper + 60) + 60)))
-                        ctx.drawImage(Img.hand, 32 - 7.5 + 5, 15 - 7.5 - 5, 15, 15)
-                        ctx.drawImage(Img.hand, 32 - 7.5 + 5, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-60 * this.per + 30) + 30)))
+                        
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.beginPath()
-                        ctx.translate(-2.5 + 75/2, -30 + 75/2)
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
                         ctx.rotate((Math.PI / 180) * 180)
                         ctx.drawImage(Img['axe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.fillRect(0, 0, 10, 10)
                         //ctx.rect(0 ,0, 50, 50)
                         ctx.stroke()
                         ctx.restore()
+                        break;
+                    case 'Pickaxe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-60 * this.per + 30) + 30)))
                         
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.beginPath()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['pickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.fillRect(0, 0, 10, 10)
+                        //ctx.rect(0 ,0, 50, 50)
+                        ctx.stroke()
+                        ctx.restore()
+                        break;
                 }
                 //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
             }
@@ -330,9 +349,9 @@ var init = function(name) {
             this.angle = initPack.angle
             this.lhit = initPack.lhit
             this.rhit = initPack.rhit
-            this.axeHit = initPack.axeHit
+            this.hitting = initPack.hitting
             this.punchper = initPack.punchper
-            this.axeper = initPack.axeper
+            this.per = initPack.per
         }
         processSelfInitPack(initPack) {
             this.stamina = initPack.stamina
