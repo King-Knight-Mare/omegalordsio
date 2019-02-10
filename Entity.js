@@ -563,7 +563,7 @@ module.exports = function (nsp, ns) {
                 hitting: this.hitting
             }
             if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
-            if(this.hitting) pack.per = Math.roundToDeci(this[this.inventory.get(this.mainHand).image].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.inventory.get(this.mainHand).image].timeout.percntDone, 1000)
+            if(this.hitting && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.inventory.get(this.mainHand).image].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.inventory.get(this.mainHand).image].timeout.percntDone, 1000)
             return pack
         }
         getSelfUpdatePack() {
