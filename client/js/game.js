@@ -93,6 +93,7 @@ var init = function(name) {
     socket.on('unable', function() {
 
     })
+    socket.on('disconnect', () => {die()})
     handlekeyDown = function(event) {
         switch (event.keyCode) {
             case 65: // A
