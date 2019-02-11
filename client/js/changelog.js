@@ -4,16 +4,17 @@ var changelog = {
         'Nerfed Axe',
         'Added Pickaxe and axe animations',
         'Fixed Pickaxe and Axe animations',
-        'Fixed glitch where unequiping tool midattack crashes game'
+        'Fixed glitch where unequiping tool midattack crashes game',
+        'Fixed Pickaxe and Axe hitboxes',
+        'Fixed numerous glitches that crash the game',
+        'Fixed Interia'
     ],
     Plans: [
+        'Add sword',
         'Make a better pickaxe image',
-        'Change axe and pickaxe hitboxes',
-        'Fix Inertia AGAIN',
         'Add background',
         'Add Spear',
         'Add Armor', 
         'Add abiliies', 
-        'Add clothes', 
-        'Change how score is gained']
+        'Add clothes', ]
 }

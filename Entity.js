@@ -1,4 +1,3 @@
-
 Math = require("./math.js");
 const Matter = require("matter-js")
 const Timeout = require('./timeout.js')
@@ -234,7 +233,7 @@ module.exports = function (nsp, ns) {
             this.id = id
             this.socket = socket
             this.rad = 30
-            this.body = Bodies.circle(Math.getRandomNum(this.rad, this.game.map.width - this.rad), Math.getRandomNum(this.rad, this.game.map.height - this.rad), this.rad, {friction:0.8, restitution:0.15})
+            this.body = Bodies.circle(Math.getRandomNum(this.rad, this.game.map.width - this.rad), Math.getRandomNum(this.rad, this.game.map.height - this.rad), this.rad, {frictionAir:0.05, restitution:0.15})
             World.addBody(this.game.engine.world, this.body)
             //new Guns.types['pistol'](getRandomNum(25, 2090), getRandomNum(25,1463))
             this.inventory = new Inventory()
@@ -383,20 +382,17 @@ module.exports = function (nsp, ns) {
             }
             if (this.inventory.get(this.mainHand) == undefined) {
                 this.mainHands = 'hand'
+                
             } else {
                 this.mainHands = this.inventory.get(this.mainHand).id
                 if (this.axe.ready && this.move.att && this.mainHands == 'Axe') {
                     if(this.axe.timeout) clearTimeout(this.axe.timeout.timeout)
                     let axerad = this.rad/25 * 15
-                    let hposfl = Vector.create(0, -60 * this.rad/25)
-                    hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
-                    hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
-                    Vector.add(this.body.position, hposfl, hposfl)
-
-                    let hposfr = Vector.create(0, -60 * this.rad/25)
-                    hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
-                    hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
-                    Vector.add(this.body.position, hposfr, hposfr)
+                    let axep = Vector.create(0, 70 * this.rad/25)
+                    axep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
+                    axep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
+                    Vector.add(this.body.position, axep, axep)
+                    let treetargs = []
                     this.axe.ready = false
                     this.hitting = true
                     this.axe.timeout = new Timeout(() => {
@@ -406,16 +402,14 @@ module.exports = function (nsp, ns) {
                     }, 5000/3)
                     for (var i = 0; i < Players.list.length; i++) {
                         var p = Players.list[i]
-                        if ((Vector.getDistance(hposfr, p.body.position) < p.rad + axerad || 
-                             Vector.getDistance(hposfl, p.body.position) < p.rad + axerad) && this.id != p.id) {
+                        if (Vector.getDistance(axep, p.body.position) < p.rad + axerad
+                              && this.id != p.id) {
                             this.targets.push(p)
                         }
                     }
                     this.game.STrees.list.forEach(tree => {
-                        if ((Vector.getDistance(
-                            hposfl, {x: tree.x, y:tree.y + tree.acumheight}) < axerad - tree.acumheight || 
-                            Vector.getDistance(hposfl, {x: tree.x, y:tree.y - tree.acumheight}) < axerad + tree.acumheight)) {
-                            this.treetargs.push(tree)
+                        if(Vector.getDistance(axep, tree) < axerad + 50) {
+                            treetargs.push(tree)
                         }
                     })
                     this.axe.reload.timer = this.axe.reload.speed
@@ -425,25 +419,23 @@ module.exports = function (nsp, ns) {
                             this.score += p.score/2 + 2
                         }
                     })
-                    this.treetargs.forEach(tree => {
-                        this.inventory.addItem(new Slot('wood', 4, 'draw', 255, false))
-                        this.score += 32
-                        this.needsSelfUpdate = true
-                    })
+                    let self = this
+                    new Timeout(() => {
+                        treetargs.forEach(tree => {
+                            self.inventory.addItem(new Slot('wood', 4, 'draw', 255, false))
+                            self.score += 16
+                            self.needsSelfUpdate = true
+                        })
+                    }, 2500/3)
                 }
                 if (this.pickaxe.ready && this.move.att && this.mainHands == 'Pickaxe') {
-                    console.log(this.mainHands)
                     if(this.pickaxe.timeout) clearTimeout(this.pickaxe.timeout.timeout)
-                    let axerad = this.rad/25 * 15
-                    let hposfl = Vector.create(0, -60 * this.rad/25)
-                    hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
-                    hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfl);
-                    Vector.add(this.body.position, hposfl, hposfl)
-
-                    let hposfr = Vector.create(0, -60 * this.rad/25)
-                    hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
-                    hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(hposfr);
-                    Vector.add(this.body.position, hposfr, hposfr)
+                    let paxerad = this.rad/25 * 30
+                    let paxep = Vector.create(0, 70 * this.rad/25)
+                    paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
+                    paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
+                    Vector.add(this.body.position, paxep, paxep)
+                    let stonetargs = []
                     this.pickaxe.ready = false
                     this.hitting = true
                     this.pickaxe.timeout = new Timeout(() => {
@@ -453,30 +445,31 @@ module.exports = function (nsp, ns) {
                     }, 5000/3)
                     for (var i = 0; i < Players.list.length; i++) {
                         var p = Players.list[i]
-                        if ((Vector.getDistance(hposfr, p.body.position) < p.rad + axerad || 
-                             Vector.getDistance(hposfl, p.body.position) < p.rad + axerad) && this.id != p.id) {
+                        if (Vector.getDistance(paxep, p.body.position) < p.rad + paxerad
+                              && this.id != p.id) {
                             this.targets.push(p)
                         }
                     }
                     this.game.Stones.list.forEach(stone => {
-                        if ((Vector.getDistance(
-                            hposfl, {x: stone.x, y:stone.y + 50}) < axerad - 50 || 
-                            Vector.getDistance(hposfl, {x: stone.x, y:stone.y - 50}) < axerad + 50)) {
-                            this.treetargs.push(stone)
+                        if(Vector.getDistance(paxep, stone.body.position) < paxerad + 50) {
+                            stonetargs.push(stone)
                         }
                     })
-                    this.pickaxe.reload.timer = this.axe.reload.speed
+                    this.pickaxe.reload.timer = this.pickaxe.reload.speed
                     this.targets.forEach( p => {
-                        p.health -= this.pickaxe.damage
+                        p.health -= this.axe.damage
                         if (p.health <= 0) {
                             this.score += p.score/2 + 2
                         }
                     })
-                    this.treetargs.forEach(tree => {
-                        this.inventory.addItem(new Slot('stone', 4, 'draw', 255, false))
-                        this.score += 16
-                        this.needsSelfUpdate = true
-                    })
+                    let self = this
+                    new Timeout(() => {
+                        stonetargs.forEach(tree => {
+                            self.inventory.addItem(new Slot('stone', 4, 'draw', 255, false))
+                            self.score += 16
+                            self.needsSelfUpdate = true
+                        })
+                    }, 2500/3)
                 }
             }
             if (this.move.att) {
@@ -857,35 +850,18 @@ module.exports = function (nsp, ns) {
     setInterval(function(){
         if(STrees.list.length >= 10) return
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 - 50
-        //console.log(tempx)
-        //let tempx = Math.getRandomInt(0, 30) * 100 + 50
-        //let tempy = Math.getRandomInt(0, 30) * 100 + 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
         let inWay = false
         STrees.list.forEach(tree => {
-            if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 1) inWay = true
+            if({x:tempx, y:tempy} == tree.body.position) inWay = true
         })
         Players.list.forEach(player => {
             if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
         })
         Stones.list.forEach(stone => {
-            if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 1) inWay = true
+            if({x:tempx, y:tempy} == stone.body.position) inWay = true
         })
-        //console.log(inWay)
-        while(inWay){
-            let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
-            inWay = false
-            STrees.list.forEach(tree => {
-                if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
-            })
-            Players.list.forEach(player => {
-                if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <=200) inWay = true
-            })
-            Stones.list.forEach(stone => {
-                if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 200) inWay = true
-            })
-        }
+        if(inWay) return
         new STree(tempx, tempy)
     }, 1000)
     
@@ -895,28 +871,15 @@ module.exports = function (nsp, ns) {
         let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
         let inWay = false
         STrees.list.forEach(tree => {
-            if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 1) inWay = true
+            if({x:tempx, y:tempy} == tree.body.position) inWay = true
         })
         Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 200) inWay = true
+            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
         })
         Stones.list.forEach(stone => {
-            if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 1) inWay = true
+            if({x:tempx, y:tempy} == stone.body.position) inWay = true
         })
-        while(inWay){
-            let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
-            inWay = false
-            STrees.list.forEach(tree => {
-                if(Vector.getDistance({x:tempx, y:tempy}, tree) <= 200) inWay = true
-            })
-            Players.list.forEach(player => {
-                if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 200) inWay = true
-            })
-            Stones.list.forEach(stone => {
-                if(Vector.getDistance({x:tempx, y:tempy}, stone.body.position) <= 200) inWay = true
-            })
-        }
+        if(inWay) return
         new Stone(tempx, tempy, 10)
     }, 1000)
     this.nsp.on('connection', function (socket) {
@@ -930,6 +893,7 @@ module.exports = function (nsp, ns) {
             slotnum = slotnum.toString()
             let playa = Players.list.find(player => player.id == socket.id)
             let slot = playa.inventory.get(slotnum)
+            if(playa.hitting) playa.hitting = false
             if(playa.mainHand == slotnum) return playa.mainHand = '-1'
             if(!slot.equipable) return 
             playa.mainHand = slotnum
