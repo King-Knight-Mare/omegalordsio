@@ -303,6 +303,7 @@ var init = function(name) {
                     case 'Stone Pickaxe': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
+                        
                         if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
                         ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
@@ -310,6 +311,33 @@ var init = function(name) {
                         ctx.drawImage(Img['stonepickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
                         ctx.restore()
                         ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Stone Sword': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                      
+                        ctx.strokeStyle = 'black'
+                        ctx.lineWidth = '20px'
+                        
+                        /*ctx.beginPath()
+                        ctx.moveTo(0, 50)
+                        ctx.lineTo(0, -50)
+                        ctx.stroke()
+                        ctx.beginPath()
+                        ctx.moveTo(50, 0)
+                        ctx.lineTo(-50, 0)
+                        ctx.stroke()*/
+                        ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                    
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['stonesword'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                    
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.restore()
                         break;

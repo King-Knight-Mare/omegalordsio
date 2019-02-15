@@ -7,10 +7,11 @@ var changelog = {
         'Fixed glitch where unequiping tool midattack crashes game',
         'Fixed Pickaxe and Axe hitboxes',
         'Fixed numerous glitches that crash the game',
-        'Fixed Interia'
+        'Fixed Interia',
+        'Added Sword',
     ],
     Plans: [
-        'Add sword',
+        'Add Gold',
         'Make a better pickaxe image',
         'Add background',
         'Add Spear',
