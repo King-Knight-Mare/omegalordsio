@@ -101,22 +101,22 @@ module.exports = function (nsp, ns) {
         constructor(){
             super([
                 [
-                    'Axe', 
+                    'Stone Axe', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
+                            {id:'wood', count:5},
                             {id:'stone', count:5}
                         ],
                         output:{
                             count:1,
-                            image:'axe',
+                            image:'stoneaxe',
                             stackSize:1,
                             equipable:true
                         }
                     }
                 ],
                 [
-                    'Pickaxe', 
+                    'Stone Pickaxe', 
                     {
                         recipe:[
                             {id:'wood', count:10},
@@ -124,7 +124,22 @@ module.exports = function (nsp, ns) {
                         ],
                         output:{
                             count:1,
-                            image:'pickaxe',
+                            image:'stonepickaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Stone Sword', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'stonesword',
                             stackSize:1,
                             equipable:true
                         }
@@ -177,7 +192,7 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', 'empty'],
+                ['1', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
                 ['2', 'empty'], 
                 ['3', 'empty'], 
                 ['4', 'empty'], 
@@ -233,7 +248,7 @@ module.exports = function (nsp, ns) {
             this.id = id
             this.socket = socket
             this.rad = 30
-            this.body = Bodies.circle(Math.getRandomNum(this.rad, this.game.map.width - this.rad), Math.getRandomNum(this.rad, this.game.map.height - this.rad), this.rad, {frictionAir:0.05, restitution:0.15})
+            this.body = Bodies.circle(Math.getRandomNum(this.rad, this.game.map.width - this.rad), Math.getRandomNum(this.rad, this.game.map.height - this.rad), this.rad, {frictionAir:0.02, restitution:0.15})
             World.addBody(this.game.engine.world, this.body)
             //new Guns.types['pistol'](getRandomNum(25, 2090), getRandomNum(25,1463))
             this.inventory = new Inventory()
@@ -252,7 +267,7 @@ module.exports = function (nsp, ns) {
                 damage: 1 / 2,
                 health: 1,
             }
-            this.axe = {
+            this.stoneaxe = {
                 ready:true,
                 reload: {
                     speed: 20,
@@ -260,13 +275,13 @@ module.exports = function (nsp, ns) {
                 },
                 damage: 3.75,
             }
-            this.pickaxe = {
+            this.stonepickaxe = {
                 ready:true,
-                reload: {
-                    speed: 20,
-                    timer: 0
-                },
                 damage: 1.75,
+            }
+            this.stonesword = {
+                ready:true,
+                damage: 5,
             }
             this.hands = {
                 l: {
@@ -374,9 +389,6 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
 
-            if (this.axe.reload.timer > 0) {
-                this.axe.reload.timer--
-            }
             if (this.punch.reload.timer > 0) {
                 this.punch.reload.timer--
             }
@@ -385,20 +397,20 @@ module.exports = function (nsp, ns) {
                 
             } else {
                 this.mainHands = this.inventory.get(this.mainHand).id
-                if (this.axe.ready && this.move.att && this.mainHands == 'Axe') {
-                    if(this.axe.timeout) clearTimeout(this.axe.timeout.timeout)
+                if (this.stoneaxe.ready && this.move.att && this.mainHands == 'Stone Axe') {
+                    if(this.stoneaxe.timeout) clearTimeout(this.stoneaxe.timeout.timeout)
                     let axerad = this.rad/25 * 15
                     let axep = Vector.create(0, 70 * this.rad/25)
                     axep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
                     axep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
                     Vector.add(this.body.position, axep, axep)
                     let treetargs = []
-                    this.axe.ready = false
+                    this.stoneaxe.ready = false
                     this.hitting = true
-                    this.axe.timeout = new Timeout(() => {
+                    this.stoneaxe.timeout = new Timeout(() => {
                         this.hitting = false
-                        this.axe.timeout = null
-                        this.axe.ready = true
+                        this.stoneaxe.timeout = null
+                        this.stoneaxe.ready = true
                     }, 5000/3)
                     for (var i = 0; i < Players.list.length; i++) {
                         var p = Players.list[i]
@@ -412,9 +424,8 @@ module.exports = function (nsp, ns) {
                             treetargs.push(tree)
                         }
                     })
-                    this.axe.reload.timer = this.axe.reload.speed
                     this.targets.forEach( p => {
-                        p.health -= this.axe.damage
+                        p.health -= this.stoneaxe.damage
                         if (p.health <= 0) {
                             this.score += p.score/2 + 2
                         }
@@ -428,20 +439,20 @@ module.exports = function (nsp, ns) {
                         })
                     }, 2500/3)
                 }
-                if (this.pickaxe.ready && this.move.att && this.mainHands == 'Pickaxe') {
-                    if(this.pickaxe.timeout) clearTimeout(this.pickaxe.timeout.timeout)
+                if (this.stonepickaxe.ready && this.move.att && this.mainHands == 'Stone Pickaxe') {
+                    if(this.stonepickaxe.timeout) clearTimeout(this.stonepickaxe.timeout.timeout)
                     let paxerad = this.rad/25 * 30
                     let paxep = Vector.create(0, 70 * this.rad/25)
                     paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                     paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                     Vector.add(this.body.position, paxep, paxep)
                     let stonetargs = []
-                    this.pickaxe.ready = false
+                    this.stonepickaxe.ready = false
                     this.hitting = true
-                    this.pickaxe.timeout = new Timeout(() => {
+                    this.stonepickaxe.timeout = new Timeout(() => {
                         this.hitting = false
-                        this.pickaxe.timeout = null
-                        this.pickaxe.ready = true
+                        this.stonepickaxe.timeout = null
+                        this.stonepickaxe.ready = true
                     }, 5000/3)
                     for (var i = 0; i < Players.list.length; i++) {
                         var p = Players.list[i]
@@ -455,9 +466,8 @@ module.exports = function (nsp, ns) {
                             stonetargs.push(stone)
                         }
                     })
-                    this.pickaxe.reload.timer = this.pickaxe.reload.speed
                     this.targets.forEach( p => {
-                        p.health -= this.axe.damage
+                        p.health -= this.stonepickaxe.damage
                         if (p.health <= 0) {
                             this.score += p.score/2 + 2
                         }
@@ -468,6 +478,39 @@ module.exports = function (nsp, ns) {
                             self.inventory.addItem(new Slot('stone', 4, 'draw', 255, false))
                             self.score += 16
                             self.needsSelfUpdate = true
+                        })
+                    }, 2500/3)
+                }
+                if (this.stonesword.ready && this.move.att && this.mainHands == 'Stone Sword') {
+                    if(this.stonesword.timeout) clearTimeout(this.stonesword.timeout.timeout)
+                    let paxerad = this.rad/25 * 30
+                    let paxep = Vector.create(0, 70 * this.rad/25)
+                    paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
+                    paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
+                    Vector.add(this.body.position, paxep, paxep)
+                    let stonetargs = []
+                    let targs = []
+                    this.stonesword.ready = false
+                    this.hitting = true
+                    this.stonesword.timeout = new Timeout(() => {
+                        this.hitting = false
+                        this.stonesword.timeout = null
+                        this.stonesword.ready = true
+                    }, 5000/3)
+                    for (var i = 0; i < Players.list.length; i++) {
+                        var p = Players.list[i]
+                        if (Vector.getDistance(paxep, p.body.position) < p.rad + paxerad
+                              && this.id != p.id) {
+                            targs.push(p)
+                        }
+                    }
+                    let self = this
+                    new Timeout(() => {
+                        targs.forEach( p => {
+                            p.health -= this.stonesword.damage
+                            if (p.health <= 0) {
+                                this.score += p.score/2 + 2
+                            }
                         })
                     }, 2500/3)
                 }

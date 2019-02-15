@@ -38,8 +38,9 @@ let createImage = (src, extention) => {
     Img[`${src}`].src = `/client/img/${src}.${extention}`
 }
 createImage('tree1', 'png')
-createImage('axe',  'png')
-createImage('pickaxe',  'png')
+createImage('stoneaxe',  'png')
+createImage('stonepickaxe',  'png')
+createImage('stonesword',  'png')
 createImage('stone', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
@@ -285,28 +286,28 @@ var init = function(name) {
                 }
             } else {
                 switch(this.mainHand){ 
-                    case 'Axe': 
+                    case 'Stone Axe': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
                         if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
                         ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
                         ctx.rotate((Math.PI / 180) * 180)
-                        ctx.drawImage(Img['axe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.drawImage(Img['stoneaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
                         ctx.restore()
                         ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.restore()
                         break;
                         break;
-                    case 'Pickaxe': 
+                    case 'Stone Pickaxe': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
                         if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
                         ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
                         ctx.rotate((Math.PI / 180) * 180)
-                        ctx.drawImage(Img['pickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.drawImage(Img['stonepickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
                         ctx.restore()
                         ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
@@ -524,7 +525,7 @@ var init = function(name) {
                 ctx.font  = '10px Arial'
                 playa.craftables.forEach((craft, i) => {
                     switch(craft){
-                        case 'Axe' :
+                        case 'Stone Axe' :
                             ctx.globalAlpha = 0.875
                             ctx.lineWidth = 2
                             ctx.fillStyle = 'black'
@@ -538,10 +539,10 @@ var init = function(name) {
                             ctx.save()
                             ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
                             ctx.rotate(Math.PI/180 * 45)
-                            ctx.drawImage(Img['axe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.drawImage(Img['stoneaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                             break;
-                        case 'Pickaxe' :
+                        case 'Stone Pickaxe' :
                             ctx.globalAlpha = 0.875
                             ctx.lineWidth = 2
                             ctx.fillStyle = 'black'
@@ -555,7 +556,24 @@ var init = function(name) {
                             ctx.save()
                             ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
                             ctx.rotate(Math.PI/180 * 45)
-                            ctx.drawImage(Img['pickaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.drawImage(Img['stonepickaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Stone Sword' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['stonesword'], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                             break;
                     }
@@ -618,17 +636,23 @@ var init = function(name) {
                         ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
-                    }else if(slot.type == 'Axe') {
+                    }else if(slot.type == 'Stone Axe') {
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 45)
-                        ctx.drawImage(Img['axe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.drawImage(Img['stoneaxe'], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
-                    }else if(slot.type == 'Pickaxe') {
+                    }else if(slot.type == 'Stone Pickaxe') {
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 45)
-                        ctx.drawImage(Img['pickaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.drawImage(Img['stonepickaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Stone Sword') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['stonesword'], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
                     }else if(slot.type == 'stone'){
                         ctx.save()
