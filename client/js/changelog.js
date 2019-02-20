@@ -6,10 +6,11 @@ var changelog = {
         'Buffed axe and pickaxe damage',
         'Buffed sword damage',
         'Nerfed score from wood and stone',
-        'Took me all night to make'
+        'Took me all night to make',
+        'You can now drop and pick up items',
     ],
     Plans: [
-        'Make it so that thrown items can be picked up',
+        'Make inventory draggable',
         'Add background',
         'Add a new AI',
         'Add Spear',

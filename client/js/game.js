@@ -137,7 +137,7 @@ var init = function(name) {
             case 16:
                 movement.running = true;
                 break;
-            case 39:
+            case 69:
                 movement.grab = true
                 break;
             default :
@@ -177,7 +177,7 @@ var init = function(name) {
             case 16:
                 movement.running = false
                 break;
-            case 39:
+            case 69:
                 movement.grab = false
                 break;
         }
@@ -193,6 +193,7 @@ var init = function(name) {
                socket.emit('craft', craft)
             }
         })
+        if(found) return
         if(e.button == 2) found = true
         /*
         
