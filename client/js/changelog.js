@@ -9,6 +9,7 @@ var changelog = {
         'Fixed numerous glitches that crash the game',
         'Fixed Interia',
         'Added Sword',
+        'There are now 3 new ores that you cannot mine LOL'
     ],
     Plans: [
         'Add Gold',

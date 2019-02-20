@@ -42,6 +42,9 @@ createImage('stoneaxe',  'png')
 createImage('stonepickaxe',  'png')
 createImage('stonesword',  'png')
 createImage('stone', 'png')
+createImage('iron', 'png')
+createImage('gold', 'png')
+createImage('diamond', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
 Img.map.src = '/client/img/map.png'
@@ -417,6 +420,43 @@ var init = function(name) {
             ctx.drawImage(Img['stone'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    
+    var Irons = new Map()
+    class Iron {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Irons.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['iron'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var Golds = new Map()
+    class Gold {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Golds.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['gold'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var Diamonds = new Map()
+    class Diamond {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Stones.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
     class Bullet {
         /**
          * 
@@ -459,6 +499,16 @@ var init = function(name) {
         pack.stone.forEach((initPack)=>{
             new Stone(initPack)
         })
+        pack.iron.forEach((initPack)=>{
+            new Iron(initPack)
+        })
+        
+        pack.gold.forEach((initPack)=>{
+            new Gold(initPack)
+        })
+        pack.diamond.forEach((initPack)=>{
+            new Diamond(initPack)
+        })
     }
     /**
      * 
@@ -476,6 +526,15 @@ var init = function(name) {
         })
         pack.stone.forEach((id) => {
             Stones.delete(id)
+        })
+        pack.iron.forEach((id) => {
+            Irons.delete(id)
+        })
+        pack.gold.forEach((id) => {
+            Golds.delete(id)
+        })
+        pack.diamond.forEach((id) => {
+            Diamonds.delete(id)
         })
     }
     socket.on('death', die)
@@ -498,7 +557,7 @@ var init = function(name) {
                 var x = canvas.width / 2 - playa.x
                 var y = canvas.height / 2 - playa.y
                 ctx.fillStyle = '#876833'
-                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 1500, 1500)
+                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2500, 2500)
                 //ctx.drawImage(Img.map, canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2105, 1488)
                 pack.player.forEach(function(package) {
                     /**
@@ -515,12 +574,21 @@ var init = function(name) {
                     toUpdate.catchLayers(pack)
                 })
                 
-                
                 CTrees.forEach((tree) => {
                     tree.show(x, y)
                 })
                 Stones.forEach((stone) => {
                     stone.show(x, y)
+                })
+                Irons.forEach((iron) => {
+                    iron.show(x, y)
+                })
+                
+                Golds.forEach((gold) => {
+                    gold.show(x, y)
+                })
+                Diamonds.forEach((diamond) => {
+                    diamond.show(x, y)
                 })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()

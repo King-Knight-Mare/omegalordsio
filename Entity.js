@@ -29,8 +29,8 @@ module.exports = function (nsp, ns) {
     let sunpertree = 1
     engine.world.gravity.y = 0
     this.map = {
-        width:1500,
-        height:1500
+        width:2500,
+        height:2500
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
