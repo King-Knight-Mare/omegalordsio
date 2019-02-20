@@ -193,8 +193,8 @@ module.exports = function (nsp, ns) {
         constructor(){
             super([
                 ['1', new Slot('Stone Axe', 1, 'stoneaxe', true, 1)],
-                ['2', 'empty'], 
-                ['3', 'empty'], 
+                ['2', new Slot('Stone Pickaxe', 1, 'stonepickaxe', true, 1)], 
+                ['3', new Slot('Stone Sword', 1, 'stonesword', true, 1)], 
                 ['4', 'empty'], 
                 ['5', 'empty'], 
                 ['6', 'empty'], 
@@ -307,7 +307,22 @@ module.exports = function (nsp, ns) {
                     mines:[{item:'stone', count:20}, {item:'iron', count:12}, {item:'gold', count:8}, {item:'diamond', count:3}]
                 },
             }
-            
+            this.sword = {
+                ready:true,
+                timeout:null,
+                stone:{
+                    damage:5,
+                },
+                iron:{
+                    damage:7,
+                },
+                gold:{
+                    damage:9,
+                },
+                diamond:{
+                    damage:12,
+                },
+            }
             this.stoneaxe = {
                 ready:true,
                 reload: {
@@ -440,7 +455,6 @@ module.exports = function (nsp, ns) {
                 this.mainHands = this.inventory.get(this.mainHand).id
                 let toolReg = /\w+\s(Axe|Pickaxe|Sword)/
                 if(toolReg.test(this.mainHands)){
-                    
                     if(/Axe/.test(this.mainHands) && this.axe.ready && this.move.att){
                         
                         let u
@@ -478,7 +492,6 @@ module.exports = function (nsp, ns) {
                             }
                         })
                         targs.forEach( p => {
-                            console.log(u, this.axe)
                             p.health -= this.axe[u].damage
                             if (p.health <= 0) {
                                 this.score += p.score/2 + 2
@@ -492,105 +505,104 @@ module.exports = function (nsp, ns) {
                                 self.needsSelfUpdate = true
                             })
                             targs.forEach( p => {
-                                p.health -= this.stoneaxe.damage
+                                p.health -= this.axe[u].damage
                                 if (p.health <= 0) {
-                                    this.axe[u].damage += p.score/2 + 2
+                                    this.score += p.score/2 + 2
+                                }
+                            })
+                        }, 2500/3)
+                    }
+                    if(/Pickaxe/.test(this.mainHands) && this.pickaxe.ready && this.move.att){
+                        let u
+                        this.tool = 'pickaxe'
+                        if(/^Stone/.test(this.mainHands)) u = 'stone'
+                        else if(/^Iron/.test(this.mainHands)) u = 'iron'
+                        else if(/^Gold/.test(this.mainHands)) u = 'gold'
+                        else if(/^Diamond/.test(this.mainHands)) u = 'diamond'
+                        if(this.pickaxe.timeout) clearTimeout(this.pickaxe.timeout.timeout)
+                        let paxerad = this.rad/25 * 30
+                        let paxep = Vector.create(0, 70 * this.rad/25)
+                        paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
+                        paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
+                        Vector.add(this.body.position, paxep, paxep)
+                        let stonetargs = []
+                        let targs = []
+                        this.pickaxe.ready = false
+                        this.hitting = true
+                        this.pickaxe.timeout = new Timeout(() => {
+                            this.hitting = false
+                            this.pickaxe.timeout = null
+                            this.pickaxe.ready = true
+                            this.tool = null
+                        }, 5000/3)
+                        for (var i = 0; i < Players.list.length; i++) {
+                            var p = Players.list[i]
+                            if (Vector.getDistance(paxep, p.body.position) < p.rad + paxerad
+                                  && this.id != p.id) {
+                                targs.push(p)
+                            }
+                        }
+                        this.game.Stones.list.forEach(stone => {
+                            if(Vector.getDistance(paxep, stone) < paxerad + 50) {
+                                stonetargs.push(stone)
+                            }
+                        })
+                        let self = this
+                        new Timeout(() => {
+                            stonetargs.forEach(tree => {
+                                self.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'draw', 255, false))
+                                self.score += 16
+                                self.needsSelfUpdate = true
+                            })
+                            targs.forEach( p => {
+                                p.health -= this.pickaxe[u].damage
+                                if (p.health <= 0) {
+                                    this.score += p.score/2 + 2
+                                }
+                            })
+                        }, 2500/3)
+                    }
+                    if(/Sword/.test(this.mainHands) && this.sword.ready && this.move.att){
+                        let u
+                        this.tool = 'sword'
+                        if(/^Stone/.test(this.mainHands)) u = 'stone'
+                        else if(/^Iron/.test(this.mainHands)) u = 'iron'
+                        else if(/^Gold/.test(this.mainHands)) u = 'gold'
+                        else if(/^Diamond/.test(this.mainHands)) u = 'diamond'
+                        if(this.sword.timeout) clearTimeout(this.swor.timeout.timeout)
+                        let saxerad = this.rad/25 * 30
+                        let saxep = Vector.create(0, 70 * this.rad/25)
+                        saxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(saxep);
+                        saxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(saxep);
+                        Vector.add(this.body.position, saxep, saxep)
+                        let targs = []
+                        this.sword.ready = false
+                        this.hitting = true
+                        this.sword.timeout = new Timeout(() => {
+                            this.hitting = false
+                            this.sword.timeout = null
+                            this.sword.ready = true
+                            this.tool = null
+                        }, 5000/3)
+                        for (var i = 0; i < Players.list.length; i++) {
+                            var p = Players.list[i]
+                            if (Vector.getDistance(saxep, p.body.position) < p.rad + saxerad
+                                  && this.id != p.id) {
+                                targs.push(p)
+                            }
+                        }
+                        let self = this
+                        new Timeout(() => {
+                            targs.forEach( p => {
+                                p.health -= this.sword[u].damage
+                                if (p.health <= 0) {
+                                    this.score += p.score/2 + 2
                                 }
                             })
                         }, 2500/3)
                     }
                 }/*
-                if (this.stoneaxe.ready && this.move.att && this.mainHands == 'Stone Axe') {
-                    if(this.stoneaxe.timeout) clearTimeout(this.stoneaxe.timeout.timeout)
-                    let axerad = this.rad/25 * 15
-                    let axep = Vector.create(0, 70 * this.rad/25)
-                    axep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
-                    axep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
-                    Vector.add(this.body.position, axep, axep)
-                    let treetargs = []
-                    let targs = []
-                    this.stoneaxe.ready = false
-                    this.hitting = true
-                    this.stoneaxe.timeout = new Timeout(() => {
-                        this.hitting = false
-                        this.stoneaxe.timeout = null
-                        this.stoneaxe.ready = true
-                    }, 5000/3)
-                    for (var i = 0; i < Players.list.length; i++) {
-                        var p = Players.list[i]
-                        if (Vector.getDistance(axep, p.body.position) < p.rad + axerad
-                              && this.id != p.id) {
-                            targs.push(p)
-                        }
-                    }
-                    this.game.STrees.list.forEach(tree => {
-                        if(Vector.getDistance(axep, tree) < axerad + 50) {
-                            treetargs.push(tree)
-                        }
-                    })
-                    this.targets.forEach( p => {
-                        p.health -= this.stoneaxe.damage
-                        if (p.health <= 0) {
-                            this.score += p.score/2 + 2
-                        }
-                    })
-                    let self = this
-                    new Timeout(() => {
-                        treetargs.forEach(tree => {
-                            self.inventory.addItem(new Slot('wood', 4, 'draw', 255, false))
-                            self.score += 16
-                            self.needsSelfUpdate = true
-                        })
-                        targs.forEach( p => {
-                            p.health -= this.stoneaxe.damage
-                            if (p.health <= 0) {
-                                this.score += p.score/2 + 2
-                            }
-                        })
-                    }, 2500/3)
-                }
-                if (this.stonepickaxe.ready && this.move.att && this.mainHands == 'Stone Pickaxe') {
-                    if(this.stonepickaxe.timeout) clearTimeout(this.stonepickaxe.timeout.timeout)
-                    let paxerad = this.rad/25 * 30
-                    let paxep = Vector.create(0, 70 * this.rad/25)
-                    paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
-                    paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
-                    Vector.add(this.body.position, paxep, paxep)
-                    let stonetargs = []
-                    this.stonepickaxe.ready = false
-                    this.hitting = true
-                    this.stonepickaxe.timeout = new Timeout(() => {
-                        this.hitting = false
-                        this.stonepickaxe.timeout = null
-                        this.stonepickaxe.ready = true
-                    }, 5000/3)
-                    for (var i = 0; i < Players.list.length; i++) {
-                        var p = Players.list[i]
-                        if (Vector.getDistance(paxep, p.body.position) < p.rad + paxerad
-                              && this.id != p.id) {
-                            this.targets.push(p)
-                        }
-                    }
-                    this.game.Stones.list.forEach(stone => {
-                        if(Vector.getDistance(paxep, stone.body.position) < paxerad + 50) {
-                            stonetargs.push(stone)
-                        }
-                    })
-                    this.targets.forEach( p => {
-                        p.health -= this.stonepickaxe.damage
-                        if (p.health <= 0) {
-                            this.score += p.score/2 + 2
-                        }
-                    })
-                    let self = this
-                    new Timeout(() => {
-                        stonetargs.forEach(tree => {
-                            self.inventory.addItem(new Slot('stone', 4, 'draw', 255, false))
-                            self.score += 16
-                            self.needsSelfUpdate = true
-                        })
-                    }, 2500/3)
-                }
+                
                 if (this.stonesword.ready && this.move.att && this.mainHands == 'Stone Sword') {
                     if(this.stonesword.timeout) clearTimeout(this.stonesword.timeout.timeout)
                     let paxerad = this.rad/25 * 30
@@ -1142,7 +1154,7 @@ module.exports = function (nsp, ns) {
             slotnum = slotnum.toString()
             let playa = Players.list.find(player => player.id == socket.id)
             let slot = playa.inventory.get(slotnum)
-            if(playa.hitting) playa.hitting = false
+            if(playa.hitting || playa.punch.timeout) return
             if(playa.mainHand == slotnum) return playa.mainHand = '-1'
             if(!slot.equipable) return 
             playa.mainHand = slotnum
