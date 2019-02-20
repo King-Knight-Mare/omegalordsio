@@ -870,8 +870,38 @@ module.exports = function (nsp, ns) {
         list:[],
         update:function(){
             var pack = []
-            STrees.list.forEach(tree=>{
-                if(tree.needsUpdate) pack.push(tree.getUpdatePack())
+            Stones.list.forEach(stone => {
+                if(stone.needsUpdate) pack.push(stone.getUpdatePack())
+            })
+            return pack
+        }
+    }
+    var Irons = {
+        list:[],
+        update:function(){
+            var pack = []
+            Irons.list.forEach(iron => {
+                if(iron.needsUpdate) pack.push(iron.getUpdatePack())
+            })
+            return pack
+        }
+    }
+    var Golds = {
+        list:[],
+        update:function(){
+            var pack = []
+            Golds.list.forEach(gold => {
+                if(gold.needsUpdate) pack.push(gold.getUpdatePack())
+            })
+            return pack
+        }
+    }
+    var Diamonds = {
+        list:[],
+        update:function(){
+            var pack = []
+            Diamonds.list.forEach(diamond => {
+                if(diamond.needsUpdate) pack.push(diamond.getUpdatePack())
             })
             return pack
         }
@@ -916,7 +946,7 @@ module.exports = function (nsp, ns) {
             setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.iron.push(this.id)
-                Iron.list.splice(Iron.list.findIndex(element => element.id === this.id), 1);
+                Irons.list.splice(Irons.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
             }, 600000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
@@ -928,7 +958,7 @@ module.exports = function (nsp, ns) {
                 y:this.y,
                 id:this.id
             }
-            Iron.list.push(this)
+            Irons.list.push(this)
             initPack.iron.push(pack)
         }
         getInitPack(){
@@ -948,7 +978,7 @@ module.exports = function (nsp, ns) {
             setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.gold.push(this.id)
-                Gold.list.splice(Gold.list.findIndex(element => element.id === this.id), 1);
+                Golds.list.splice(Golds.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
             }, 600000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
@@ -960,7 +990,7 @@ module.exports = function (nsp, ns) {
                 y:this.y,
                 id:this.id
             }
-            Gold.list.push(this)
+            Golds.list.push(this)
             initPack.gold.push(pack)
         }
         getInitPack(){
@@ -993,7 +1023,7 @@ module.exports = function (nsp, ns) {
                 id:this.id
             }
             Diamonds.list.push(this)
-            initPack.diamonds.push(pack)
+            initPack.diamond.push(pack)
         }
         getInitPack(){
             return {
@@ -1124,6 +1154,57 @@ module.exports = function (nsp, ns) {
         })
         if(inWay) return
         new STree(tempx, tempy)
+    }, 1000)
+    setInterval(function(){
+        if(Irons.list.length >= 5) return
+        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
+        let inWay = false
+        STrees.list.forEach(tree => {
+            if({x:tempx, y:tempy} == tree.body.position) inWay = true
+        })
+        Players.list.forEach(player => {
+            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
+        })
+        Stones.list.forEach(stone => {
+            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+        })
+        if(inWay) return
+        new Iron(tempx, tempy)
+    }, 1000)   
+    setInterval(function(){
+        if(Golds.list.length >= 3) return
+        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
+        let inWay = false
+        STrees.list.forEach(tree => {
+            if({x:tempx, y:tempy} == tree.body.position) inWay = true
+        })
+        Players.list.forEach(player => {
+            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
+        })
+        Stones.list.forEach(stone => {
+            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+        })
+        if(inWay) return
+        new Gold(tempx, tempy)
+    }, 1000)   
+    setInterval(function(){
+        if(Diamonds.list.length >= 2) return
+        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
+        let inWay = false
+        STrees.list.forEach(tree => {
+            if({x:tempx, y:tempy} == tree.body.position) inWay = true
+        })
+        Players.list.forEach(player => {
+            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
+        })
+        Stones.list.forEach(stone => {
+            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+        })
+        if(inWay) return
+        new Diamond(tempx, tempy)
     }, 1000)   
     setInterval(function(){
         if(Stones.list.length >= 7) return
@@ -1186,7 +1267,9 @@ module.exports = function (nsp, ns) {
             })
             Stones.list.forEach( stone => pack.stone.push(stone.getInitPack()))
             STrees.list.forEach( tree => pack.tree.push(tree.getInitPack()))
-
+            Irons.list.forEach( iron => pack.iron.push(iron.getInitPack()))
+            Golds.list.forEach( gold => pack.gold.push(gold.getInitPack()))
+            Diamonds.list.forEach( diamond => pack.diamond.push(diamond.getInitPack()))
             /*
             Bullets.list.forEach(function(bullet){
                 pack.bullet.push(bulle)
