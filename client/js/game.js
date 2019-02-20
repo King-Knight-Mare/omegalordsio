@@ -311,7 +311,6 @@ var init = function(name) {
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.restore()
                         break;
-                        break;
                     case 'Stone Pickaxe': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
@@ -329,20 +328,9 @@ var init = function(name) {
                     case 'Stone Sword': 
                         ctx.save()
                         ctx.translate(32 - 7.5 + 5, 0)
-                      
                         ctx.strokeStyle = 'black'
                         ctx.lineWidth = '20px'
-                        
-                        /*ctx.beginPath()
-                        ctx.moveTo(0, 50)
-                        ctx.lineTo(0, -50)
-                        ctx.stroke()
-                        ctx.beginPath()
-                        ctx.moveTo(50, 0)
-                        ctx.lineTo(-50, 0)
-                        ctx.stroke()*/
                         ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
-                    
                         if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
                         ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
@@ -353,6 +341,137 @@ var init = function(name) {
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.restore()
                         break;
+                    case 'Iron Axe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['ironaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Iron Pickaxe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['ironpickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Iron Sword': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        ctx.strokeStyle = 'black'
+                        ctx.lineWidth = '20px'
+                        ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['ironsword'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                    
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Gold Axe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['goldae'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Gold Pickaxe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['goldpickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Gold Sword': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        ctx.strokeStyle = 'black'
+                        ctx.lineWidth = '20px'
+                        ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['goldsword'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                    
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Diamond Axe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['diamondaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Diamond Pickaxe': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['diamondpickaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    case 'Diamond Sword': 
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        ctx.strokeStyle = 'black'
+                        ctx.lineWidth = '20px'
+                        ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img['diamondsword'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                    
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                        break;
+                    
+                    
                 }
                 //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
             }
