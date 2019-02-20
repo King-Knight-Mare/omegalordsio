@@ -145,6 +145,141 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Iron Axe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Iron Pickaxe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironpickaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Iron Sword', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Gold Axe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'goldaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Gold Pickaxe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'goldpickaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Gold Sword', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'goldsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Diamond Axe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Diamond Pickaxe', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                            {id:'stone', count:5}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Diamond Sword', 
+                    {
+                        recipe:[
+                            {id:'wood', count:5},
+                            {id:'stone', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
                 //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
                 //['Black Ability', [{id:'wood', count:20}]]
             ])
@@ -526,6 +661,7 @@ module.exports = function (nsp, ns) {
                         paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                         Vector.add(this.body.position, paxep, paxep)
                         let stonetargs = []
+                        let irontargs = []
                         let targs = []
                         this.pickaxe.ready = false
                         this.hitting = true
@@ -547,10 +683,16 @@ module.exports = function (nsp, ns) {
                                 stonetargs.push(stone)
                             }
                         })
+                        this.game.Irons.list.forEach(iron => {
+                            if(Vector.getDistance(paxep, iron) < paxerad + 50) {
+                                irontargs.push(iron)
+                            }
+                        })
                         let self = this
                         new Timeout(() => {
                             stonetargs.forEach(tree => {
                                 self.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'draw', 255, false))
+                                self.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'draw', 255, false))
                                 self.score += 16
                                 self.needsSelfUpdate = true
                             })
@@ -1330,6 +1472,9 @@ module.exports = function (nsp, ns) {
     }, 1000 / 60);
     this.STrees = STrees
     this.Stones = Stones
+    this.Irons = Irons
+    this.Golds = Golds
+    this.diamonds = Diamonds
     this.Entity = Entity;
     this.Bullet = Bullet;
     this.Bullets = Bullets;
