@@ -697,11 +697,11 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             self.needsSelfUpdate = true
-                            stonetargs.forEach(stone => {this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'draw', 255, false));this.score += 3})
-                            irontargs.forEach(iron => {this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'draw', 255, false));this.score += 5})
+                            stonetargs.forEach(stone => {this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));this.score += 3})
+                            irontargs.forEach(iron => {this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));this.score += 5})
                             if(u == 'stone') return
-                            goldtargs.forEach(gold => {this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'draw', 255, false));this.score += 8})
-                            diamondtargs.forEach(diamond => {this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'draw', 255, false));this.score += 12})
+                            goldtargs.forEach(gold => {this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));this.score += 8})
+                            diamondtargs.forEach(diamond => {this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));this.score += 12})
                         }, 2500/3)
                     }
                     if(/Sword/.test(this.mainHands) && this.sword.ready && this.move.att){
@@ -838,12 +838,12 @@ module.exports = function (nsp, ns) {
                 })
                 this.treetargs.forEach(tree => {
                     this.inventory.addItem(new Slot('wood', 1, 'draw', 255, false))
-                    this.score += 8
+                    this.score += 3
                     this.needsSelfUpdate = true;
                 })
                 this.stonetargs.forEach(tree => {
-                    this.inventory.addItem(new Slot('stone', 1, 'draw', 255, false))
-                    this.score += 12
+                    this.inventory.addItem(new Slot('stone', 1, 'stone', 255, false))
+                    this.score += 2
                     this.needsSelfUpdate = true
                 })
             }
@@ -1277,7 +1277,8 @@ module.exports = function (nsp, ns) {
         iron:[],
         gold:[],
         diamond:[]
-    }   
+    } 
+    let dropped = []
     var self = this
     //console.log(Math.getRandomInt(0, 30) * 100 + 50)
     setInterval(function(){
@@ -1388,6 +1389,11 @@ module.exports = function (nsp, ns) {
             let playa = Players.list.find(player => player.id == socket.id)
             let slot = playa.inventory.get(slotnum)
             if(slot == 'empty') return 
+            dropped.push({
+                item:slot,
+                x:playa.body.position.x,
+                y:playa.body.position.y
+            })
             playa.inventory.set(slotnum, 'empty')
             if(playa.mainHand == slotnum)playa.mainHand = '-1'
             playa.needsSelfUpdate = true
@@ -1425,13 +1431,24 @@ module.exports = function (nsp, ns) {
         if (Players.list[0] === undefined) return
         Engine.update(engine);
         leaderboard.update()
+        //console.log(dropped)
         let pack = {
             player: Players.update(),
             bullet: Bullets.update(),
             tree:STrees.update(),
             stone:Stones.update(),
-            leaderboard: leaderboard.getUpdate()
+            leaderboard: leaderboard.getUpdate(),
+            dropped:dropped.map((item, i) => ({
+                slot:{
+                    type:item.item.id,
+                    image:item.item.image
+                },
+                x:item.x,
+                y:item.y,
+                index:i
+            }))
         }
+        //if(pack.dropped.length) console.log(pack.dropped)
         let alr = false
         for(let prop in initPack){
             if(alr === true) return
