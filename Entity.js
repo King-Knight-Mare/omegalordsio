@@ -149,8 +149,8 @@ module.exports = function (nsp, ns) {
                     'Iron Axe', 
                     {
                         recipe:[
-                            {id:'wood', count:5},
-                            {id:'stone', count:5}
+                            {id:'iron', count:20},
+                            {id:'stone', count:15}
                         ],
                         output:{
                             count:1,
@@ -164,8 +164,8 @@ module.exports = function (nsp, ns) {
                     'Iron Pickaxe', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
-                            {id:'stone', count:5}
+                            {id:'iron', count:30},
+                            {id:'stone', count:20}
                         ],
                         output:{
                             count:1,
@@ -179,8 +179,10 @@ module.exports = function (nsp, ns) {
                     'Iron Sword', 
                     {
                         recipe:[
-                            {id:'wood', count:5},
-                            {id:'stone', count:10}
+                            {id:'iron', count:20},
+                            {id:'stone', count:20},
+                            {id:'wood', count:15}
+                          
                         ],
                         output:{
                             count:1,
@@ -194,8 +196,8 @@ module.exports = function (nsp, ns) {
                     'Gold Axe', 
                     {
                         recipe:[
-                            {id:'wood', count:5},
-                            {id:'stone', count:5}
+                            {id:'gold', count:20},
+                            {id:'iron', count:15}
                         ],
                         output:{
                             count:1,
@@ -209,8 +211,8 @@ module.exports = function (nsp, ns) {
                     'Gold Pickaxe', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
-                            {id:'stone', count:5}
+                            {id:'wood', count:30},
+                            {id:'stone', count:20}
                         ],
                         output:{
                             count:1,
@@ -224,8 +226,9 @@ module.exports = function (nsp, ns) {
                     'Gold Sword', 
                     {
                         recipe:[
-                            {id:'wood', count:5},
-                            {id:'stone', count:10}
+                            {id:'gold', count:20},
+                            {id:'iron', count:20},
+                            {id:'stone', count:15}
                         ],
                         output:{
                             count:1,
@@ -239,8 +242,8 @@ module.exports = function (nsp, ns) {
                     'Diamond Axe', 
                     {
                         recipe:[
-                            {id:'wood', count:5},
-                            {id:'stone', count:5}
+                            {id:'diamond', count:20},
+                            {id:'iron', count:15}
                         ],
                         output:{
                             count:1,
@@ -254,8 +257,8 @@ module.exports = function (nsp, ns) {
                     'Diamond Pickaxe', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
-                            {id:'stone', count:5}
+                            {id:'diamond', count:30},
+                            {id:'iron', count:20}
                         ],
                         output:{
                             count:1,
@@ -269,8 +272,9 @@ module.exports = function (nsp, ns) {
                     'Diamond Sword', 
                     {
                         recipe:[
-                            {id:'wood', count:5},
-                            {id:'stone', count:10}
+                            {id:'diamond', count:20},
+                            {id:'iron', count:20},
+                            {id:'gold', count:15}
                         ],
                         output:{
                             count:1,
@@ -407,19 +411,19 @@ module.exports = function (nsp, ns) {
                 timeout:null,
                 stone:{
                     damage:3.75,
-                    mines:[{item:'wood', count:4}]
+                    mines:[{item:'wood', count:3}]
                 },
                 iron:{
-                    damage:3.75,
-                    mines:[{item:'wood', count:4}]
+                    damage:4.5,
+                    mines:[{item:'wood', count:5}]
                 },
                 gold:{
-                    damage:3.75,
-                    mines:[{item:'wood', count:4}]
+                    damage:6,
+                    mines:[{item:'wood', count:8}]
                 },
                 diamond:{
-                    damage:3.75,
-                    mines:[{item:'wood', count:4}]
+                    damage:7.5,
+                    mines:[{item:'wood', count:12}]
                 },
             }
             this.pickaxe = {
@@ -430,15 +434,15 @@ module.exports = function (nsp, ns) {
                     mines:[{item:'stone', count:3}, {item:'iron', count:1}]
                 },
                 iron:{
-                    damage:3.75,
+                    damage:4,
                     mines:[{item:'stone', count:8}, {item:'iron', count:3}, {item:'gold', count:2}, {item:'diamond', count:1}]
                 },
                 gold:{
-                    damage:3.75,
+                    damage:4.5,
                     mines:[{item:'stone', count:12}, {item:'iron', count:8}, {item:'gold', count:3}, {item:'diamond', count:2}]
                 },
                 diamond:{
-                    damage:3.75,
+                    damage:5,
                     mines:[{item:'stone', count:20}, {item:'iron', count:12}, {item:'gold', count:8}, {item:'diamond', count:3}]
                 },
             }
@@ -457,22 +461,6 @@ module.exports = function (nsp, ns) {
                 diamond:{
                     damage:12,
                 },
-            }
-            this.stoneaxe = {
-                ready:true,
-                reload: {
-                    speed: 20,
-                    timer: 0
-                },
-                damage: 3.75,
-            }
-            this.stonepickaxe = {
-                ready:true,
-                damage: 1.75,
-            }
-            this.stonesword = {
-                ready:true,
-                damage: 5,
             }
             this.hands = {
                 l: {
@@ -662,6 +650,8 @@ module.exports = function (nsp, ns) {
                         Vector.add(this.body.position, paxep, paxep)
                         let stonetargs = []
                         let irontargs = []
+                        let goldtargs = []
+                        let diamondtargs = []
                         let targs = []
                         this.pickaxe.ready = false
                         this.hitting = true
@@ -688,20 +678,30 @@ module.exports = function (nsp, ns) {
                                 irontargs.push(iron)
                             }
                         })
+                        this.game.Golds.list.forEach(gold => {
+                            if(Vector.getDistance(paxep, gold) < paxerad + 50) {
+                                goldtargs.push(gold)
+                            }
+                        })
+                        this.game.Diamonds.list.forEach(diamond => {
+                            if(Vector.getDistance(paxep, diamond) < paxerad + 50) {
+                                diamondtargs.push(diamond)
+                            }
+                        })
                         let self = this
                         new Timeout(() => {
-                            stonetargs.forEach(tree => {
-                                self.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'draw', 255, false))
-                                self.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'draw', 255, false))
-                                self.score += 16
-                                self.needsSelfUpdate = true
-                            })
                             targs.forEach( p => {
                                 p.health -= this.pickaxe[u].damage
                                 if (p.health <= 0) {
                                     this.score += p.score/2 + 2
                                 }
                             })
+                            self.needsSelfUpdate = true
+                            stonetargs.forEach(stone => {this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'draw', 255, false));this.score += 3})
+                            irontargs.forEach(iron => {this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'draw', 255, false));this.score += 5})
+                            if(u == 'stone') return
+                            goldtargs.forEach(gold => {this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'draw', 255, false));this.score += 8})
+                            diamondtargs.forEach(diamond => {this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'draw', 255, false));this.score += 12})
                         }, 2500/3)
                     }
                     if(/Sword/.test(this.mainHands) && this.sword.ready && this.move.att){
@@ -1474,7 +1474,7 @@ module.exports = function (nsp, ns) {
     this.Stones = Stones
     this.Irons = Irons
     this.Golds = Golds
-    this.diamonds = Diamonds
+    this.Diamonds = Diamonds
     this.Entity = Entity;
     this.Bullet = Bullet;
     this.Bullets = Bullets;

@@ -1,20 +1,17 @@
 var changelog = {
     Updates: [
-        'Added Pickaxe',
-        'Nerfed Axe',
-        'Added Pickaxe and axe animations',
-        'Fixed Pickaxe and Axe animations',
-        'Fixed glitch where unequiping tool midattack crashes game',
-        'Fixed Pickaxe and Axe hitboxes',
-        'Fixed numerous glitches that crash the game',
-        'Fixed Interia',
-        'Added Sword',
-        'There are now 3 new ores that you cannot mine LOL'
+        'There are now 3 new ores that you can mine',
+        'All 3 ores can be made into weapons',
+        'Nerfed axe and pickaxe mine amount',
+        'Buffed axe and pickaxe damage',
+        'Buffed sword damage',
+        'Nerfed score from wood and stone',
+        'Took me all night to make'
     ],
     Plans: [
-        'Add Gold',
-        'Make a better pickaxe image',
+        'Make it so that thrown items can be picked up',
         'Add background',
+        'Add a new AI',
         'Add Spear',
         'Add Armor', 
         'Add abiliies', 
