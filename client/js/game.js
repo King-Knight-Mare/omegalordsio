@@ -41,7 +41,19 @@ createImage('tree1', 'png')
 createImage('stoneaxe',  'png')
 createImage('stonepickaxe',  'png')
 createImage('stonesword',  'png')
+createImage('ironaxe',  'png')
+createImage('ironpickaxe',  'png')
+createImage('ironsword',  'png')
+createImage('goldaxe',  'png')
+createImage('goldpickaxe',  'png')
+createImage('goldsword',  'png')
+createImage('diamondaxe',  'png')
+createImage('diamondpickaxe',  'png')
+createImage('diamondsword',  'png')
 createImage('stone', 'png')
+createImage('iron', 'png')
+createImage('gold', 'png')
+createImage('diamond', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
 Img.map.src = '/client/img/map.png'
@@ -417,6 +429,43 @@ var init = function(name) {
             ctx.drawImage(Img['stone'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    
+    var Irons = new Map()
+    class Iron {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Irons.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['iron'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var Golds = new Map()
+    class Gold {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Golds.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['gold'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var Diamonds = new Map()
+    class Diamond {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Diamonds.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
     class Bullet {
         /**
          * 
@@ -459,6 +508,16 @@ var init = function(name) {
         pack.stone.forEach((initPack)=>{
             new Stone(initPack)
         })
+        pack.iron.forEach((initPack)=>{
+            new Iron(initPack)
+        })
+        
+        pack.gold.forEach((initPack)=>{
+            new Gold(initPack)
+        })
+        pack.diamond.forEach((initPack)=>{
+            new Diamond(initPack)
+        })
     }
     /**
      * 
@@ -476,6 +535,15 @@ var init = function(name) {
         })
         pack.stone.forEach((id) => {
             Stones.delete(id)
+        })
+        pack.iron.forEach((id) => {
+            Irons.delete(id)
+        })
+        pack.gold.forEach((id) => {
+            Golds.delete(id)
+        })
+        pack.diamond.forEach((id) => {
+            Diamonds.delete(id)
         })
     }
     socket.on('death', die)
@@ -498,7 +566,7 @@ var init = function(name) {
                 var x = canvas.width / 2 - playa.x
                 var y = canvas.height / 2 - playa.y
                 ctx.fillStyle = '#876833'
-                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 1500, 1500)
+                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2500, 2500)
                 //ctx.drawImage(Img.map, canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2105, 1488)
                 pack.player.forEach(function(package) {
                     /**
@@ -515,12 +583,21 @@ var init = function(name) {
                     toUpdate.catchLayers(pack)
                 })
                 
-                
                 CTrees.forEach((tree) => {
                     tree.show(x, y)
                 })
                 Stones.forEach((stone) => {
                     stone.show(x, y)
+                })
+                Irons.forEach((iron) => {
+                    iron.show(x, y)
+                })
+                
+                Golds.forEach((gold) => {
+                    gold.show(x, y)
+                })
+                Diamonds.forEach((diamond) => {
+                    diamond.show(x, y)
                 })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()
@@ -604,6 +681,160 @@ var init = function(name) {
                             ctx.drawImage(Img['stonesword'], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                             break;
+                        case 'Iron Axe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['ironaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Iron Pickaxe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['ironpickaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Iron Sword' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['ironsword'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Gold Axe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['goldaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Gold Pickaxe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['goldpickaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Gold Sword' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['goldsword'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Diamond Axe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['diamondaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Diamond Pickaxe' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['diamondpickaxe'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        case 'Diamond Sword' :
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img['diamondsword'], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                            break;
+                        
                     }
                 })
                 Players.forEach(function(player) {
@@ -696,6 +927,102 @@ var init = function(name) {
                         ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
+                    }else if(slot.type == 'iron'){
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
+                        ctx.rotate(Math.PI/ 180 * 0)
+                        ctx.drawImage(Img['iron'], 0 - 20, 0 - 20, 40, 40)
+                        ctx.restore()
+                        ctx.beginPath()
+                        ctx.lineWidth = 1.5
+                        ctx.font = "15px Arial"
+                        ctx.strokeStyle = 'black'
+                        ctx.fillStyle = 'white'
+                        ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.stroke()
+                    }else if(slot.type == 'gold'){
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
+                        ctx.rotate(Math.PI/ 180 * 0)
+                        ctx.drawImage(Img['gold'], 0 - 20, 0 - 20, 40, 40)
+                        ctx.restore()
+                        ctx.beginPath()
+                        ctx.lineWidth = 1.5
+                        ctx.font = "15px Arial"
+                        ctx.strokeStyle = 'black'
+                        ctx.fillStyle = 'white'
+                        ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.stroke()
+                    }else if(slot.type == 'diamond'){
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
+                        ctx.rotate(Math.PI/ 180 * 0)
+                        ctx.drawImage(Img['diamond'], 0 - 20, 0 - 20, 40, 40)
+                        ctx.restore()
+                        ctx.beginPath()
+                        ctx.lineWidth = 1.5
+                        ctx.font = "15px Arial"
+                        ctx.strokeStyle = 'black'
+                        ctx.fillStyle = 'white'
+                        ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.stroke()
+                    }else if(slot.type == 'Iron Axe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['ironaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Iron Pickaxe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['ironpickaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Iron Sword') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['ironsword'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Gold Axe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['goldaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Gold Pickaxe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['goldpickaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Gold Sword') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['goldsword'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Diamond Axe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['diamondaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Diamond Pickaxe') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['diamondpickaxe'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }else if(slot.type == 'Diamond Sword') {
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img['diamondsword'], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
                     }
                     
                     //if(playa.inventory[i] != ' ') ctx.drawImage(Img[playa.inventory[i]], 200  + 120.75 * i - 50, canvas.height - 100 - 50, 100, 100)
