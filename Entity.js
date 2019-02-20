@@ -150,7 +150,7 @@ module.exports = function (nsp, ns) {
                     {
                         recipe:[
                             {id:'iron', count:20},
-                            {id:'stone', count:15}
+                            {id:'stone', count:10}
                         ],
                         output:{
                             count:1,
@@ -164,8 +164,8 @@ module.exports = function (nsp, ns) {
                     'Iron Pickaxe', 
                     {
                         recipe:[
-                            {id:'iron', count:30},
-                            {id:'stone', count:20}
+                            {id:'iron', count:20},
+                            {id:'stone', count:15}
                         ],
                         output:{
                             count:1,
@@ -179,9 +179,9 @@ module.exports = function (nsp, ns) {
                     'Iron Sword', 
                     {
                         recipe:[
-                            {id:'iron', count:20},
-                            {id:'stone', count:20},
-                            {id:'wood', count:15}
+                            {id:'iron', count:10},
+                            {id:'stone', count:15},
+                            {id:'wood', count:10}
                           
                         ],
                         output:{
@@ -197,7 +197,7 @@ module.exports = function (nsp, ns) {
                     {
                         recipe:[
                             {id:'gold', count:20},
-                            {id:'iron', count:15}
+                            {id:'iron', count:10}
                         ],
                         output:{
                             count:1,
@@ -211,8 +211,8 @@ module.exports = function (nsp, ns) {
                     'Gold Pickaxe', 
                     {
                         recipe:[
-                            {id:'wood', count:30},
-                            {id:'stone', count:20}
+                            {id:'gold', count:20},
+                            {id:'iron', count:15}
                         ],
                         output:{
                             count:1,
@@ -226,9 +226,9 @@ module.exports = function (nsp, ns) {
                     'Gold Sword', 
                     {
                         recipe:[
-                            {id:'gold', count:20},
-                            {id:'iron', count:20},
-                            {id:'stone', count:15}
+                            {id:'gold', count:10},
+                            {id:'iron', count:15},
+                            {id:'stone', count:10}
                         ],
                         output:{
                             count:1,
@@ -243,7 +243,7 @@ module.exports = function (nsp, ns) {
                     {
                         recipe:[
                             {id:'diamond', count:20},
-                            {id:'iron', count:15}
+                            {id:'iron', count:10}
                         ],
                         output:{
                             count:1,
@@ -257,8 +257,8 @@ module.exports = function (nsp, ns) {
                     'Diamond Pickaxe', 
                     {
                         recipe:[
-                            {id:'diamond', count:30},
-                            {id:'iron', count:20}
+                            {id:'diamond', count:20},
+                            {id:'iron', count:15}
                         ],
                         output:{
                             count:1,
@@ -272,9 +272,9 @@ module.exports = function (nsp, ns) {
                     'Diamond Sword', 
                     {
                         recipe:[
-                            {id:'diamond', count:20},
-                            {id:'iron', count:20},
-                            {id:'gold', count:15}
+                            {id:'diamond', count:10},
+                            {id:'iron', count:15},
+                            {id:'gold', count:10}
                         ],
                         output:{
                             count:1,
