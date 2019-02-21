@@ -1,16 +1,13 @@
 var changelog = {
     Updates: [
-        'There are now 3 new ores that you can mine',
-        'All 3 ores can be made into weapons',
+        'There are now 3 new ores that you can mine. All 3 of which can be made into tools',
         'Nerfed axe and pickaxe mine amount',
-        'Buffed axe and pickaxe damage',
-        'Buffed sword damage',
-        'Nerfed score from wood and stone',
-        'Took me all night to make',
+        'Buffed axe, pickaxe, sword damage',
+        'Buffed and Nerfed various mine amounts and score gain so that better ores always give more score',
         'You can now drop and pick up items',
+        'Not only do players give up score, they also give up items when they die'
     ],
     Plans: [
-        'Make inventory draggable',
         'Add background',
         'Add a new AI',
         'Add Spear',
