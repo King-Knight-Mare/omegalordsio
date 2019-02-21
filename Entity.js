@@ -332,8 +332,8 @@ module.exports = function (nsp, ns) {
         constructor(){
             super([
                 ['1', new Slot('Diamond Pickaxe', 1, 'diamondpickaxe', 1, true)],
-                ['2', 'empty'], 
-                ['3', 'empty'], 
+                ['2', new Slot('Diamond Axe', 1, 'diamondaxe', 1, true)], 
+                ['3', new Slot('Diamond Sword', 1, 'diamondsword', 1, true)], 
                 ['4', 'empty'], 
                 ['5', 'empty'], 
                 ['6', 'empty'], 
@@ -568,7 +568,7 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if(dropped.length || this.inventory.find(slot => slot == 'empty')){
+                if(dropped.length && this.inventory.find(slot => slot == 'empty')){
                     
                     let possible = new Map()
                     dropped.forEach((item, i)=> {

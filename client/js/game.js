@@ -306,6 +306,59 @@ var init = function(name) {
                     ctx.restore();
                 }
             } else {
+                if(/Axe|Pickaxe|Sword/.test(this.mainHand)){
+                    if(/Pickaxe/.test(this.mainHand)){
+                        let h = this.mainHand.toLowerCase()
+                        h = h.replace(/\s/g, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[h], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }
+                    if(/Sword/.test(this.mainHand)){
+                        let h = this.mainHand.toLowerCase()
+                        h = h.replace(/\s/g, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        ctx.strokeStyle = 'black'
+                        ctx.lineWidth = '20px'
+                        ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[h], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                    
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }
+                    if(/Axe/.test(this.mainHand)){
+                        let h = this.mainHand.toLowerCase()
+                        h = h.replace(/\s/g, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[h], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }
+                }
+                /*
+                
                 switch(this.mainHand){ 
                     case 'Stone Axe': 
                         ctx.save()
@@ -482,6 +535,7 @@ var init = function(name) {
                     
                     
                 }
+                */
                 //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
             }
 

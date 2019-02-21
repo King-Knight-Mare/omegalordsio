@@ -6,7 +6,8 @@ var changelog = {
         'Buffed and Nerfed various mine amounts and score gain so that better ores always give more score',
         'You can now drop and pick up items',
         'Not only do players give up score, they also give up items when they die',
-        'Fixed Gold Axe glitch'
+        'Fixed Gold Axe glitch',
+        'Picking up items whilst inventory is full will no longer work, Item will stay on ground rather than being deleted'
     ],
     Plans: [
         'Add background',
