@@ -262,7 +262,7 @@ module.exports = function (nsp, ns) {
                         ],
                         output:{
                             count:1,
-                            image:'diamondaxe',
+                            image:'diamondpickaxe',
                             stackSize:1,
                             equipable:true
                         }
@@ -568,7 +568,7 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if(dropped.length){
+                if(dropped.length || this.inventory.find(slot => slot == 'empty')){
                     
                     let possible = new Map()
                     dropped.forEach((item, i)=> {
@@ -715,11 +715,23 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             self.needsSelfUpdate = true
-                            stonetargs.forEach(stone => {this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));this.score += 3 * this.pickaxe[u].mines[0].count})
-                            irontargs.forEach(iron => {this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));this.score += 8 * this.pickaxe[u].mines[1].count})
+                            stonetargs.forEach(stone => {
+                                this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));
+                                this.score += 3 * this.pickaxe[u].mines[0].count
+                            })
+                            irontargs.forEach(iron => {
+                                this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));
+                                this.score += 8 * this.pickaxe[u].mines[1].count
+                            })
                             if(u == 'stone') return
-                            goldtargs.forEach(gold => {this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));this.score += 16 * this.pickaxe[u].mines[2].count})
-                            diamondtargs.forEach(diamond => {this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));this.score += 30 * this.pickaxe[u].mines[3].count})
+                            goldtargs.forEach(gold => {
+                                this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));
+                                this.score += 16 * this.pickaxe[u].mines[2].count
+                            })
+                            diamondtargs.forEach(diamond => {
+                                this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));
+                                this.score += 30 * this.pickaxe[u].mines[3].count
+                            })
                         }, 2500/3)
                     }
                     if(/Sword/.test(this.mainHands) && this.sword.ready && this.move.att){
@@ -822,12 +834,12 @@ module.exports = function (nsp, ns) {
                 })
                 this.treetargs.forEach(tree => {
                     this.inventory.addItem(new Slot('wood', 1, 'draw', 255, false))
-                    this.score += 3
+                    this.score += 1
                     this.needsSelfUpdate = true;
                 })
                 this.stonetargs.forEach(tree => {
                     this.inventory.addItem(new Slot('stone', 1, 'stone', 255, false))
-                    this.score += 2
+                    this.score += 3
                     this.needsSelfUpdate = true
                 })
             }

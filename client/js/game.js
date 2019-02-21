@@ -400,7 +400,7 @@ var init = function(name) {
                         ctx.save()
                         ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
                         ctx.rotate((Math.PI / 180) * 180)
-                        ctx.drawImage(Img['goldae'], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.drawImage(Img['goldaxe'], 0 - 75/2, 0 - 75/2, 75, 75)
                         ctx.restore()
                         ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
