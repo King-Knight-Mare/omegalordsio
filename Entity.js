@@ -331,9 +331,9 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('Stone Axe', 1, 'stoneaxe', true, 1)],
-                ['2', new Slot('Stone Pickaxe', 1, 'stonepickaxe', true, 1)], 
-                ['3', new Slot('Stone Sword', 1, 'stonesword', true, 1)], 
+                ['1', new Slot('Diamond Axe', 1, 'diamondaxe', true, 1)],
+                ['2', new Slot('Diamond Pickaxe', 1, 'diamondpickaxe', true, 1)], 
+                ['3', new Slot('Diamond Sword', 1, 'diamondsword', true, 1)], 
                 ['4', 'empty'], 
                 ['5', 'empty'], 
                 ['6', 'empty'], 
@@ -431,19 +431,19 @@ module.exports = function (nsp, ns) {
                 timeout:null,
                 stone:{
                     damage:3.75,
-                    mines:[{item:'stone', count:3}, {item:'iron', count:1}]
+                    mines:[{item:'stone', count:3}, {item:'iron', count:2}]
                 },
                 iron:{
                     damage:4,
-                    mines:[{item:'stone', count:8}, {item:'iron', count:3}, {item:'gold', count:2}, {item:'diamond', count:1}]
+                    mines:[{item:'stone', count:5}, {item:'iron', count:3}, {item:'gold', count:2}, {item:'diamond', count:1}]
                 },
                 gold:{
                     damage:4.5,
-                    mines:[{item:'stone', count:12}, {item:'iron', count:8}, {item:'gold', count:3}, {item:'diamond', count:2}]
+                    mines:[{item:'stone', count:9}, {item:'iron', count:5}, {item:'gold', count:3}, {item:'diamond', count:2}]
                 },
                 diamond:{
                     damage:5,
-                    mines:[{item:'stone', count:20}, {item:'iron', count:12}, {item:'gold', count:8}, {item:'diamond', count:3}]
+                    mines:[{item:'stone', count:20}, {item:'iron', count:9}, {item:'gold', count:5}, {item:'diamond', count:3}]
                 },
             }
             this.sword = {
@@ -642,7 +642,7 @@ module.exports = function (nsp, ns) {
                         new Timeout(() => {
                             treetargs.forEach(tree => {
                                 self.inventory.addItem(new Slot('wood', this.axe[u].mines[0].count, 'draw', 255, false))
-                                self.score += 16
+                                self.score += this.axe[u].mines[0].count * 1
                                 self.needsSelfUpdate = true
                             })
                             targs.forEach( p => {
@@ -716,10 +716,10 @@ module.exports = function (nsp, ns) {
                             })
                             self.needsSelfUpdate = true
                             stonetargs.forEach(stone => {this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));this.score += 3 * this.pickaxe[u].mines[0].count})
-                            irontargs.forEach(iron => {this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));this.score += 5 * this.pickaxe[u].mines[1].count})
+                            irontargs.forEach(iron => {this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));this.score += 8 * this.pickaxe[u].mines[1].count})
                             if(u == 'stone') return
-                            goldtargs.forEach(gold => {this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));this.score += 8 * this.pickaxe[u].mines[2].count})
-                            diamondtargs.forEach(diamond => {this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));this.score += 12 * this.pickaxe[u].mines[3].count})
+                            goldtargs.forEach(gold => {this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));this.score += 16 * this.pickaxe[u].mines[2].count})
+                            diamondtargs.forEach(diamond => {this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));this.score += 30 * this.pickaxe[u].mines[3].count})
                         }, 2500/3)
                     }
                     if(/Sword/.test(this.mainHands) && this.sword.ready && this.move.att){
@@ -1192,7 +1192,7 @@ module.exports = function (nsp, ns) {
                 }
             });
         },
-        update: function () {
+        update: () => {
             var pack = [];
             for (var i = 0; i < Players.list.length; i++) {
                 /**
@@ -1212,6 +1212,22 @@ module.exports = function (nsp, ns) {
                     }), 1);
                     World.remove(engine.world, player.body)
                     leaderboard.removePlayer(player.id)
+                    
+                    let toDrop = player.inventory.findAll(slot => slot !== 'empty') 
+                    toDrop.forEach((slot, i) => {
+                        let a = 360/toDrop.length
+                        let ang = a * i + 77
+                        let offset = Vector.create(0, player.rad + 20)
+                        
+                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        Vector.add(player.body.position, offset, offset)
+                        dropped.push({
+                            item:slot,
+                            x:offset.x,
+                            y:offset.y
+                        })
+                    })
                 }
                 pack.push(player.getUpdatePack())
             }
