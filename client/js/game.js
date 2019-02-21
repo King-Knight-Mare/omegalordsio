@@ -101,7 +101,8 @@ var init = function(name) {
         right: false,
         pressingAttack: false,
         running: false,
-        angle: 0
+        angle: 0,
+        grab:false
     }
     socket.on('unable', function() {
 
@@ -135,6 +136,9 @@ var init = function(name) {
                 break;
             case 16:
                 movement.running = true;
+                break;
+            case 69:
+                movement.grab = true
                 break;
             default :
                 if(event.keyCode > 48 && event.keyCode < 58){
@@ -173,6 +177,9 @@ var init = function(name) {
             case 16:
                 movement.running = false
                 break;
+            case 69:
+                movement.grab = false
+                break;
         }
     }
     document.addEventListener('keyup', handlekeyUp);
@@ -186,6 +193,7 @@ var init = function(name) {
                socket.emit('craft', craft)
             }
         })
+        if(found) return
         if(e.button == 2) found = true
         /*
         
@@ -219,6 +227,7 @@ var init = function(name) {
         movement.angle = angle;
     }
     var leaderboard = []
+    let dropped = []
     document.addEventListener('mousemove', handlemouseMove);
     window.moveinterval = setInterval(function() {
         socket.emit('movement', movement);
@@ -547,8 +556,7 @@ var init = function(name) {
         show(x, y){
             ctx.drawImage(Img['stone'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
-    }
-    
+    } 
     var Irons = new Map()
     class Iron {
         constructor(pack){
@@ -743,6 +751,20 @@ var init = function(name) {
                     ctx.strokeText(player._score, canvas.width - 40, 50 + i * 20)
                     ctx.fillText(player._score, canvas.width - 40, 50 + i * 20)
                 }
+                dropped = pack.dropped
+                dropped.forEach(item => {
+                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold'){
+                        ctx.drawImage(Img[item.slot.image], item.x + x - 20, item.y + y - 20, 40, 40)
+                    }
+                    if(/Axe|Pickaxe|Sword/.test(item.slot.type)){
+                        ctx.save()
+                        ctx.translate(item.x + x, item.y + y)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        //console.log(image.slot.image)
+                        ctx.drawImage(Img[item.slot.image], 0 - 40, 0 - 40, 80 , 80 )
+                        ctx.restore()
+                    }
+                })
                 ctx.stroke()
                 ctx.lineWidth = 0.5
                 ctx.strokeStyle = 'black'
@@ -973,7 +995,7 @@ var init = function(name) {
                     ctx.strokeText(i+1 , (canvas.width)/10 + (canvas.width)/10 * i  - 45 + 3, canvas.height - 100 - 45 + 20)
                     ctx.fillText(i+1 , (canvas.width)/10 + (canvas.width)/10 * i  - 45 + 3, canvas.height - 100 - 45 + 20)
                     ctx.globalAlpha = 1
-                    ctx.stroke();
+                    ctx.stroke();  
                     if(slot == ' ') return 
                     
                     if(slot.image == 'draw' && slot.type == 'wood'){
@@ -1032,7 +1054,7 @@ var init = function(name) {
                         ctx.rotate(Math.PI/ 180 * 45)
                         ctx.drawImage(Img['stonesword'], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
-                    }else if(slot.type == 'stone'){
+                    }else if(slot.image == 'stone'){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
                         ctx.rotate(Math.PI/ 180 * 0)
@@ -1046,7 +1068,7 @@ var init = function(name) {
                         ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
-                    }else if(slot.type == 'iron'){
+                    }else if(slot.image == 'iron'){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
                         ctx.rotate(Math.PI/ 180 * 0)
@@ -1060,7 +1082,7 @@ var init = function(name) {
                         ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
-                    }else if(slot.type == 'gold'){
+                    }else if(slot.image == 'gold'){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
                         ctx.rotate(Math.PI/ 180 * 0)
@@ -1074,7 +1096,7 @@ var init = function(name) {
                         ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
-                    }else if(slot.type == 'diamond'){
+                    }else if(slot.image == 'diamond'){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
                         ctx.rotate(Math.PI/ 180 * 0)
