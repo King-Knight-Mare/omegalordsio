@@ -552,8 +552,10 @@ module.exports = function (nsp, ns) {
                 d: false,
                 att: false,
                 run:false,
-                ang: 0
+                ang: 0,
+                mdis:0
             }
+            
             this.hrad = this.rad/25 * 7.5
             this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
             this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
@@ -935,6 +937,9 @@ module.exports = function (nsp, ns) {
                         }, 2500/3)
                     }
                 }
+                if(/Wall/.test(this.mainHands)){
+                    
+                }
             }
             if (this.move.att) {
                 if (this.inventory.get(this.mainHand) == undefined) {
@@ -1273,6 +1278,16 @@ module.exports = function (nsp, ns) {
         }
         
     }
+    var Walls = {
+        list:[],
+        update:function(){
+            var pack = []
+            Walls.list.forEach(wall => {
+                if(wall.needsUpdate) pack.push(wall.getUpdatePack())
+            })
+            return pack
+        }
+    }
     class Iron {
         constructor(x, y){
             this.x = x
@@ -1369,6 +1384,41 @@ module.exports = function (nsp, ns) {
         }
         
     }
+    class Wall {
+        constructor(x, y, material){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.material = material
+            setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.wall.push(this.id)
+                Walls.list.splice(Golds.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 600000)
+            this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id,
+                material:this.material
+            }
+            Walls.list.push(this)
+            initPack.wall.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id,  
+                material:this.material
+            }
+        }
+        
+    }
     var Players = {
         list: [],
         onConnect: function (id, socket, nm) {
@@ -1396,6 +1446,7 @@ module.exports = function (nsp, ns) {
                         //io.emit("chat message", {usrnm:"SERVER",msg:data.angle})
                         player.move.ang = data.angle;
                         player.move.grab = data.grab
+                        player.move.mdis = data.mousedis
                     }
                 }
             });
@@ -1483,7 +1534,8 @@ module.exports = function (nsp, ns) {
         stone:[],
         iron:[],
         gold:[],
-        diamond:[]
+        diamond:[],
+        wall:[]
     }
     var removePack = {
         player: [],
@@ -1492,7 +1544,8 @@ module.exports = function (nsp, ns) {
         stone:[],
         iron:[],
         gold:[],
-        diamond:[]
+        diamond:[],  
+        wall:[]
     } 
     let dropped = []
     var self = this
@@ -1581,7 +1634,7 @@ module.exports = function (nsp, ns) {
         if(inWay) return
         new Stone(tempx, tempy, 10)
     }, 1000)
-  
+    new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
@@ -1630,6 +1683,7 @@ module.exports = function (nsp, ns) {
                 gold:[],
                 diamond:[],
                 leaderboard: leaderboard.getUpdate(),
+                wall:[]
             }
             Players.list.forEach(function (player) {
                 pack.player.push(player.getUpdatePack())
@@ -1639,6 +1693,7 @@ module.exports = function (nsp, ns) {
             Irons.list.forEach( iron => pack.iron.push(iron.getInitPack()))
             Golds.list.forEach( gold => pack.gold.push(gold.getInitPack()))
             Diamonds.list.forEach( diamond => pack.diamond.push(diamond.getInitPack()))
+            Walls.list.forEach( wall => pack.wall.push(wall.getInitPack()))
             /*
             Bullets.list.forEach(function(bullet){
                 pack.bullet.push(bulle)
@@ -1672,7 +1727,6 @@ module.exports = function (nsp, ns) {
         for(let prop in initPack){
             if(alr === true) return
             if(initPack[prop].length > 0){
-              
                 alr = true
                 self.nsp.emit('initPack', initPack)
                 initPack = {
@@ -1682,7 +1736,8 @@ module.exports = function (nsp, ns) {
                     stone:[],
                     iron:[],
                     gold:[],
-                    diamond:[]
+                    diamond:[],
+                    wall:[]
                 }
             }
         }
@@ -1701,7 +1756,8 @@ module.exports = function (nsp, ns) {
                     stone:[],
                     iron:[],
                     gold:[],
-                    diamond:[]
+                    diamond:[],  
+                    wall:[]
                 }
             }
         }

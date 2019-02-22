@@ -103,7 +103,8 @@ var init = function(name) {
         pressingAttack: false,
         running: false,
         angle: 0,
-        grab:false
+        grab:false,
+        mousedis:0
     }
     socket.on('unable', function() {
 
@@ -221,11 +222,13 @@ var init = function(name) {
         var x = -window.innerWidth / 2 + event.clientX;
         var y = -window.innerHeight / 2 + event.clientY;
         var radian = Math.atan2(y, x);
+        let mousedis = Math.sqrt(Math.pow(0 - x) + Math.pow(0 - y))
         if (radian < 0) {
             radian += Math.PI * 2;
         }
         var angle = radian * 180 / Math.PI;
         movement.angle = angle;
+        movement.dis = mousedis
     }
     var leaderboard = []
     let dropped = []
@@ -470,6 +473,19 @@ var init = function(name) {
             ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    var Walls = new Map()
+    class Wall {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            this.material = pack.material
+            Walls.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['woodwall'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
     class Bullet {
         /**
          * 
@@ -522,6 +538,10 @@ var init = function(name) {
         pack.diamond.forEach((initPack)=>{
             new Diamond(initPack)
         })
+        pack.wall.forEach((initPack)=>{
+            new Wall(initPack)
+            
+        })
     }
     /**
      * 
@@ -548,6 +568,9 @@ var init = function(name) {
         })
         pack.diamond.forEach((id) => {
             Diamonds.delete(id)
+        })
+        pack.wall.forEach((id) => {
+            Walls.delete(id)
         })
     }
     socket.on('death', die)
@@ -602,6 +625,9 @@ var init = function(name) {
                 })
                 Diamonds.forEach((diamond) => {
                     diamond.show(x, y)
+                })
+                Walls.forEach((wall) => {
+                    wall.show(x, y)
                 })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()
