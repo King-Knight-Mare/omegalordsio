@@ -284,6 +284,21 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Wood Wall', 
+                    {
+                        recipe:[
+                            {id:'wood', count:1},
+                        ],
+                        output:{
+                            count:1,
+                            image:'woodwall',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                
                 //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
                 //['Black Ability', [{id:'wood', count:20}]]
             ])
@@ -304,14 +319,15 @@ module.exports = function (nsp, ns) {
             var recipe = this.get(item).recipe
             let output =  this.get(item).output
             recipe.forEach(req => {
-                let found = false
                 inventory.forEach(slot => {
-                    if(found) return
-                    if(slot.count >= req.count){
-                        slot.count -= req.count
-                        if(slot.count <= 0) inventory.set(inventory.findKey(item => item == slot), 'empty')
-                        found = true
+                    if(slot == 'empty') return
+                    if(req.count == 0) return
+                    if(slot.id != req.id) return
+                    if(req.count > slot.count){
+                        return slot = 'empty'
                     }
+                    slot.count -= req.count
+                    
                 })
             })
             inventory.addItem(new Slot(item, 1, output.image, output.stackSize, output.equipable))
@@ -330,9 +346,9 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', 'empty'],
-                ['2', 'empty'],
-                ['3', 'empty'],
+                ['1', new Slot('Stone Axe', 1, 'stoneaxe', 1, true)],
+                ['2', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
+                ['3', new Slot('Stone Pickaxe', 1, 'stonepickaxe', 1, true)],
                 ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
@@ -350,6 +366,7 @@ module.exports = function (nsp, ns) {
             return itemArray
         }
         addItem(toAdd){
+            console.log(this)
             let found = false;
             let posSlots =  this.findAll(item => item.id == toAdd.id)
             posSlots.forEach(item => {
@@ -381,6 +398,7 @@ module.exports = function (nsp, ns) {
                 }
             })
             if(found) return
+            console.log(this)
             if(this.find(item => item == 'empty') ) return this.set(this.findKey(item => item == 'empty'), toAdd)
         }
         addItemMax(toAdd){
@@ -426,6 +444,7 @@ module.exports = function (nsp, ns) {
                 toAdd.count = 0
                 ret = false
             })
+            
             if(this.find(item => item == 'empty') && toAdd.count){this.set(this.findKey(item => item == 'empty'), toAdd);ret=false}
             if(ret) return toAdd
         }
