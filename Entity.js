@@ -318,7 +318,6 @@ module.exports = function (nsp, ns) {
             //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})\
         }
     }
-    //console.log(new Timeout(() => {}, 3000).timeLeft)
     class Slot {
         constructor(type, count, image, stackSize = 255, equipable = false){
             this.id = type
@@ -332,14 +331,14 @@ module.exports = function (nsp, ns) {
         constructor(){
             super([
                 ['1', 'empty'],
-                ['2', 'empty'], 
-                ['3', 'empty'], 
-                ['4', 'empty'], 
-                ['5', 'empty'], 
-                ['6', 'empty'], 
-                ['7', 'empty'], 
-                ['8', 'empty'], 
-                ['9', 'empty']
+                ['2', 'empty'],
+                ['3', 'empty'],
+                ['4', 'empty'],
+                ['5', 'empty'],
+                ['6', 'empty'],
+                ['7', 'empty'],
+                ['8', 'empty'],
+                ['9', 'empty'],
             ])
         }
         listItems(){
@@ -359,11 +358,21 @@ module.exports = function (nsp, ns) {
                     if(item.count >= item.stackSize){ 
                         found = false
                     } else {
-                        if(item.count + toAdd.count > item.stackSize){
+                        if(item.count + toAdd.count > item.stackSize && 
+                            this.find(item => {
+                                if(item == 'empty') return true; 
+                                if(item.id == toAdd.id && item.count != item.stackSize) return true;
+                                return false;
+                            })
+                        ){
                             toAdd.count -= (item.stackSize - item.count)
                             item.count = item.stackSize
                             found = true
                             this.addItem(toAdd)
+                            return
+                        }else if(item.count + toAdd.count > item.stackSize){
+                            item.count = item.stackSize
+                            found = true
                             return
                         }
                         item.count += toAdd.count;
@@ -372,9 +381,54 @@ module.exports = function (nsp, ns) {
                 }
             })
             if(found) return
-            if(this.find(item => item == 'empty')) return this.set(this.findKey(item => item == 'empty'), toAdd)
+            if(this.find(item => item == 'empty') ) return this.set(this.findKey(item => item == 'empty'), toAdd)
         }
-        
+        addItemMax(toAdd){
+            let found = false;
+            let posSlots =  this.findAll(item => item.id == toAdd.id)
+            let ret = true
+            posSlots.forEach(item => {
+                if(!ret) return
+                if(item.count + toAdd.count > item.stackSize && 
+                    this.find(slot => {
+                        if(slot == 'empty') return true; 
+                        if(slot.id == toAdd.id && slot.count != slot.stackSize && item != slot ) return true;
+                        return false;
+                    })
+                ){
+                    toAdd.count -= (item.stackSize - item.count)
+                    item.count = item.stackSize
+                    while(this.find(item => {
+                        if(item == 'empty') return true; 
+                        if(item.id == toAdd.id && item.count != item.stackSize) return true;
+                        return false;
+                    }) && toAdd.count && ret){
+                    console.log('Here, perhaps?')
+                        let i = this.find(item => {
+                            if(item == 'empty') return true; 
+                            if(item.id == toAdd.id && item.count != item.stackSize) return true;
+                            return false;
+                        })
+                        if(i == 'empty'){ 
+                            ret = false
+                            return i = toAdd
+                        }
+                        toAdd.count -= (item.stackSize - item.count)
+                        item.count = item.stackSize
+                    }
+
+                }else if(item.count + toAdd.count > item.stackSize){
+                    toAdd.count -= (item.stackSize - item.count)
+                    item.count = item.stackSize
+                    return
+                }
+                item.count += toAdd.count;
+                toAdd.count = 0
+                ret = false
+            })
+            if(this.find(item => item == 'empty') && toAdd.count){this.set(this.findKey(item => item == 'empty'), toAdd);ret=false}
+            if(ret) return toAdd
+        }
     }
     class Player extends EventEmitter{
         /**
@@ -554,9 +608,7 @@ module.exports = function (nsp, ns) {
                 if(Vector.magnitude(this.acc) <= 0) this.stamina += this.maxStamina/25/60
                 else this.stamina += this.maxStamina/100/60
                 this.needsSelfUpdate = true
-            }/*else if(this.health < this.maxHealth){
-                
-            }*/
+            }
             this.health += this.maxStamina/50/60
             if(this.crafter.checkCraft(this.inventory)) this.needsUpdate = true
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
@@ -568,9 +620,9 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if(dropped.length || this.inventory.find(slot => slot == 'empty')){
+                if(dropped.length){
                     
-                    let possible = new Map()
+                    let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
                     })
@@ -581,8 +633,8 @@ module.exports = function (nsp, ns) {
                         if(!nearest){nearest = index; dis = Vector.getDistance(item, this.body.position); return}
                         if(Vector.getDistance(item, this.body.position) < dis){dis = Vector.getDistance(item, this.body.position); nearest = index}
                     })
-                    this.inventory.addItem(dropped[nearest].item)
-                    dropped.splice(nearest, 1);
+                    let res = this.inventory.addItemMax(dropped[nearest].item)
+                    if(!res) dropped.splice(nearest, 1);
                     this.needsSelfUpdate = true
                 }
             }
@@ -641,8 +693,26 @@ module.exports = function (nsp, ns) {
                         let self = this
                         new Timeout(() => {
                             treetargs.forEach(tree => {
-                                self.inventory.addItem(new Slot('wood', this.axe[u].mines[0].count, 'draw', 255, false))
-                                self.score += this.axe[u].mines[0].count * 1
+                                let rem = this.inventory.addItemMax(new Slot('wood', this.axe[u].mines[0].count, 'draw', 255, false))
+                                this.score += this.axe[u].mines[0].count * 1
+                                if(rem){
+                                    let ang = Math.getRandomNum(0, 360)
+                                    let offset = Vector.create(0, 50 + 20)
+                                    offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    Vector.add(tree.body.position, offset, offset)
+                                    let self = {
+                                        item:rem,
+                                        x:offset.x,
+                                        y:offset.y, 
+                                        timeout:new Timeout(() => {
+                                            dropped.splice(dropped.findIndex(function (element) {
+                                                return element === self
+                                            }), 1);
+                                        }, 5000)
+                                    }
+                                    dropped.push(self)
+                                }
                                 self.needsSelfUpdate = true
                             })
                             targs.forEach( p => {
@@ -716,21 +786,93 @@ module.exports = function (nsp, ns) {
                             })
                             self.needsSelfUpdate = true
                             stonetargs.forEach(stone => {
-                                this.inventory.addItem(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));
+                                let rem = this.inventory.addItemMax(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));
                                 this.score += 3 * this.pickaxe[u].mines[0].count
+                                if(rem){
+                                    let ang = Math.getRandomNum(0, 360)
+                                    let offset = Vector.create(0, 50 + 20)
+                                    offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    Vector.add(stone.body.position, offset, offset)
+                                    let self = {
+                                        item:rem,
+                                        x:offset.x,
+                                        y:offset.y, 
+                                        timeout:new Timeout(() => {
+                                            dropped.splice(dropped.findIndex(function (element) {
+                                                return element === self
+                                            }), 1);
+                                        }, 5000)
+                                    }
+                                    dropped.push(self)
+                                }
                             })
                             irontargs.forEach(iron => {
-                                this.inventory.addItem(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));
+                                let rem = this.inventory.addItemMax(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));
                                 this.score += 8 * this.pickaxe[u].mines[1].count
+                                if(rem){
+                                    let ang = Math.getRandomNum(0, 360)
+                                    let offset = Vector.create(0, 50 + 20)
+                                    offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    Vector.add(iron.body.position, offset, offset)
+                                    let self = {
+                                        item:rem,
+                                        x:offset.x,
+                                        y:offset.y, 
+                                        timeout:new Timeout(() => {
+                                            dropped.splice(dropped.findIndex(function (element) {
+                                                return element === self
+                                            }), 1);
+                                        }, 5000)
+                                    }
+                                    dropped.push(self)
+                                }
                             })
                             if(u == 'stone') return
                             goldtargs.forEach(gold => {
-                                this.inventory.addItem(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));
+                                let rem = this.inventory.addItemMax(new Slot('gold', this.pickaxe[u].mines[2].count, 'gold', 255, false));
                                 this.score += 16 * this.pickaxe[u].mines[2].count
+                                if(rem){
+                                    let ang = Math.getRandomNum(0, 360)
+                                    let offset = Vector.create(0, 50 + 20)
+                                    offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    Vector.add(gold.body.position, offset, offset)
+                                    let self = {
+                                        item:rem,
+                                        x:offset.x,
+                                        y:offset.y, 
+                                        timeout:new Timeout(() => {
+                                            dropped.splice(dropped.findIndex(function (element) {
+                                                return element === self
+                                            }), 1);
+                                        }, 5000)
+                                    }
+                                    dropped.push(self)
+                                }
                             })
                             diamondtargs.forEach(diamond => {
-                                this.inventory.addItem(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));
+                                let rem = this.inventory.addItemMax(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));
                                 this.score += 30 * this.pickaxe[u].mines[3].count
+                                if(rem){
+                                      let ang = Math.getRandomNum(0, 360)
+                                      let offset = Vector.create(0, 50 + 20)
+                                      offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                      offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                      Vector.add(diamond.body.position, offset, offset)
+                                      let self = {
+                                          item:rem,
+                                          x:offset.x,
+                                          y:offset.y, 
+                                          timeout:new Timeout(() => {
+                                              dropped.splice(dropped.findIndex(function (element) {
+                                                  return element === self
+                                              }), 1);
+                                          }, 5000)
+                                      }
+                                      dropped.push(self)
+                                  }
                             })
                         }, 2500/3)
                     }
@@ -833,13 +975,49 @@ module.exports = function (nsp, ns) {
                     }
                 })
                 this.treetargs.forEach(tree => {
-                    this.inventory.addItem(new Slot('wood', 1, 'draw', 255, false))
+                    let rem = this.inventory.addItemMax(new Slot('wood', 1, 'draw', 255, false))
                     this.score += 1
+                    if(rem){
+                        let ang = Math.getRandomNum(0, 360)
+                        let offset = Vector.create(0, 50 + 20)
+                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        Vector.add(tree.body.position, offset, offset)
+                        let self = {
+                            item:rem,
+                            x:offset.x,
+                            y:offset.y, 
+                            timeout:new Timeout(() => {
+                                dropped.splice(dropped.findIndex(function (element) {
+                                    return element === self
+                                }), 1);
+                            }, 5000)
+                        }
+                        dropped.push(self)
+                    }
                     this.needsSelfUpdate = true;
                 })
-                this.stonetargs.forEach(tree => {
-                    this.inventory.addItem(new Slot('stone', 1, 'stone', 255, false))
-                    this.score += 3
+                this.stonetargs.forEach(stone => {
+                    let rem = this.inventory.addItemMax(new Slot('stone', 2, 'stone', 255, false));
+                    this.score += 3 
+                    if(rem){
+                        let ang = Math.getRandomNum(0, 360)
+                        let offset = Vector.create(0, 50 + 20)
+                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        Vector.add(stone.body.position, offset, offset)
+                        let self = {
+                            item:rem,
+                            x:offset.x,
+                            y:offset.y, 
+                            timeout:new Timeout(() => {
+                                dropped.splice(dropped.findIndex(function (element) {
+                                    return element === self
+                                }), 1);
+                            }, 5000)
+                        }
+                        dropped.push(self)
+                    }
                     this.needsSelfUpdate = true
                 })
             }
@@ -1199,7 +1377,6 @@ module.exports = function (nsp, ns) {
                         //io.emit("chat message", {usrnm:"SERVER",msg:data.angle})
                         player.move.ang = data.angle;
                         player.move.grab = data.grab
-                        if(data.grab)console.log(data.grab)
                     }
                 }
             });
@@ -1234,11 +1411,17 @@ module.exports = function (nsp, ns) {
                         offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
                         offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
                         Vector.add(player.body.position, offset, offset)
-                        dropped.push({
+                        let self = {
                             item:slot,
                             x:offset.x,
-                            y:offset.y
-                        })
+                            y:offset.y, 
+                            timeout:new Timeout(() => {
+                                dropped.splice(dropped.findIndex(function (element) {
+                                    return element === self
+                                }), 1);
+                            }, 5000)
+                        }
+                        dropped.push(self)
                     })
                 }
                 pack.push(player.getUpdatePack())
@@ -1294,7 +1477,6 @@ module.exports = function (nsp, ns) {
     } 
     let dropped = []
     var self = this
-    //console.log(Math.getRandomInt(0, 30) * 100 + 50)
     setInterval(function(){
         if(STrees.list.length >= 10) return
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
@@ -1402,12 +1584,18 @@ module.exports = function (nsp, ns) {
             slotnum = slotnum.toString()
             let playa = Players.list.find(player => player.id == socket.id)
             let slot = playa.inventory.get(slotnum)
-            if(slot == 'empty') return 
-            dropped.push({
+            if(slot == 'empty') return
+            let self = {
                 item:slot,
                 x:playa.body.position.x,
-                y:playa.body.position.y
-            })
+                y:playa.body.position.y,
+                timeout:new Timeout(() => {
+                    dropped.splice(dropped.findIndex(function (element) {
+                        return element === self
+                    }), 1);
+                }, 5000)
+            }
+            dropped.push(self)
             playa.inventory.set(slotnum, 'empty')
             if(playa.mainHand == slotnum)playa.mainHand = '-1'
             playa.needsSelfUpdate = true
@@ -1445,7 +1633,6 @@ module.exports = function (nsp, ns) {
         if (Players.list[0] === undefined) return
         Engine.update(engine);
         leaderboard.update()
-        //console.log(dropped)
         let pack = {
             player: Players.update(),
             bullet: Bullets.update(),
@@ -1462,7 +1649,6 @@ module.exports = function (nsp, ns) {
                 index:i
             }))
         }
-        //if(pack.dropped.length) console.log(pack.dropped)
         let alr = false
         for(let prop in initPack){
             if(alr === true) return

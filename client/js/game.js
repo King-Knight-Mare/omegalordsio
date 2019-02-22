@@ -764,8 +764,42 @@ var init = function(name) {
                         ctx.drawImage(Img[item.slot.image], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
                     }
+                    if(item.slot.type == 'wood'){
+                        ctx.save()
+                        ctx.translate(item.x + x, item.y + y)
+                        ctx.beginPath()
+                        ctx.lineJoin = ctx.lineCap = 'round';
+                        ctx.lineWidth = 10
+                        ctx.strokeStyle = 'maroon'
+                        ctx.moveTo(0 - 45 + 75, 0 - 45 + 27.857)
+                        ctx.lineTo(0 - 45 + 15, 0 - 45 + 62.143)
+                        ctx.stroke()
+                      
+                        ctx.lineJoin = ctx.lineCap = 'round';
+                        ctx.lineWidth = 7
+                        ctx.strokeStyle = 'saddlebrown'
+                        ctx.moveTo(0 - 45 + 75, 0 - 45 + 27.857)
+                        ctx.lineTo(0 - 45 + 15, 0 - 45 + 62.143)
+                        ctx.stroke()
+                      
+                        ctx.beginPath()
+                        ctx.lineJoin = ctx.lineCap = 'round';
+                        ctx.lineWidth = 10
+                        ctx.strokeStyle = 'maroon'
+                        ctx.moveTo(0 - 45 + 15, 0 - 45 + 27.857)
+                        ctx.lineTo(0 - 45 + 75, 0 - 45 + 62.143)
+                        ctx.stroke()
+                        
+                        ctx.lineJoin = ctx.lineCap = 'round';
+                        ctx.lineWidth = 7
+                        ctx.strokeStyle = 'saddlebrown'
+                        ctx.beginPath()
+                        ctx.moveTo(0 - 45 + 15, 0 - 45 + 27.857)
+                        ctx.lineTo(0 - 45 + 75, 0 - 45 + 62.143)
+                        ctx.stroke()
+                        ctx.restore()
+                    }
                 })
-                ctx.stroke()
                 ctx.lineWidth = 0.5
                 ctx.strokeStyle = 'black'
                 ctx.font  = '10px Arial'
