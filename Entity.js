@@ -417,10 +417,10 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('Stone Axe', 1, 'stoneaxe', 1, true)],
-                ['2', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
-                ['3', new Slot('Stone Pickaxe', 1, 'stonepickaxe', 1, true)],
-                ['4', new Slot('Stone Hammer', 1, 'stonehammer', 1, true)],
+                ['1', 'empty'],
+                ['2', 'empty'],
+                ['3', 'empty'],
+                ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
                 ['7', 'empty'],
