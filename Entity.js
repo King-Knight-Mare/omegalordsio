@@ -398,7 +398,6 @@ module.exports = function (nsp, ns) {
                     if(req.count == 0) return
                     if(slot.id != req.id) return
                     slot.count -= req.count
-                    console.log(slot.count)
                     if(slot.count == 0)inventory.set(num, 'empty')
                 })
             })
@@ -421,7 +420,7 @@ module.exports = function (nsp, ns) {
                 ['1', new Slot('Stone Axe', 1, 'stoneaxe', 1, true)],
                 ['2', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
                 ['3', new Slot('Stone Pickaxe', 1, 'stonepickaxe', 1, true)],
-                ['4', 'empty'],
+                ['4', new Slot('Stone Hammer', 1, 'stonehammer', 1, true)],
                 ['5', 'empty'],
                 ['6', 'empty'],
                 ['7', 'empty'],
@@ -469,7 +468,6 @@ module.exports = function (nsp, ns) {
                 }
             })
             if(found) return
-            console.log(this)
             if(this.find(item => item == 'empty') ) return this.set(this.findKey(item => item == 'empty'), toAdd)
         }
         addItemMax(toAdd){
@@ -540,6 +538,8 @@ module.exports = function (nsp, ns) {
             this.bullets = [];
             this.score = 0
             this.alusd = false
+            this.walls = []
+            
             this.punch = {
                 speed: 3,
                 ready:true,
@@ -555,18 +555,22 @@ module.exports = function (nsp, ns) {
                 timeout:null,
                 stone:{
                     damage:3.75,
+                    walldam:3,
                     mines:[{item:'wood', count:3}]
                 },
                 iron:{
                     damage:4.5,
+                    walldam:9,
                     mines:[{item:'wood', count:5}]
                 },
                 gold:{
                     damage:6,
+                    walldam:19,
                     mines:[{item:'wood', count:8}]
                 },
                 diamond:{
                     damage:7.5,
+                    walldam:25,
                     mines:[{item:'wood', count:12}]
                 },
             }
@@ -575,18 +579,22 @@ module.exports = function (nsp, ns) {
                 timeout:null,
                 stone:{
                     damage:3.75,
+                    walldam:2,
                     mines:[{item:'stone', count:3}, {item:'iron', count:2}]
                 },
                 iron:{
                     damage:4,
+                    walldam:6,
                     mines:[{item:'stone', count:5}, {item:'iron', count:3}, {item:'gold', count:2}, {item:'diamond', count:1}]
                 },
                 gold:{
                     damage:4.5,
+                    walldam:8,
                     mines:[{item:'stone', count:9}, {item:'iron', count:5}, {item:'gold', count:3}, {item:'diamond', count:2}]
                 },
                 diamond:{
                     damage:5,
+                    walldam:15,
                     mines:[{item:'stone', count:20}, {item:'iron', count:9}, {item:'gold', count:5}, {item:'diamond', count:3}]
                 },
             }
@@ -595,15 +603,39 @@ module.exports = function (nsp, ns) {
                 timeout:null,
                 stone:{
                     damage:5,
+                    walldam:1,
                 },
                 iron:{
                     damage:7,
+                    walldam:5,
                 },
                 gold:{
                     damage:9,
+                    walldam:7
                 },
                 diamond:{
                     damage:12,
+                    walldam:10
+                },
+            }
+            this.hammer = {
+                ready:true,
+                timeout:null,
+                stone:{
+                    damage:4,
+                    walldam:25,
+                },
+                iron:{
+                    damage:6,
+                    walldam:30,
+                },
+                gold:{
+                    damage:7,
+                    walldam:37.5
+                },
+                diamond:{
+                    damage:8,
+                    walldam:50
                 },
             }
             this.hands = {
@@ -713,7 +745,6 @@ module.exports = function (nsp, ns) {
             this.setHands()
             if(this.move.grab){
                 if(dropped.length){
-                    
                     let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
@@ -738,10 +769,9 @@ module.exports = function (nsp, ns) {
                 
             } else {
                 this.mainHands = this.inventory.get(this.mainHand).id
-                let toolReg = /\w+\s(Axe|Pickaxe|Sword)/
+                let toolReg = /\w+\s(Axe|Pickaxe|Sword|Hammer)/
                 if(toolReg.test(this.mainHands)){
                     if(/Axe/.test(this.mainHands) && this.axe.ready && this.move.att){
-                        
                         let u
                         this.tool = 'axe'
                         if(/^Stone/.test(this.mainHands)) u = 'stone'
@@ -756,6 +786,11 @@ module.exports = function (nsp, ns) {
                         Vector.add(this.body.position, axep, axep)
                         let treetargs = []
                         let targs = []
+                        let stonetargs = []
+                        let irontargs = []
+                        let goldtargs = []
+                        let diamondtargs = []
+                        let walltargs = []
                         this.axe.ready = false
                         this.hitting = true
                         this.axe.timeout = new Timeout(() => {
@@ -772,8 +807,33 @@ module.exports = function (nsp, ns) {
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
-                            if(Vector.getDistance(axep, tree) < axerad + 50) {
+                            if(Vector.getDistance(axep, tree.body.position) < axerad + 50) {
                                 treetargs.push(tree)
+                            }
+                        })
+                        this.game.Stones.list.forEach(stone => {
+                            if(Vector.getDistance(axep, stone.body.position) < axerad + 50) {
+                                stonetargs.push(stone)
+                            }
+                        })
+                        this.game.Irons.list.forEach(iron => {
+                            if(Vector.getDistance(axep, iron.body.position) < axerad + 50) {
+                                irontargs.push(iron)
+                            }
+                        })
+                        this.game.Golds.list.forEach(gold => {
+                            if(Vector.getDistance(axep, gold.body.position) < axerad + 50) {
+                                goldtargs.push(gold)
+                            }
+                        })
+                        this.game.Diamonds.list.forEach(diamond => {
+                            if(Vector.getDistance(axep, diamond) < axerad + 50) {
+                                diamondtargs.push(diamond)
+                            }
+                        })
+                        this.game.Walls.list.forEach(wall => {
+                            if(Vector.getDistance(axep, wall.body.position) < axerad + 50) {
+                                walltargs.push(wall)
                             }
                         })
                         targs.forEach( p => {
@@ -806,6 +866,27 @@ module.exports = function (nsp, ns) {
                                     dropped.push(self)
                                 }
                                 self.needsSelfUpdate = true
+                                tree.health -= this.axe[u].walldam
+                            })
+                            stonetargs.forEach(stone => {
+                                self.needsSelfUpdate = true
+                                stone.health -= this.axe[u].walldam
+                            })
+                            irontargs.forEach(iron => {
+                                self.needsSelfUpdate = true
+                                iron.health -= this.axe[u].walldam
+                            })
+                            goldtargs.forEach(gold => {
+                                self.needsSelfUpdate = true
+                                gold.health -= this.axe[u].walldam
+                            })
+                            diamondtargs.forEach(diamond => {
+                                self.needsSelfUpdate = true
+                                diamond.health -= this.axe[u].walldam
+                            })
+                            walltargs.forEach(wall => {
+                                self.needsSelfUpdate = true
+                                wall.health -= this.hammer[u].walldam
                             })
                             targs.forEach( p => {
                                 p.health -= this.axe[u].damage
@@ -828,11 +909,13 @@ module.exports = function (nsp, ns) {
                         paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                         paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                         Vector.add(this.body.position, paxep, paxep)
+                        let treetargs = []
                         let stonetargs = []
                         let irontargs = []
                         let goldtargs = []
                         let diamondtargs = []
                         let targs = []
+                        let walltargs = []
                         this.pickaxe.ready = false
                         this.hitting = true
                         this.pickaxe.timeout = new Timeout(() => {
@@ -848,24 +931,34 @@ module.exports = function (nsp, ns) {
                                 targs.push(p)
                             }
                         }
+                        this.game.STrees.list.forEach(tree => {
+                            if(Vector.getDistance(paxep, tree.body.position) < paxerad + 50) {
+                                treetargs.push(tree)
+                            }
+                        })
                         this.game.Stones.list.forEach(stone => {
-                            if(Vector.getDistance(paxep, stone) < paxerad + 50) {
+                            if(Vector.getDistance(paxep, stone.body.position) < paxerad + 50) {
                                 stonetargs.push(stone)
                             }
                         })
                         this.game.Irons.list.forEach(iron => {
-                            if(Vector.getDistance(paxep, iron) < paxerad + 50) {
+                            if(Vector.getDistance(paxep, iron.body.position) < paxerad + 50) {
                                 irontargs.push(iron)
                             }
                         })
                         this.game.Golds.list.forEach(gold => {
-                            if(Vector.getDistance(paxep, gold) < paxerad + 50) {
+                            if(Vector.getDistance(paxep, gold.body.position) < paxerad + 50) {
                                 goldtargs.push(gold)
                             }
                         })
                         this.game.Diamonds.list.forEach(diamond => {
-                            if(Vector.getDistance(paxep, diamond) < paxerad + 50) {
+                            if(Vector.getDistance(paxep, diamond.body.position) < paxerad + 50) {
                                 diamondtargs.push(diamond)
+                            }
+                        })
+                        this.game.Walls.list.forEach(wall => {
+                            if(Vector.getDistance(paxep, wall.body.position) < paxerad + 50) {
+                                walltargs.push(wall)
                             }
                         })
                         let self = this
@@ -877,6 +970,10 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             self.needsSelfUpdate = true
+                            treetargs.forEach(tree => {
+                                self.needsSelfUpdate = true
+                                tree.health -= this.axe[u].walldam
+                            })
                             stonetargs.forEach(stone => {
                                 let rem = this.inventory.addItemMax(new Slot('stone', this.pickaxe[u].mines[0].count, 'stone', 255, false));
                                 this.score += 3 * this.pickaxe[u].mines[0].count
@@ -898,6 +995,7 @@ module.exports = function (nsp, ns) {
                                     }
                                     dropped.push(self)
                                 }
+                                stone.health -= this.pickaxe[u].walldam
                             })
                             irontargs.forEach(iron => {
                                 let rem = this.inventory.addItemMax(new Slot('iron', this.pickaxe[u].mines[1].count, 'iron', 255, false));
@@ -920,6 +1018,7 @@ module.exports = function (nsp, ns) {
                                     }
                                     dropped.push(self)
                                 }
+                                iron.health -= this.pickaxe[u].walldam
                             })
                             if(u == 'stone') return
                             goldtargs.forEach(gold => {
@@ -943,28 +1042,34 @@ module.exports = function (nsp, ns) {
                                     }
                                     dropped.push(self)
                                 }
+                                gold.health -= this.pickaxe[u].walldam
                             })
                             diamondtargs.forEach(diamond => {
                                 let rem = this.inventory.addItemMax(new Slot('diamond', this.pickaxe[u].mines[3].count, 'diamond', 255, false));
                                 this.score += 30 * this.pickaxe[u].mines[3].count
                                 if(rem){
-                                      let ang = Math.getRandomNum(0, 360)
-                                      let offset = Vector.create(0, 50 + 20)
-                                      offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
-                                      offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
-                                      Vector.add(diamond.body.position, offset, offset)
-                                      let self = {
-                                          item:rem,
-                                          x:offset.x,
-                                          y:offset.y, 
-                                          timeout:new Timeout(() => {
-                                              dropped.splice(dropped.findIndex(function (element) {
-                                                  return element === self
-                                              }), 1);
-                                          }, 5000)
-                                      }
-                                      dropped.push(self)
-                                  }
+                                    let ang = Math.getRandomNum(0, 360)
+                                    let offset = Vector.create(0, 50 + 20)
+                                    offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                                    Vector.add(diamond.body.position, offset, offset)
+                                    let self = {
+                                        item:rem,
+                                        x:offset.x,
+                                        y:offset.y, 
+                                        timeout:new Timeout(() => {
+                                            dropped.splice(dropped.findIndex(function (element) {
+                                                return element === self
+                                            }), 1);
+                                        }, 5000)
+                                    }
+                                    dropped.push(self)
+                                }
+                                diamond.health -= this.pickaxe[u].walldam
+                            })
+                            walltargs.forEach(wall => {
+                                self.needsSelfUpdate = true
+                                wall.health -= this.pickaxe[u].walldam
                             })
                         }, 2500/3)
                     }
@@ -1007,18 +1112,123 @@ module.exports = function (nsp, ns) {
                             })
                         }, 2500/3)
                     }
+                    if(/Hammer/.test(this.mainHands) && this.hammer.ready && this.move.att){
+                        let u
+                        this.tool = 'hammer'
+                        if(/^Stone/.test(this.mainHands)) u = 'stone'
+                        else if(/^Iron/.test(this.mainHands)) u = 'iron'
+                        else if(/^Gold/.test(this.mainHands)) u = 'gold'
+                        else if(/^Diamond/.test(this.mainHands)) u = 'diamond'
+                        if(this.hammer.timeout) clearTimeout(this.hammer.timeout.timeout)
+                        let axerad = this.rad/25 * 15
+                        let axep = Vector.create(0, 70 * this.rad/25)
+                        axep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
+                        axep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
+                        Vector.add(this.body.position, axep, axep)
+                        let treetargs = []
+                        let stonetargs = []
+                        let irontargs = []
+                        let goldtargs = []
+                        let diamondtargs = []
+                        let targs = []
+                        let walltargs = []
+                        this.hammer.ready = false
+                        this.hitting = true
+                        this.hammer.timeout = new Timeout(() => {
+                            this.hitting = false
+                            this.hammer.timeout = null
+                            this.hammer.ready = true
+                            this.tool = null
+                        }, 5000/3)
+                        for (var i = 0; i < Players.list.length; i++) {
+                            var p = Players.list[i]
+                            if (Vector.getDistance(axep, p.body.position) < p.rad + axerad
+                                  && this.id != p.id) {
+                                targs.push(p)
+                            }
+                        }
+                        this.game.STrees.list.forEach(tree => {
+                            if(Vector.getDistance(axep, tree) < axerad + 50) {
+                                treetargs.push(tree)
+                            }
+                        })
+                        this.game.Stones.list.forEach(stone => {
+                            if(Vector.getDistance(axep, stone.body.position) < axerad + 50) {
+                                stonetargs.push(stone)
+                            }
+                        })
+                        this.game.Irons.list.forEach(iron => {
+                            if(Vector.getDistance(axep, iron.body.position) < axerad + 50) {
+                                irontargs.push(iron)
+                            }
+                        })
+                        this.game.Golds.list.forEach(gold => {
+                            if(Vector.getDistance(axep, gold.body.position) < axerad + 50) {
+                                goldtargs.push(gold)
+                            }
+                        })
+                        this.game.Diamonds.list.forEach(diamond => {
+                            if(Vector.getDistance(axep, diamond.body.position) < axerad + 50) {
+                                diamondtargs.push(diamond)
+                            }
+                        })
+                        this.game.Walls.list.forEach(wall => {
+                            if(Vector.getDistance(axep, wall.body.position) < axerad + 50) {
+                                walltargs.push(wall)
+                            }
+                        })
+                        targs.forEach( p => {
+                            p.health -= this.hammer[u].damage
+                            if (p.health <= 0) {
+                                this.score += p.score/2 + 2
+                            }
+                        })
+                        let self = this
+                        new Timeout(() => {
+                            treetargs.forEach(tree => {
+                                self.needsSelfUpdate = true
+                                tree.health -= this.hammer[u].walldam
+                            })
+                            stonetargs.forEach(stone => {
+                                self.needsSelfUpdate = true
+                                stone.health -= this.hammer[u].walldam
+                            })
+                            irontargs.forEach(iron => {
+                                self.needsSelfUpdate = true
+                                iron.health -= this.hammer[u].walldam
+                            })
+                            goldtargs.forEach(gold => {
+                                self.needsSelfUpdate = true
+                                gold.health -= this.hammer[u].walldam
+                            })
+                            diamondtargs.forEach(diamond => {
+                                self.needsSelfUpdate = true
+                                diamond.health -= this.hammer[u].walldam
+                            })
+                            walltargs.forEach(wall => {
+                                self.needsSelfUpdate = true
+                                wall.health -= this.hammer[u].walldam
+                            })
+                            targs.forEach( p => {
+                                p.health -= this.hammer[u].damage
+                                if (p.health <= 0) {
+                                    this.score += p.score/2 + 2
+                                }
+                            })
+                        }, 2500/3)
+                    }
                 }
                 if(/Wall/.test(this.mainHands)){
                     let mvect
                     if(this.move.mdis > 141.42 + this.rad){
                         mvect = Vector.create()
-                        mvect.x = Math.cos(this.move.ang * Math.PI / 180) * (141.42 + this.rad);
-                        mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (141.42 + this.rad);
+                        mvect.x = Math.cos(this.move.ang * Math.PI / 180) * (141.42);
+                        mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (141.42);
                         Vector.add(mvect, this.body.position, mvect)
                     }else {
                         mvect = Vector.create()
-                        mvect.x = Math.cos(this.move.ang * Math.PI / 180) * (this.move.mdis + this.rad);
-                        mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (this.move.mdis + this.rad);
+                        mvect.x = Math.cos(this.move.ang * Math.PI / 180) * (this.move.mdis);
+                        mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (this.move.mdis);
                         Vector.add(mvect, this.body.position, mvect)
                     }
                     if(this.move.att && !this.alusd){
@@ -1030,16 +1240,16 @@ module.exports = function (nsp, ns) {
                         if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
                         if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
+                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
+                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        if(/Wood/.test(this.mainHands)) new Wall(mvect.x, mvect.y, 'wood')
-                        if(/Stone/.test(this.mainHands)) new Wall(mvect.x, mvect.y, 'stone')
-                        if(/Iron/.test(this.mainHands)) new Wall(mvect.x, mvect.y, 'iron')
+                        if(/Wood/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'wood'))
+                        if(/Stone/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'stone'))
+                        if(/Iron/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'iron'))
                         this.alusd = true
-                        
-                        console.log(mvect, this.body.position, this.move.mdis)
                     }
                 }
             }
@@ -1069,8 +1279,8 @@ module.exports = function (nsp, ns) {
                 }
                 this.game.STrees.list.forEach(tree => {
                     if ((Vector.getDistance(
-                        this.hposfr, {x: tree.x, y:tree.y}) < this.hrad - tree.acumheight || 
-                        Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y}) < this.hrad + tree.acumheight)) {
+                        this.hposfr, {x: tree.x, y:tree.y}) < this.hrad - 50 || 
+                        Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y}) < this.hrad + 50)) {
                         this.treetargs.push(tree)
                     }
                 })
@@ -1260,6 +1470,14 @@ module.exports = function (nsp, ns) {
             var pack = []
             STrees.list.forEach(tree=>{
                 if(tree.needsUpdate) pack.push(tree.getUpdatePack())
+                if(tree.health <= 0) {
+                    removePack.tree.push(tree.id)
+                    clearTimeout(tree.deathTimeout)
+                    STrees.list.splice(STrees.list.findIndex(function (element) {
+                        return element.id === tree.id
+                    }), 1);
+                    World.remove(engine.world, tree.body)
+                }
             })
             return pack
         }
@@ -1273,8 +1491,8 @@ module.exports = function (nsp, ns) {
             this.growInterval = setInterval(() => {
                 this.wood += 1
             }, 1000)
-            this.acumheight = 50
-            setTimeout(() => {
+            this.health = 50
+            this.deathTimeout = setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.tree.push(this.id)
                 STrees.list.splice(STrees.list.findIndex(element => element.id === this.id), 1);
@@ -1314,6 +1532,14 @@ module.exports = function (nsp, ns) {
             var pack = []
             Stones.list.forEach(stone => {
                 if(stone.needsUpdate) pack.push(stone.getUpdatePack())
+                if(stone.health <= 0) {
+                    removePack.stone.push(stone.id)
+                    clearTimeout(stone.deathTimeout)
+                    Stones.list.splice(Stones.list.findIndex(function (element) {
+                        return element.id === stone.id
+                    }), 1);
+                    World.remove(engine.world, stone.body)
+                }
             })
             return pack
         }
@@ -1324,7 +1550,16 @@ module.exports = function (nsp, ns) {
             var pack = []
             Irons.list.forEach(iron => {
                 if(iron.needsUpdate) pack.push(iron.getUpdatePack())
+                if(iron.health <= 0) {
+                    removePack.iron.push(iron.id)
+                    clearTimeout(iron.deathTimeout)
+                    Irons.list.splice(Irons.list.findIndex(function (element) {
+                        return element.id === iron.id
+                    }), 1);
+                    World.remove(engine.world, iron.body)
+                }
             })
+            
             return pack
         }
     }
@@ -1334,6 +1569,14 @@ module.exports = function (nsp, ns) {
             var pack = []
             Golds.list.forEach(gold => {
                 if(gold.needsUpdate) pack.push(gold.getUpdatePack())
+                if(gold.health <= 0) {
+                    removePack.gold.push(gold.id)
+                    clearTimeout(gold.deathTimeout)
+                    Golds.list.splice(Golds.list.findIndex(function (element) {
+                        return element.id === gold.id
+                    }), 1);
+                    World.remove(engine.world, gold.body)
+                }
             })
             return pack
         }
@@ -1344,6 +1587,14 @@ module.exports = function (nsp, ns) {
             var pack = []
             Diamonds.list.forEach(diamond => {
                 if(diamond.needsUpdate) pack.push(diamond.getUpdatePack())
+                if(diamond.health <= 0) {
+                    removePack.diamond.push(diamond.id)
+                    clearTimeout(diamond.deathTimeout)
+                    Diamonds.list.splice(Diamonds.list.findIndex(function (element) {
+                        return element.id === diamond.id
+                    }), 1);
+                    World.remove(engine.world, diamond.body)
+                }
             })
             return pack
         }
@@ -1353,7 +1604,8 @@ module.exports = function (nsp, ns) {
             this.x = x
             this.y = y
             this.id = Math.random()
-            setTimeout(() => {
+            this.health = 100
+            this.deathTimeout = setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.stone.push(this.id)
                 Stones.list.splice(Stones.list.findIndex(element => element.id === this.id), 1);
@@ -1386,6 +1638,13 @@ module.exports = function (nsp, ns) {
             var pack = []
             Walls.list.forEach(wall => {
                 if(wall.needsUpdate) pack.push(wall.getUpdatePack())
+                if(wall.health <= 0) {
+                    removePack.wall.push(wall.id)
+                    Walls.list.splice(Walls.list.findIndex(function (element) {
+                        return element.id === wall.id
+                    }), 1);
+                    World.remove(engine.world, wall.body)
+                }
             })
             return pack
         }
@@ -1395,7 +1654,8 @@ module.exports = function (nsp, ns) {
             this.x = x
             this.y = y
             this.id = Math.random()
-            setTimeout(() => {
+            this.health = 175
+            this.deathTimeout = setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.iron.push(this.id)
                 Irons.list.splice(Irons.list.findIndex(element => element.id === this.id), 1);
@@ -1427,7 +1687,8 @@ module.exports = function (nsp, ns) {
             this.x = x
             this.y = y
             this.id = Math.random()
-            setTimeout(() => {
+            this.health = 275
+            this.deathTimeout = setTimeout(() => {
                 clearTimeout(this.growInterval)
                 removePack.gold.push(this.id)
                 Golds.list.splice(Golds.list.findIndex(element => element.id === this.id), 1);
@@ -1459,8 +1720,8 @@ module.exports = function (nsp, ns) {
             this.x = x
             this.y = y
             this.id = Math.random()
-            setTimeout(() => {
-                clearTimeout(this.growInterval)
+            this.health = 400
+            this.deathTimeout = setTimeout(() => {
                 removePack.diamond.push(this.id)
                 Diamonds.list.splice(Diamonds.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
@@ -1492,12 +1753,9 @@ module.exports = function (nsp, ns) {
             this.y = y
             this.id = Math.random()
             this.material = material
-            setTimeout(() => {
-                clearTimeout(this.growInterval)
-                removePack.wall.push(this.id)
-                Walls.list.splice(Golds.list.findIndex(element => element.id === this.id), 1);
-                World.remove(engine.world, this.body)
-            }, 600000)
+            
+            if(material == 'wood') this.health = 100
+            if(material == 'stone') this.health = 250
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -1574,7 +1832,9 @@ module.exports = function (nsp, ns) {
                     }), 1);
                     World.remove(engine.world, player.body)
                     leaderboard.removePlayer(player.id)
-                    
+                    player.walls.forEach(wall => {
+                        wall.health = 0
+                    })
                     let toDrop = player.inventory.findAll(slot => slot !== 'empty') 
                     toDrop.forEach((slot, i) => {
                         let a = 360/toDrop.length
@@ -1661,7 +1921,6 @@ module.exports = function (nsp, ns) {
         if(Diamonds.list.length < 3) canAdd.push('diamond')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
-        console.log(willAdd)
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
         let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
         let inWay = false
@@ -1671,19 +1930,19 @@ module.exports = function (nsp, ns) {
         })
         
         STrees.list.forEach(tree => {
-            if(tempx == tree.body.position.y && tempy == tree.body.position.y) inWay = true
+            if(tempx == tree.body.position.x && tempy == tree.body.position.y) inWay = true
         })
         Stones.list.forEach(stone => {
-            if(tempx == stone.body.position.y && tempy == stone.body.position.y) inWay = true
+            if(tempx == stone.body.position.x && tempy == stone.body.position.y) inWay = true
         })
         Irons.list.forEach(iron => {
-            if(tempx == iron.body.position.y && tempy == iron.body.position.y) inWay = true
+            if(tempx == iron.body.position.x && tempy == iron.body.position.y) inWay = true
         })
         Golds.list.forEach(gold => {
-            if(tempx == gold.body.position.y && tempy == gold.body.position.y) inWay = true
+            if(tempx == gold.body.position.x && tempy == gold.body.position.y) inWay = true
         })
         Diamonds.list.forEach(diamond => {
-            if(tempx == diamond.body.position.y && tempy == diamond.body.position.y) inWay = true
+            if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
         })
         
         if(inWay) return
@@ -1771,6 +2030,10 @@ module.exports = function (nsp, ns) {
             bullet: Bullets.update(),
             tree:STrees.update(),
             stone:Stones.update(),
+            iron:Irons.update(),
+            gold:Golds.update(),
+            diamond:Diamonds.update(),
+            wall:Walls.update(),
             leaderboard: leaderboard.getUpdate(),
             dropped:dropped.map((item, i) => ({
                 slot:{
@@ -1825,6 +2088,7 @@ module.exports = function (nsp, ns) {
     this.Stones = Stones
     this.Irons = Irons
     this.Golds = Golds
+    this.Walls = Walls
     this.Diamonds = Diamonds
     this.Entity = Entity;
     this.Bullet = Bullet;
