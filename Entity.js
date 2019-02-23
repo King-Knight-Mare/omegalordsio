@@ -146,6 +146,21 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Stone Hammer', 
+                    {
+                        recipe:[
+                            {id:'stone', count:20},
+                            {id:'wood', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'stonehammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
                     'Iron Axe', 
                     {
                         recipe:[
@@ -187,6 +202,21 @@ module.exports = function (nsp, ns) {
                         output:{
                             count:1,
                             image:'ironsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Iron Hammer', 
+                    {
+                        recipe:[
+                            {id:'iron', count:20},
+                            {id:'stone', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironhammer',
                             stackSize:1,
                             equipable:true
                         }
@@ -239,6 +269,21 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Gold Hammer', 
+                    {
+                        recipe:[
+                            {id:'gold', count:20},
+                            {id:'iron', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'goldhammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
                     'Diamond Axe', 
                     {
                         recipe:[
@@ -279,6 +324,21 @@ module.exports = function (nsp, ns) {
                         output:{
                             count:1,
                             image:'diamondsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Diamond Hammer', 
+                    {
+                        recipe:[
+                            {id:'diamond', count:20},
+                            {id:'iron', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondhammer',
                             stackSize:1,
                             equipable:true
                         }
@@ -358,9 +418,9 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', 'empty'],
-                ['2', 'empty'],
-                ['3', 'empty'],
+                ['1', new Slot('Stone Axe', 1, 'stoneaxe', 1, true)],
+                ['2', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
+                ['3', new Slot('Stone Pickaxe', 1, 'stonepickaxe', 1, true)],
                 ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
@@ -1609,20 +1669,21 @@ module.exports = function (nsp, ns) {
         Players.list.forEach(player => {
             if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
         })
+        
         STrees.list.forEach(tree => {
-            if({x:tempx, y:tempy} == tree.body.position) inWay = true
+            if(tempx == tree.body.position.y && tempy == tree.body.position.y) inWay = true
         })
         Stones.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+            if(tempx == stone.body.position.y && tempy == stone.body.position.y) inWay = true
         })
-        Irons.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+        Irons.list.forEach(iron => {
+            if(tempx == iron.body.position.y && tempy == iron.body.position.y) inWay = true
         })
-        Golds.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+        Golds.list.forEach(gold => {
+            if(tempx == gold.body.position.y && tempy == gold.body.position.y) inWay = true
         })
-        Diamonds.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+        Diamonds.list.forEach(diamond => {
+            if(tempx == diamond.body.position.y && tempy == diamond.body.position.y) inWay = true
         })
         
         if(inWay) return
