@@ -348,7 +348,7 @@ module.exports = function (nsp, ns) {
                     'Wood Wall', 
                     {
                         recipe:[
-                            {id:'wood', count:1},
+                            {id:'wood', count:10},
                         ],
                         output:{
                             count:1,
@@ -362,7 +362,8 @@ module.exports = function (nsp, ns) {
                     'Stone Wall', 
                     {
                         recipe:[
-                            {id:'stone', count:1},
+                            {id:'stone', count:10},
+                            {id:'wood', count:5}
                         ],
                         output:{
                             count:1,
