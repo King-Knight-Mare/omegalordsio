@@ -41,15 +41,19 @@ createImage('tree1', 'png')
 createImage('stoneaxe',  'png')
 createImage('stonepickaxe',  'png')
 createImage('stonesword',  'png')
+createImage('stonehammer',  'png')
 createImage('ironaxe',  'png')
 createImage('ironpickaxe',  'png')
 createImage('ironsword',  'png')
+createImage('ironhammer',  'png')
 createImage('goldaxe',  'png')
 createImage('goldpickaxe',  'png')
 createImage('goldsword',  'png')
+createImage('goldhammer',  'png')
 createImage('diamondaxe',  'png')
 createImage('diamondpickaxe',  'png')
 createImage('diamondsword',  'png')
+createImage('diamondhammer',  'png')
 createImage('stone', 'png')
 createImage('iron', 'png')
 createImage('gold', 'png')
@@ -311,7 +315,7 @@ var init = function(name) {
                     ctx.restore();
                 }
             } else {
-                if(/Axe|Pickaxe|Sword/.test(this.mainHand)){
+                if(/Axe|Pickaxe|Sword|Hammer/.test(this.mainHand)){
                     if(/Axe/.test(this.mainHand)){
                         let img = this.mainHand.toLowerCase().replace(/\s/, '')
                         ctx.save()
@@ -353,6 +357,19 @@ var init = function(name) {
                         ctx.drawImage(Img[img], 0 - 75/2, 0 - 75/2, 75, 75)
                         ctx.restore()
                     
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }else if(/Hammer/.test(this.mainHand)){
+                        let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[img], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
                         ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
                         ctx.restore()
                     }
@@ -660,7 +677,7 @@ var init = function(name) {
                     if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold'){
                         ctx.drawImage(Img[item.slot.image], item.x + x - 20, item.y + y - 20, 40, 40)
                     }
-                    if(/Axe|Pickaxe|Sword/.test(item.slot.type)){
+                    if(/Axe|Pickaxe|Sword|Hammer/.test(item.slot.type)){
                         ctx.save()
                         ctx.translate(item.x + x, item.y + y)
                         ctx.rotate(Math.PI/ 180 * 45)
@@ -708,7 +725,7 @@ var init = function(name) {
                 ctx.strokeStyle = 'black'
                 ctx.font  = '10px Arial'
                 playa.craftables.forEach((craft, i) => {
-                    if(/Axe|Pickaxe|Sword/.test(craft)){
+                    if(/Axe|Pickaxe|Sword|Hammer/.test(craft)){
                         let img = craft.toLowerCase().replace(/\s/, '')
                         ctx.globalAlpha = 0.875
                         ctx.lineWidth = 2
@@ -764,7 +781,7 @@ var init = function(name) {
                     ctx.globalAlpha = 1
                     ctx.stroke();  
                     if(slot == ' ') return 
-                    if(/Axe|Pickaxe|Sword/.test(slot.type)){
+                    if(/Axe|Pickaxe|Sword|Hammer/.test(slot.type)){
                         //let img = slot.image.toLowerCase().replace(/\s/, '')
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
