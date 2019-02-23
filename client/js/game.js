@@ -55,6 +55,7 @@ createImage('iron', 'png')
 createImage('gold', 'png')
 createImage('diamond', 'png')
 createImage('woodwall', 'png')
+createImage('stonewall', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
 Img.map.src = '/client/img/map.png'
@@ -222,13 +223,13 @@ var init = function(name) {
         var x = -window.innerWidth / 2 + event.clientX;
         var y = -window.innerHeight / 2 + event.clientY;
         var radian = Math.atan2(y, x);
-        let mousedis = Math.sqrt(Math.pow(0 - x) + Math.pow(0 - y))
+        let mousedis = Math.sqrt(Math.pow(0 - x, 2) + Math.pow(0 - y, 2))
         if (radian < 0) {
             radian += Math.PI * 2;
         }
         var angle = radian * 180 / Math.PI;
         movement.angle = angle;
-        movement.dis = mousedis
+        movement.mousedis = mousedis
     }
     var leaderboard = []
     let dropped = []
@@ -483,7 +484,7 @@ var init = function(name) {
             Walls.set(this.id, this)
         }
         show(x, y){
-            ctx.drawImage(Img['woodwall'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+            ctx.drawImage(Img[this.material + 'wall'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
     class Bullet {

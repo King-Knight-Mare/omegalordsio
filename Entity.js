@@ -146,6 +146,21 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Stone Hammer', 
+                    {
+                        recipe:[
+                            {id:'stone', count:20},
+                            {id:'wood', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'stonehammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
                     'Iron Axe', 
                     {
                         recipe:[
@@ -187,6 +202,21 @@ module.exports = function (nsp, ns) {
                         output:{
                             count:1,
                             image:'ironsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Iron Hammer', 
+                    {
+                        recipe:[
+                            {id:'iron', count:20},
+                            {id:'stone', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironhammer',
                             stackSize:1,
                             equipable:true
                         }
@@ -239,6 +269,21 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Gold Hammer', 
+                    {
+                        recipe:[
+                            {id:'gold', count:20},
+                            {id:'iron', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'goldhammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
                     'Diamond Axe', 
                     {
                         recipe:[
@@ -285,6 +330,21 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Diamond Hammer', 
+                    {
+                        recipe:[
+                            {id:'diamond', count:20},
+                            {id:'iron', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondhammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
                     'Wood Wall', 
                     {
                         recipe:[
@@ -298,7 +358,20 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
-                
+                [
+                    'Stone Wall', 
+                    {
+                        recipe:[
+                            {id:'stone', count:1},
+                        ],
+                        output:{
+                            count:1,
+                            image:'stonewall',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
                 //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
                 //['Black Ability', [{id:'wood', count:20}]]
             ])
@@ -319,15 +392,14 @@ module.exports = function (nsp, ns) {
             var recipe = this.get(item).recipe
             let output =  this.get(item).output
             recipe.forEach(req => {
-                inventory.forEach(slot => {
+                inventory.forEach((slot, num) => {
+                  
                     if(slot == 'empty') return
                     if(req.count == 0) return
                     if(slot.id != req.id) return
-                    if(req.count > slot.count){
-                        return slot = 'empty'
-                    }
                     slot.count -= req.count
-                    
+                    console.log(slot.count)
+                    if(slot.count == 0)inventory.set(num, 'empty')
                 })
             })
             inventory.addItem(new Slot(item, 1, output.image, output.stackSize, output.equipable))
@@ -366,7 +438,6 @@ module.exports = function (nsp, ns) {
             return itemArray
         }
         addItem(toAdd){
-            console.log(this)
             let found = false;
             let posSlots =  this.findAll(item => item.id == toAdd.id)
             posSlots.forEach(item => {
@@ -421,7 +492,6 @@ module.exports = function (nsp, ns) {
                         if(item.id == toAdd.id && item.count != item.stackSize) return true;
                         return false;
                     }) && toAdd.count && ret){
-                    console.log('Here, perhaps?')
                         let i = this.find(item => {
                             if(item == 'empty') return true; 
                             if(item.id == toAdd.id && item.count != item.stackSize) return true;
@@ -469,6 +539,7 @@ module.exports = function (nsp, ns) {
             this.admin = false;
             this.bullets = [];
             this.score = 0
+            this.alusd = false
             this.punch = {
                 speed: 3,
                 ready:true,
@@ -907,8 +978,8 @@ module.exports = function (nsp, ns) {
                         if(this.sword.timeout) clearTimeout(this.swor.timeout.timeout)
                         let saxerad = this.rad/25 * 30
                         let saxep = Vector.create(0, 70 * this.rad/25)
-                        saxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(saxep);
-                        saxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(saxep);
+                        saxep.x = Math.cos(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
+                        saxep.y = Math.sin(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
                         Vector.add(this.body.position, saxep, saxep)
                         let targs = []
                         this.sword.ready = false
@@ -938,7 +1009,38 @@ module.exports = function (nsp, ns) {
                     }
                 }
                 if(/Wall/.test(this.mainHands)){
-                    
+                    let mvect
+                    if(this.move.mdis > 141.42 + this.rad){
+                        mvect = Vector.create()
+                        mvect.x = Math.cos(this.move.ang * Math.PI / 180) * (141.42 + this.rad);
+                        mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (141.42 + this.rad);
+                        Vector.add(mvect, this.body.position, mvect)
+                    }else {
+                        mvect = Vector.create()
+                        mvect.x = Math.cos(this.move.ang * Math.PI / 180) * (this.move.mdis + this.rad);
+                        mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (this.move.mdis + this.rad);
+                        Vector.add(mvect, this.body.position, mvect)
+                    }
+                    if(this.move.att && !this.alusd){
+                        mvect.y = Math.floor(mvect.y/100) * 100 + 50
+                        mvect.x = Math.floor(mvect.x/100) * 100 + 50
+                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return
+                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
+                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
+                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
+                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
+                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
+                        let slot = this.inventory.get(this.mainHand)
+                        slot.count -= 1
+                        if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
+                        this.needsSelfUpdate = true
+                        if(/Wood/.test(this.mainHands)) new Wall(mvect.x, mvect.y, 'wood')
+                        if(/Stone/.test(this.mainHands)) new Wall(mvect.x, mvect.y, 'stone')
+                        if(/Iron/.test(this.mainHands)) new Wall(mvect.x, mvect.y, 'iron')
+                        this.alusd = true
+                        
+                        console.log(mvect, this.body.position, this.move.mdis)
+                    }
                 }
             }
             if (this.move.att) {
@@ -1442,11 +1544,12 @@ module.exports = function (nsp, ns) {
                         player.move.u = data.up
                         player.move.d = data.down
                         player.move.run = data.running
+                        if(data.pressingAttack && !player.move.att) player.alusd = false
                         player.move.att = data.pressingAttack;
                         //io.emit("chat message", {usrnm:"SERVER",msg:data.angle})
                         player.move.ang = data.angle;
                         player.move.grab = data.grab
-                        player.move.mdis = data.mousedis
+                        player.move.mdis = Math.abs(data.mousedis)
                     }
                 }
             });
@@ -1550,89 +1653,45 @@ module.exports = function (nsp, ns) {
     let dropped = []
     var self = this
     setInterval(function(){
-        if(STrees.list.length >= 10) return
+        let canAdd = []
+        if(STrees.list.length < 15) canAdd.push('tree')
+        if(Stones.list.length < 10) canAdd.push('stone')
+        if(Irons.list.length < 7) canAdd.push('iron')
+        if(Golds.list.length < 5) canAdd.push('gold')
+        if(Diamonds.list.length < 3) canAdd.push('diamond')
+        if(!canAdd.length) return
+        let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
+        console.log(willAdd)
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
         let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
         let inWay = false
-        STrees.list.forEach(tree => {
-            if({x:tempx, y:tempy} == tree.body.position) inWay = true
-        })
+        
         Players.list.forEach(player => {
             if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
         })
-        Stones.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
-        })
-        if(inWay) return
-        new STree(tempx, tempy)
-    }, 1000)
-    setInterval(function(){
-        if(Irons.list.length >= 5) return
-        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
-        let inWay = false
+        
         STrees.list.forEach(tree => {
-            if({x:tempx, y:tempy} == tree.body.position) inWay = true
-        })
-        Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
+            if(tempx == tree.body.position.y && tempy == tree.body.position.y) inWay = true
         })
         Stones.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
+            if(tempx == stone.body.position.y && tempy == stone.body.position.y) inWay = true
         })
+        Irons.list.forEach(iron => {
+            if(tempx == iron.body.position.y && tempy == iron.body.position.y) inWay = true
+        })
+        Golds.list.forEach(gold => {
+            if(tempx == gold.body.position.y && tempy == gold.body.position.y) inWay = true
+        })
+        Diamonds.list.forEach(diamond => {
+            if(tempx == diamond.body.position.y && tempy == diamond.body.position.y) inWay = true
+        })
+        
         if(inWay) return
-        new Iron(tempx, tempy)
-    }, 1000)   
-    setInterval(function(){
-        if(Golds.list.length >= 3) return
-        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
-        let inWay = false
-        STrees.list.forEach(tree => {
-            if({x:tempx, y:tempy} == tree.body.position) inWay = true
-        })
-        Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
-        })
-        Stones.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
-        })
-        if(inWay) return
-        new Gold(tempx, tempy)
-    }, 1000)   
-    setInterval(function(){
-        if(Diamonds.list.length >= 2) return
-        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
-        let inWay = false
-        STrees.list.forEach(tree => {
-            if({x:tempx, y:tempy} == tree.body.position) inWay = true
-        })
-        Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
-        })
-        Stones.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
-        })
-        if(inWay) return
-        new Diamond(tempx, tempy)
-    }, 1000)   
-    setInterval(function(){
-        if(Stones.list.length >= 7) return
-        let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
-        let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
-        let inWay = false
-        STrees.list.forEach(tree => {
-            if({x:tempx, y:tempy} == tree.body.position) inWay = true
-        })
-        Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
-        })
-        Stones.list.forEach(stone => {
-            if({x:tempx, y:tempy} == stone.body.position) inWay = true
-        })
-        if(inWay) return
-        new Stone(tempx, tempy, 10)
+        if(willAdd == 'tree') new STree(tempx, tempy, 10)
+        if(willAdd == 'stone') new Stone(tempx, tempy, 10)
+        if(willAdd == 'iron') new Iron(tempx, tempy, 10)
+        if(willAdd == 'gold') new Gold(tempx, tempy, 10)
+        if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
     }, 1000)
     new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
