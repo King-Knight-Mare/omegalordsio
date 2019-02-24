@@ -6,7 +6,7 @@ const Engine = Matter.Engine,
       World = Matter.World,
       Bodies = Matter.Bodies,
       Body = Matter.Body,
-      Vector = Matter.Vector;
+      Vector = Matter.Vector; 
 const EventEmitter = require('events')
 Vector.getDistance = function (vectorA, vectorB) {  
     return Math.sqrt(Math.pow(vectorA.x - vectorB.x, 2) + Math.pow(vectorA.y - vectorB.y, 2))
@@ -373,6 +373,20 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Wood Door', 
+                    {
+                        recipe:[
+                            {id:'wood', count:1},
+                        ],
+                        output:{
+                            count:1,
+                            image:'wooddoor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
                 //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
                 //['Black Ability', [{id:'wood', count:20}]]
             ])
@@ -418,7 +432,7 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', 'empty'],
+                ['1', new Slot('wood', 5, 'draw', 255, false)],
                 ['2', 'empty'],
                 ['3', 'empty'],
                 ['4', 'empty'],
@@ -540,7 +554,8 @@ module.exports = function (nsp, ns) {
             this.score = 0
             this.alusd = false
             this.walls = []
-            
+            this.doors = []
+            this.pang = 'left'
             this.punch = {
                 speed: 3,
                 ready:true,
@@ -745,21 +760,44 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if(dropped.length){
+                console.log('Grabbin dat')
+                if((dropped.length || this.doors.length) && !this.alusd){
+                    this.alusd = true
+                    console.log('we got doors lol')
                     let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
                     })
-                    if(!possible.size) return
                     let dis
                     let nearest
-                    possible.forEach((item, index) => {
-                        if(!nearest){nearest = index; dis = Vector.getDistance(item, this.body.position); return}
-                        if(Vector.getDistance(item, this.body.position) < dis){dis = Vector.getDistance(item, this.body.position); nearest = index}
+                    if(possible.size){
+                        possible.forEach((item, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(item, this.body.position); return}
+                            if(Vector.getDistance(item, this.body.position) < dis){dis = Vector.getDistance(item, this.body.position); nearest = index}
+                        })
+                    }
+                    let posd = new Mapper()
+                    this.doors.forEach((door, i)=> {
+                        if(Vector.getDistance(door.body.position, this.body.position) < 70.7 + this.rad) posd.set(i, door)
                     })
-                    let res = this.inventory.addItemMax(dropped[nearest].item)
-                    if(!res) dropped.splice(nearest, 1);
-                    this.needsSelfUpdate = true
+                    let disd
+                    let nearestd
+                    if(posd.size){
+                        posd.forEach((door, index) => {
+                            if(!nearestd){nearestd = index; disd = Vector.getDistance(door.body.position, this.body.position); return}
+                            if(Vector.getDistance(door.body.position, this.body.position) < disd){disd = Vector.getDistance(door.body.position, this.body.position); nearestd = index}
+                        })
+                    }
+                    if(!posd.size && !possible.size) return
+                    console.log(disd, dis)
+                    if(!dis || dis > disd){
+                        this.doors[nearestd].open = !!!this.doors[nearestd].open
+                        this.doors[nearestd].needsUpdate = true
+                    }else {
+                        let res = this.inventory.addItemMax(dropped[nearest].item)
+                        if(!res) dropped.splice(nearest, 1);
+                        this.needsSelfUpdate = true
+                    }
                 }
             }
             if (this.punch.reload.timer > 0) {
@@ -1219,7 +1257,7 @@ module.exports = function (nsp, ns) {
                         }, 2500/3)
                     }
                 }
-                if(/Wall/.test(this.mainHands)){
+                if(/Wall|Door/.test(this.mainHands)){
                     let mvect
                     if(this.move.mdis > 141.42 + this.rad){
                         mvect = Vector.create()
@@ -1232,7 +1270,7 @@ module.exports = function (nsp, ns) {
                         mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (this.move.mdis);
                         Vector.add(mvect, this.body.position, mvect)
                     }
-                    if(this.move.att && !this.alusd){
+                    if(/Wall/.test(this.mainHands) && this.move.att && !this.alusd){
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
                         if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return
@@ -1252,6 +1290,27 @@ module.exports = function (nsp, ns) {
                         if(/Iron/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'iron'))
                         this.alusd = true
                     }
+                    if(/Door/.test(this.mainHands) && this.move.att && !this.alusd){
+                        mvect.y = Math.floor(mvect.y/100) * 100 + 50
+                        mvect.x = Math.floor(mvect.x/100) * 100 + 50
+                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return
+                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
+                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
+                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
+                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
+                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
+                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
+                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
+                        let slot = this.inventory.get(this.mainHand)
+                        slot.count -= 1
+                        if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
+                        this.needsSelfUpdate = true
+                        if(/Wood/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'wood', this.pang))
+                        if(/Stone/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'stone', this.pang))
+                        if(/Iron/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'iron', this.pang))
+                        this.alusd = true
+                    }
+                    
                 }
             }
             if (this.move.att) {
@@ -1587,7 +1646,7 @@ module.exports = function (nsp, ns) {
         update:function(){
             var pack = []
             Diamonds.list.forEach(diamond => {
-                if(diamond.needsUpdate) pack.push(diamond.getUpdatePack())
+                if(diamond.needsUpdate) pack.push(diamond.getInitPack())
                 if(diamond.health <= 0) {
                     removePack.diamond.push(diamond.id)
                     clearTimeout(diamond.deathTimeout)
@@ -1645,6 +1704,23 @@ module.exports = function (nsp, ns) {
                         return element.id === wall.id
                     }), 1);
                     World.remove(engine.world, wall.body)
+                }
+            })
+            return pack
+        }
+    }
+    var Doors = {
+        list:[],
+        update:function(){
+            var pack = []
+            Doors.list.forEach(door => {
+                if(door.needsUpdate) pack.push(door.getUpdatePack())
+                if(door.health <= 0) {
+                    removePack.door.push(door.id)
+                    Doors.list.splice(Doors.list.findIndex(function (element) {
+                        return element.id === door.id
+                    }), 1);
+                    World.remove(engine.world, door.body)
                 }
             })
             return pack
@@ -1780,6 +1856,54 @@ module.exports = function (nsp, ns) {
         }
         
     }
+    class Door {
+        constructor(x, y, material, ang){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.material = material
+            this.ang = ang
+            this.open = false
+            this.opening = false
+            this.opentimer = null
+            if(material == 'wood') this.health = 100
+            if(material == 'stone') this.health = 250
+            this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id,
+                material:this.material,
+                ang:this.ang,
+                open:false
+            }
+            Doors.list.push(this)
+            initPack.door.push(pack)
+        }
+        getInitPack(){
+            let pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id,  
+                material:this.material,
+                ang:this.ang,
+                open:this.open
+            }
+            if(this.opening) pack.per = Math.roundToDeci(this.opentimeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this.opentimeout.percntDone, 1000)
+            return pack
+        }
+        getUpdatePack(){
+            let pack = {
+                id:this.id,
+                open:this.open
+            }
+            if(this.opening) pack.per = Math.roundToDeci(this.opentimeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this.opentimeout.percntDone, 1000)
+            return pack
+        }
+    }
     var Players = {
         list: [],
         onConnect: function (id, socket, nm) {
@@ -1803,12 +1927,24 @@ module.exports = function (nsp, ns) {
                         player.move.u = data.up
                         player.move.d = data.down
                         player.move.run = data.running
-                        if(data.pressingAttack && !player.move.att) player.alusd = false
+                        if(!data.pressingAttack && !data.prot && !data.grab) player.alusd = false
                         player.move.att = data.pressingAttack;
                         //io.emit("chat message", {usrnm:"SERVER",msg:data.angle})
                         player.move.ang = data.angle;
                         player.move.grab = data.grab
                         player.move.mdis = Math.abs(data.mousedis)
+                        if(data.prot){
+                            if(player.alusd) return
+                            player.move.prot = true
+                            player.alusd = true
+                            console.log('Rotating')
+                            
+                            if(player.pang == 'up') player.pang = 'right'
+                            else if(player.pang == 'right') player.pang = 'down'
+                            else if(player.pang == 'down') player.pang = 'left'
+                            else if(player.pang == 'left') player.pang = 'up'
+                            console.log(player.pang)
+                        }else player.move.prot = false
                     }
                 }
             });
@@ -1899,7 +2035,8 @@ module.exports = function (nsp, ns) {
         iron:[],
         gold:[],
         diamond:[],
-        wall:[]
+        wall:[],
+        door:[]
     }
     var removePack = {
         player: [],
@@ -1909,7 +2046,8 @@ module.exports = function (nsp, ns) {
         iron:[],
         gold:[],
         diamond:[],  
-        wall:[]
+        wall:[],
+        door:[]
     } 
     let dropped = []
     var self = this
@@ -1945,7 +2083,12 @@ module.exports = function (nsp, ns) {
         Diamonds.list.forEach(diamond => {
             if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
         })
-        
+        Walls.list.forEach(wall => {
+            if(tempx == wall.body.position.x && tempy == wall.body.position.y) inWay = true
+        })
+        Doors.list.forEach(door => {
+            if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
+        })
         if(inWay) return
         if(willAdd == 'tree') new STree(tempx, tempy, 10)
         if(willAdd == 'stone') new Stone(tempx, tempy, 10)
@@ -1953,7 +2096,8 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
     }, 1000)
-    new Wall(50, 50, 'wood')
+    //new Wall(50, 50, 'wood')
+    new Door(50, 50, 'wood', 'right')
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
@@ -2002,7 +2146,8 @@ module.exports = function (nsp, ns) {
                 gold:[],
                 diamond:[],
                 leaderboard: leaderboard.getUpdate(),
-                wall:[]
+                wall:[],
+                door:[]
             }
             Players.list.forEach(function (player) {
                 pack.player.push(player.getUpdatePack())
@@ -2013,6 +2158,7 @@ module.exports = function (nsp, ns) {
             Golds.list.forEach( gold => pack.gold.push(gold.getInitPack()))
             Diamonds.list.forEach( diamond => pack.diamond.push(diamond.getInitPack()))
             Walls.list.forEach( wall => pack.wall.push(wall.getInitPack()))
+            Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             /*
             Bullets.list.forEach(function(bullet){
                 pack.bullet.push(bulle)
@@ -2035,6 +2181,7 @@ module.exports = function (nsp, ns) {
             gold:Golds.update(),
             diamond:Diamonds.update(),
             wall:Walls.update(),
+            door:Doors.update(),
             leaderboard: leaderboard.getUpdate(),
             dropped:dropped.map((item, i) => ({
                 slot:{
@@ -2060,7 +2207,8 @@ module.exports = function (nsp, ns) {
                     iron:[],
                     gold:[],
                     diamond:[],
-                    wall:[]
+                    wall:[],
+                    door:[]
                 }
             }
         }
@@ -2080,7 +2228,8 @@ module.exports = function (nsp, ns) {
                     iron:[],
                     gold:[],
                     diamond:[],  
-                    wall:[]
+                    wall:[],
+                    door:[]
                 }
             }
         }

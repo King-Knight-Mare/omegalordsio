@@ -60,6 +60,7 @@ createImage('gold', 'png')
 createImage('diamond', 'png')
 createImage('woodwall', 'png')
 createImage('stonewall', 'png')
+createImage('wooddoor', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
 Img.map.src = '/client/img/map.png'
@@ -109,7 +110,8 @@ var init = function(name) {
         running: false,
         angle: 0,
         grab:false,
-        mousedis:0
+        mousedis:0,
+        prot:false
     }
     socket.on('unable', function() {
 
@@ -146,6 +148,9 @@ var init = function(name) {
                 break;
             case 69:
                 movement.grab = true
+                break;
+            case 82:
+                movement.prot = true
                 break;
             default :
                 if(event.keyCode > 48 && event.keyCode < 58){
@@ -187,26 +192,15 @@ var init = function(name) {
             case 69:
                 movement.grab = false
                 break;
+            case 82:
+                movement.prot = false
+                break;
         }
     }
     document.addEventListener('keyup', handlekeyUp);
     document.addEventListener('contextmenu', event => event.preventDefault());
     handlemouseDown = (e) =>  {
         let found = false
-        playa.craftables.forEach((craft, i) => {
-            if(e.clientX > 90 + (i % 2 == 1 ? 80 : 0) && e.clientX < 90 + (i % 2 == 1 ? 80 : 0) + 90
-              && e.clientY > 90 + (Math.floor(i / 2) * 80) && e.clientY < 90 + (Math.floor(i / 2) * 80) + 90){
-                found = true
-               socket.emit('craft', craft)
-            }
-        })
-        if(found) return
-        if(e.button == 2) found = true
-        /*
-        
-            ctx.rect((canvas.width)/10 + (canvas.width)/10 * i - 45, canvas.height - 100 - 45, 90, 90)
-            ctx.fillRect((canvas.width)/10 + (canvas.width)/10 * i  - 45, canvas.height - 100 - 45, 90, 90)
-        */
         playa.inventory.forEach((slot, i) => {
             if(e.clientX > (canvas.width)/10 + (canvas.width)/10 * i - 45 && e.clientX < (canvas.width)/10 + (canvas.width)/10 * i - 45 + 90 
               && e.clientY > canvas.height - 100 - 45 && e.clientY < canvas.height - 100 - 45 + 90){
@@ -216,6 +210,21 @@ var init = function(name) {
                 else if(e.button == 2) socket.emit('rc', i + 1)
             }
         })
+        if(found) return
+        playa.craftables.forEach((craft, i) => {
+            if(e.clientX > 90 + (i % 2 == 1 ? 80 : 0) && e.clientX < 90 + (i % 2 == 1 ? 80 : 0) + 90
+              && e.clientY > 90 + (Math.floor(i / 2) * 80) && e.clientY < 90 + (Math.floor(i / 2) * 80) + 90){
+                found = true
+               socket.emit('craft', craft)
+            }
+        })
+        if(e.button == 2) found = true
+        /*
+        
+            ctx.rect((canvas.width)/10 + (canvas.width)/10 * i - 45, canvas.height - 100 - 45, 90, 90)
+            ctx.fillRect((canvas.width)/10 + (canvas.width)/10 * i  - 45, canvas.height - 100 - 45, 90, 90)
+        */
+        
         if(!found) movement.pressingAttack = true;
     }
     document.addEventListener('mousedown', handlemouseDown);
@@ -374,7 +383,7 @@ var init = function(name) {
                         ctx.restore()
                     }
                 }
-                if(/Wall/.test(this.mainHand)){
+                if(/Wall|Door/.test(this.mainHand)){
                     let img = this.mainHand.toLowerCase().replace(/\s/, '')
                     ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                     ctx.translate(32 - 7.5 + 5, 0)
@@ -504,6 +513,125 @@ var init = function(name) {
             ctx.drawImage(Img[this.material + 'wall'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    let Doors = new Map()
+    class Door {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            this.material = pack.material
+            this.ang = pack.ang
+            this.open = pack.open
+            Doors.set(this.id, this)
+        }
+        show(x, y){
+            if(this.ang == 'up'){
+                ctx.save()
+                ctx.translate(this.x + 50 + x, this.y - 50 + y)
+                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                ctx.drawImage(Img[this.material + 'door'], 0 - 100, 0, 100, 100)
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.arc(0, 0, 8, 0, 2 * Math.PI)
+                '#FF7D36'
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#c0c0c0'
+                ctx.arc(0, 0, 6, 0, 2 * Math.PI)
+                ctx.fill()
+              
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.arc(0 - 65, 0, 10, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#80461B'
+                ctx.arc(0 - 65, 0, 7, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.restore()
+            }
+            if(this.ang == 'down'){
+                ctx.save()
+                ctx.translate(this.x - 50 + x, this.y + 50 + y)
+                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                ctx.drawImage(Img[this.material + 'door'], 0, 0 - 100, 100, 100)
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.arc(0, 0, 8, 0, 2 * Math.PI)
+                '#FF7D36'
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#c0c0c0'
+                ctx.arc(0, 0, 6, 0, 2 * Math.PI)
+                ctx.fill()
+              
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.arc(0 + 65, 0, 10, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#80461B'
+                ctx.arc(0 + 65, 0, 7, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.restore()
+            }
+            
+            if(this.ang == 'left'){
+                ctx.save()
+                ctx.translate(this.x - 50 + x, this.y - 50 + y)
+                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.drawImage(Img[this.material + 'door'], 0, 0, 100, 100)
+                ctx.arc(0, 0, 8, 0, 2 * Math.PI)
+                '#FF7D36'
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#c0c0c0'
+                ctx.arc(0, 0, 6, 0, 2 * Math.PI)
+                ctx.fill()
+              
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.arc(0, + 65, 10, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#80461B'
+                ctx.arc(0, 0 + 65, 7, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.restore()
+            }
+            if(this.ang == 'right'){
+                ctx.save()
+                ctx.translate(this.x + 50 + x, this.y + 50 + y)
+                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.drawImage(Img[this.material + 'door'], 0 - 100, 0 - 100, 100, 100)
+                ctx.arc(0, 0, 8, 0, 2 * Math.PI)
+                '#FF7D36'
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#c0c0c0'
+                ctx.arc(0, 0, 6, 0, 2 * Math.PI)
+                ctx.fill()
+              
+                ctx.beginPath()
+                ctx.fillStyle = '#767676'
+                ctx.arc(0, 0 - 65, 10, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = '#80461B'
+                ctx.arc(0, 0 - 65, 7, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.restore()
+            }
+        }
+        processUpdatePack(pack){
+            this.per = pack.per
+            this.open = pack.open
+        }
+    }
     class Bullet {
         /**
          * 
@@ -560,6 +688,9 @@ var init = function(name) {
             new Wall(initPack)
             
         })
+        pack.door.forEach((initPack)=>{
+            new Door(initPack)
+        })
     }
     /**
      * 
@@ -589,6 +720,9 @@ var init = function(name) {
         })
         pack.wall.forEach((id) => {
             Walls.delete(id)
+        })
+        pack.door.forEach((id) => {
+            Doors.delete(id)
         })
     }
     socket.on('death', die)
@@ -627,7 +761,10 @@ var init = function(name) {
                     //document.write(pack.leaves)
                     toUpdate.catchLayers(pack)
                 })
-                
+                pack.door.forEach(pack => {
+                    let toUpdate = Doors.get(pack.id)
+                    toUpdate.processUpdatePack(pack)
+                })
                 CTrees.forEach((tree) => {
                     tree.show(x, y)
                 })
@@ -646,6 +783,9 @@ var init = function(name) {
                 })
                 Walls.forEach((wall) => {
                     wall.show(x, y)
+                })
+                Doors.forEach((door) => {
+                    door.show(x, y)
                 })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()
@@ -743,7 +883,7 @@ var init = function(name) {
                         ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
                         ctx.restore()
                     }
-                    if(/Wall/.test(craft)){
+                    if(/Wall|Door/.test(craft)){
                         let img = craft.toLowerCase().replace(/\s/, '')
                         ctx.globalAlpha = 0.875
                         ctx.lineWidth = 2
@@ -804,7 +944,7 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(/Wall/.test(slot.type)){
+                    if(/Wall|Door/.test(slot.type)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 10)
