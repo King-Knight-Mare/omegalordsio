@@ -348,7 +348,7 @@ module.exports = function (nsp, ns) {
                     'Wood Wall', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
+                            {id:'wood', count:20},
                         ],
                         output:{
                             count:1,
@@ -362,7 +362,7 @@ module.exports = function (nsp, ns) {
                     'Stone Wall', 
                     {
                         recipe:[
-                            {id:'stone', count:10},
+                            {id:'stone', count:20},
                             {id:'wood', count:5}
                         ],
                         output:{
@@ -797,7 +797,7 @@ module.exports = function (nsp, ns) {
                         if(door.ang == 'right' && !door.open){
                             Body.translate(door.body, Vector.create(100, 100))
                         }
-                        if(door.ang == 'bottom' && !door.open){
+                        if(door.ang == 'down' && !door.open){
                             Body.translate(door.body, Vector.create(-100, 100))
                         }
                         if(door.open){
@@ -1334,7 +1334,7 @@ module.exports = function (nsp, ns) {
                 }
             }
         }
-        hit() {        
+        hit(){        
             if (this.punch.ready) {
                 //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
                 this.punch.ready = false
@@ -1409,7 +1409,7 @@ module.exports = function (nsp, ns) {
                     this.needsSelfUpdate = true;
                 })
                 this.stonetargs.forEach(stone => {
-                    let rem = this.inventory.addItemMax(new Slot('stone', 2, 'stone', 255, false));
+                    let rem = this.inventory.addItemMax(new Slot('stone', 1, 'stone', 255, false));
                     this.score += 3 
                     if(rem){
                         let ang = Math.getRandomNum(0, 360)
@@ -1572,7 +1572,7 @@ module.exports = function (nsp, ns) {
                 removePack.tree.push(this.id)
                 STrees.list.splice(STrees.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
-            }, 600000)
+            }, 300000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.toplayer = 8
@@ -1685,7 +1685,7 @@ module.exports = function (nsp, ns) {
                 removePack.stone.push(this.id)
                 Stones.list.splice(Stones.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
-            }, 600000)
+            }, 400000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -1712,7 +1712,6 @@ module.exports = function (nsp, ns) {
         update:function(){
             var pack = []
             Walls.list.forEach(wall => {
-                pack.push(wall.getUpdatePack())
                 if(wall.health <= 0) {
                     removePack.wall.push(wall.id)
                     Walls.list.splice(Walls.list.findIndex(function (element) {
@@ -1729,7 +1728,7 @@ module.exports = function (nsp, ns) {
         update:function(){
             var pack = []
             Doors.list.forEach(door => {
-                if(door.needsUpdate) pack.push(door.getUpdatePack())
+                pack.push(door.getUpdatePack())
                 if(door.health <= 0) {
                     removePack.door.push(door.id)
                     Doors.list.splice(Doors.list.findIndex(function (element) {
@@ -1785,7 +1784,7 @@ module.exports = function (nsp, ns) {
                 removePack.gold.push(this.id)
                 Golds.list.splice(Golds.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
-            }, 600000)
+            }, 800000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -1817,7 +1816,7 @@ module.exports = function (nsp, ns) {
                 removePack.diamond.push(this.id)
                 Diamonds.list.splice(Diamonds.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
-            }, 600000)
+            }, 1000000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -2068,11 +2067,11 @@ module.exports = function (nsp, ns) {
     var self = this
     setInterval(function(){
         let canAdd = []
-        if(STrees.list.length < 15) canAdd.push('tree')
-        if(Stones.list.length < 10) canAdd.push('stone')
-        if(Irons.list.length < 7) canAdd.push('iron')
-        if(Golds.list.length < 5) canAdd.push('gold')
-        if(Diamonds.list.length < 3) canAdd.push('diamond')
+        if(STrees.list.length < 30) canAdd.push('tree')
+        if(Stones.list.length < 15) canAdd.push('stone')
+        if(Irons.list.length < 10) canAdd.push('iron')
+        if(Golds.list.length < 8) canAdd.push('gold')
+        if(Diamonds.list.length < 5) canAdd.push('diamond')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
