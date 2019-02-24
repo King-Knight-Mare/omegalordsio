@@ -113,6 +113,7 @@ var init = function(name) {
         mousedis:0,
         prot:false
     }
+    let pang = 'left'
     socket.on('unable', function() {
 
     })
@@ -151,6 +152,10 @@ var init = function(name) {
                 break;
             case 82:
                 movement.prot = true
+                if(pang == 'up') pang = 'right'
+                else if(pang == 'right') pang = 'down'
+                else if(pang == 'down') pang = 'left'
+                else if(pang == 'left') pang = 'up'
                 break;
             default :
                 if(event.keyCode > 48 && event.keyCode < 58){
@@ -386,13 +391,13 @@ var init = function(name) {
                 if(/Wall|Door/.test(this.mainHand)){
                     let img = this.mainHand.toLowerCase().replace(/\s/, '')
                     ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
+                    ctx.save()
                     ctx.translate(32 - 7.5 + 5, 0)
                     ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                    ctx.restore()
                 }
                 //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
             }
-
-            
             ctx.restore()
             ctx.beginPath()
             ctx.fillStyle = '#000010'
@@ -415,7 +420,105 @@ var init = function(name) {
             ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
             ctx.fill()
             ctx.restore();
-            ctx.restore()
+            ctx.restore();
+            if(this.posPlace && /Door|Wall/.test(this.mainHand)){
+                let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                ctx.restore()
+                ctx.save()
+                ctx.globalAlpha =0.5
+                ctx.drawImage(Img[img], this.posPlace.x -50 + x, this.posPlace.y - 50 + y, 100, 100)
+                if(!/Door/.test(this.mainHand)) return
+                if(pang == 'up'){
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 50 + y, 8, 0, 2 * Math.PI)
+                    '#FF7D36'
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#c0c0c0'
+                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 50 + y, 6, 0, 2 * Math.PI)
+                    ctx.fill()
+
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x - 15 + x, this.posPlace.y - 50 + y, 10, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#80461B'
+                    ctx.arc(this.posPlace.x - 15 + x, this.posPlace.y - 50 + y, 7, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.restore()
+                }
+                if(pang == 'down'){
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 50 + y, 8, 0, 2 * Math.PI)
+                    '#FF7D36'
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#c0c0c0'
+                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 50 + y, 6, 0, 2 * Math.PI)
+                    ctx.fill()
+
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x + 15 + x, this.posPlace.y + 50 + y, 10, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#80461B'
+                    ctx.arc(this.posPlace.x + 15 + x, this.posPlace.y + 50 + y, 7, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.restore()
+                }
+
+                if(pang == 'left'){
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 8, 0, 2 * Math.PI)
+                    '#FF7D36'
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#c0c0c0'
+                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 6, 0, 2 * Math.PI)
+                    ctx.fill()
+
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 15 + y, 10, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#80461B'
+                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 15 + y, 7, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.restore()
+                }
+                if(pang == 'right'){
+                    ctx.save()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y + 50 + y, 8, 0, 2 * Math.PI)
+                    '#FF7D36'
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#c0c0c0'
+                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y + 50 + y, 6, 0, 2 * Math.PI)
+                    ctx.fill()
+
+                    ctx.beginPath()
+                    ctx.fillStyle = '#767676'
+                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 15 + y, 10, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#80461B'
+                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 15 + y, 7, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.restore()
+                }
+                ctx.restore()
+            }
         }
         processInitpack(initPack) {
             this.x = initPack.x
@@ -436,6 +539,7 @@ var init = function(name) {
             this.maxStamina = initPack.maxStamina
             this.inventory = initPack.inventory
             this.craftables = initPack.craftables
+            this.posPlace = initPack.posPlace
         }
     }
     var CTrees = new Map()
