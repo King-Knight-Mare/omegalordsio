@@ -377,7 +377,9 @@ module.exports = function (nsp, ns) {
                     'Wood Door', 
                     {
                         recipe:[
-                            {id:'wood', count:1},
+                            {id:'wood', count:10},
+                            {id:'stone', count:1},
+                            {id:'iron', count:1},
                         ],
                         output:{
                             count:1,
@@ -432,7 +434,7 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('wood', 5, 'draw', 255, false)],
+                ['1', new Slot('wood', 255, 'draw', 255, false)],
                 ['2', 'empty'],
                 ['3', 'empty'],
                 ['4', 'empty'],
@@ -940,7 +942,7 @@ module.exports = function (nsp, ns) {
                             })
                             walltargs.forEach(wall => {
                                 self.needsSelfUpdate = true
-                                wall.health -= this.hammer[u].walldam
+                                wall.health -= this.axe[u].walldam
                             })
                             targs.forEach( p => {
                                 p.health -= this.axe[u].damage
@@ -1285,6 +1287,10 @@ module.exports = function (nsp, ns) {
                         mvect.y = Math.sin(this.move.ang * Math.PI / 180) * (this.move.mdis);
                         Vector.add(mvect, this.body.position, mvect)
                     }
+                    mvect.y = Math.floor(mvect.y/100) * 100 + 50
+                    mvect.x = Math.floor(mvect.x/100) * 100 + 50
+                    this.posPlace = mvect
+                    this.needsSelfUpdate = true
                     if(/Wall/.test(this.mainHands) && this.move.att && !this.alusd){
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
@@ -1295,6 +1301,7 @@ module.exports = function (nsp, ns) {
                         if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
+                        if(Doors.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1315,6 +1322,7 @@ module.exports = function (nsp, ns) {
                         if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
+                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1456,7 +1464,8 @@ module.exports = function (nsp, ns) {
                inventory:this.inventory.listItems(),
                stamina:this.stamina,
                maxStamina:this.maxStamina,
-               craftables:this.crafter.checkCraft(this.inventory)
+               craftables:this.crafter.checkCraft(this.inventory),
+               posPlace:this.posPlace
            }
         }
         setHands(){
