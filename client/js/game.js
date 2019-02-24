@@ -528,7 +528,9 @@ var init = function(name) {
             if(this.ang == 'up'){
                 ctx.save()
                 ctx.translate(this.x + 50 + x, this.y - 50 + y)
-                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                if(this.per && !this.open) ctx.rotate(180 * this.per * Math.PI / 180)
+                if(this.per && this.open) ctx.rotate((180 - 180 * this.per) * Math.PI / 180)
+                if(!this.per && this.open) ctx.rotate(Math.PI)
                 ctx.drawImage(Img[this.material + 'door'], 0 - 100, 0, 100, 100)
                 ctx.beginPath()
                 ctx.fillStyle = '#767676'
@@ -553,7 +555,9 @@ var init = function(name) {
             if(this.ang == 'down'){
                 ctx.save()
                 ctx.translate(this.x - 50 + x, this.y + 50 + y)
-                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                if(this.per && !this.open) ctx.rotate(180 * this.per * Math.PI / 180)
+                if(this.per && this.open) ctx.rotate((180 - 180 * this.per) * Math.PI / 180)
+                if(!this.per && this.open) ctx.rotate(Math.PI)
                 ctx.drawImage(Img[this.material + 'door'], 0, 0 - 100, 100, 100)
                 ctx.beginPath()
                 ctx.fillStyle = '#767676'
@@ -579,7 +583,11 @@ var init = function(name) {
             if(this.ang == 'left'){
                 ctx.save()
                 ctx.translate(this.x - 50 + x, this.y - 50 + y)
-                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                //if(this.open) ctx.rotate(180 * Math.PI / 180)
+                if(this.per && !this.open) ctx.rotate(180 * this.per * Math.PI / 180)
+                if(this.per && this.open) ctx.rotate((180 - 180 * this.per) * Math.PI / 180)
+                if(!this.per && this.open) ctx.rotate(Math.PI)
+                //if(this.per && this.open) ctx.rotate()
                 ctx.beginPath()
                 ctx.fillStyle = '#767676'
                 ctx.drawImage(Img[this.material + 'door'], 0, 0, 100, 100)
@@ -604,7 +612,9 @@ var init = function(name) {
             if(this.ang == 'right'){
                 ctx.save()
                 ctx.translate(this.x + 50 + x, this.y + 50 + y)
-                if(this.open) ctx.rotate(180 * Math.PI / 180)
+                if(this.per && !this.open) ctx.rotate(180 * this.per * Math.PI / 180)
+                if(this.per && this.open) ctx.rotate((180 - 180 * this.per) * Math.PI / 180)
+                if(!this.per && this.open) ctx.rotate(Math.PI)
                 ctx.beginPath()
                 ctx.fillStyle = '#767676'
                 ctx.drawImage(Img[this.material + 'door'], 0 - 100, 0 - 100, 100, 100)

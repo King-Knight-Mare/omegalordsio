@@ -760,10 +760,7 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                console.log('Grabbin dat')
                 if((dropped.length || this.doors.length) && !this.alusd){
-                    this.alusd = true
-                    console.log('we got doors lol')
                     let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
@@ -778,25 +775,43 @@ module.exports = function (nsp, ns) {
                     }
                     let posd = new Mapper()
                     this.doors.forEach((door, i)=> {
-                        if(Vector.getDistance(door.body.position, this.body.position) < 70.7 + this.rad) posd.set(i, door)
+                        if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad) posd.set(i, door)
                     })
                     let disd
                     let nearestd
                     if(posd.size){
                         posd.forEach((door, index) => {
-                            if(!nearestd){nearestd = index; disd = Vector.getDistance(door.body.position, this.body.position); return}
-                            if(Vector.getDistance(door.body.position, this.body.position) < disd){disd = Vector.getDistance(door.body.position, this.body.position); nearestd = index}
+                            if(!nearestd){nearestd = index; disd = Vector.getDistance(door, this.body.position); return}
+                            if(Vector.getDistance(door, this.body.position) < disd){disd = Vector.getDistance(door, this.body.position); nearestd = index}
                         })
                     }
                     if(!posd.size && !possible.size) return
-                    console.log(disd, dis)
-                    if(!dis || dis > disd){
-                        this.doors[nearestd].open = !!!this.doors[nearestd].open
-                        this.doors[nearestd].needsUpdate = true
-                    }else {
+                    if((!dis || dis > disd) && !this.doors[nearestd].opening){
+                        let door = this.doors[nearestd]
+                        if(door.ang == 'left' && !door.open){
+                            Body.translate(door.body, Vector.create(-100, -100))
+                        }
+                        if(door.ang == 'up' && !door.open){
+                            Body.translate(door.body, Vector.create(100, -100))
+                        }
+                        if(door.ang == 'right' && !door.open){
+                            Body.translate(door.body, Vector.create(100, 100))
+                        }
+                        if(door.ang == 'bottom' && !door.open){
+                            Body.translate(door.body, Vector.create(-100, 100))
+                        }
+                        if(door.open){
+                            Body.translate(door.body, {x:door.x - door.body.position.x, y:door.y - door.body.position.y})
+                        }
+                        door.opentimeout = new Timeout(() => {door.open = !!!door.open; door.opening = false}, 1000)
+                        door.opening = true
+                        door.needsUpdate = true
+                        this.alusd = true
+                    }else if((!disd || disd > dis)){
                         let res = this.inventory.addItemMax(dropped[nearest].item)
                         if(!res) dropped.splice(nearest, 1);
                         this.needsSelfUpdate = true
+                        this.alusd = true
                     }
                 }
             }
@@ -1697,7 +1712,7 @@ module.exports = function (nsp, ns) {
         update:function(){
             var pack = []
             Walls.list.forEach(wall => {
-                if(wall.needsUpdate) pack.push(wall.getUpdatePack())
+                pack.push(wall.getUpdatePack())
                 if(wall.health <= 0) {
                     removePack.wall.push(wall.id)
                     Walls.list.splice(Walls.list.findIndex(function (element) {
