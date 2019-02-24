@@ -389,6 +389,20 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Wood Floor', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                        ],
+                        output:{
+                            count:1,
+                            image:'woodfloor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
                 //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
                 //['Black Ability', [{id:'wood', count:20}]]
             ])
@@ -545,7 +559,73 @@ module.exports = function (nsp, ns) {
             this.id = id
             this.socket = socket
             this.rad = 30
-            this.body = Bodies.circle(Math.getRandomNum(this.rad, this.game.map.width - this.rad), Math.getRandomNum(this.rad, this.game.map.height - this.rad), this.rad, {frictionAir:0.02, restitution:0.15})
+            let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+            let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
+            let inWay = false
+
+            Players.list.forEach(player => {
+                if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
+            })
+
+            STrees.list.forEach(tree => {
+                if(tempx == tree.body.position.x && tempy == tree.body.position.y) inWay = true
+            })
+            Stones.list.forEach(stone => {
+                if(tempx == stone.body.position.x && tempy == stone.body.position.y) inWay = true
+            })
+            Irons.list.forEach(iron => {
+                if(tempx == iron.body.position.x && tempy == iron.body.position.y) inWay = true
+            })
+            Golds.list.forEach(gold => {
+                if(tempx == gold.body.position.x && tempy == gold.body.position.y) inWay = true
+            })
+            Diamonds.list.forEach(diamond => {
+                if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
+            })
+            Walls.list.forEach(wall => {
+                if(tempx == wall.body.position.x && tempy == wall.body.position.y) inWay = true
+            })
+            Doors.list.forEach(door => {
+                if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
+            })
+            Floors.list.forEach(floor => {
+                if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
+            })
+            while(inWay){
+                tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+                tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
+                inWay = false
+
+                Players.list.forEach(player => {
+                    if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
+                })
+
+                STrees.list.forEach(tree => {
+                    if(tempx == tree.body.position.x && tempy == tree.body.position.y) inWay = true
+                })
+                Stones.list.forEach(stone => {
+                    if(tempx == stone.body.position.x && tempy == stone.body.position.y) inWay = true
+                })
+                Irons.list.forEach(iron => {
+                    if(tempx == iron.body.position.x && tempy == iron.body.position.y) inWay = true
+                })
+                Golds.list.forEach(gold => {
+                    if(tempx == gold.body.position.x && tempy == gold.body.position.y) inWay = true
+                })
+                Diamonds.list.forEach(diamond => {
+                    if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
+                })
+                Walls.list.forEach(wall => {
+                    if(tempx == wall.body.position.x && tempy == wall.body.position.y) inWay = true
+                })
+                Doors.list.forEach(door => {
+                    if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
+                })
+                Floors.list.forEach(floor => {
+                    if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
+                })
+            }
+            this.body = Bodies.circle(tempx, tempy, this.rad, {frictionAir:0.02, restitution:0.15})
             World.addBody(this.game.engine.world, this.body)
             //new Guns.types['pistol'](getRandomNum(25, 2090), getRandomNum(25,1463))
             this.inventory = new Inventory()
@@ -557,6 +637,7 @@ module.exports = function (nsp, ns) {
             this.alusd = false
             this.walls = []
             this.doors = []
+            this.floors = []
             this.pang = 'left'
             this.punch = {
                 speed: 3,
@@ -1274,7 +1355,7 @@ module.exports = function (nsp, ns) {
                         }, 2500/3)
                     }
                 }
-                if(/Wall|Door/.test(this.mainHands)){
+                if(/Wall|Floor|Door/.test(this.mainHands)){
                     let mvect
                     if(this.move.mdis > 141.42 + this.rad){
                         mvect = Vector.create()
@@ -1301,7 +1382,8 @@ module.exports = function (nsp, ns) {
                         if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
-                        if(Doors.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
+                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1323,6 +1405,7 @@ module.exports = function (nsp, ns) {
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1333,7 +1416,28 @@ module.exports = function (nsp, ns) {
                         if(/Iron/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'iron', this.pang))
                         this.alusd = true
                     }
-                    
+                    if(/Floor/.test(this.mainHands) && this.move.att && !this.alusd){
+                        mvect.y = Math.floor(mvect.y/100) * 100 + 50
+                        mvect.x = Math.floor(mvect.x/100) * 100 + 50
+                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad && player != this)) return
+                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
+                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
+                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
+                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
+                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
+                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y && !this.walls.find(w => w == wall))) return
+                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y && !this.doors.find(d => d == door))) return
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y)) return
+                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
+                        let slot = this.inventory.get(this.mainHand)
+                        slot.count -= 1
+                        if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
+                        this.needsSelfUpdate = true
+                        if(/Wood/.test(this.mainHands)) this.floors.push(new Floor(mvect.x, mvect.y, 'wood'))
+                        if(/Stone/.test(this.mainHands)) this.floors.push(new Floor(mvect.x, mvect.y, 'stone'))
+                        if(/Iron/.test(this.mainHands)) this.floors.push(new Floor(mvect.x, mvect.y, 'iron'))
+                        this.alusd = true
+                    }
                 }
             }
             if (this.move.att) {
@@ -1732,6 +1836,21 @@ module.exports = function (nsp, ns) {
             return pack
         }
     }
+    var Floors = {
+        list:[],
+        update:function(){
+            var pack = []
+            Floors.list.forEach(floor => {
+                if(floor.health <= 0) {
+                    removePack.floor.push(floor.id)
+                    Floors.list.splice(Floors.list.findIndex(function (element) {
+                        return element.id === floor.id
+                    }), 1);
+                }
+            })
+            return pack
+        }
+    }
     var Doors = {
         list:[],
         update:function(){
@@ -1855,7 +1974,7 @@ module.exports = function (nsp, ns) {
             this.material = material
             
             if(material == 'wood') this.health = 100
-            if(material == 'stone') this.health = 250
+            if(material == 'stone') this.health = 225
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -1879,6 +1998,37 @@ module.exports = function (nsp, ns) {
         }
         
     }
+    class Floor {
+        constructor(x, y, material){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.material = material
+            
+            if(material == 'wood') this.health = 75
+            if(material == 'stone') this.health = 150
+            this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id,
+                material:this.material
+            }
+            Floors.list.push(this)
+            initPack.floor.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id,  
+                material:this.material
+            }
+        }
+        
+    }
     class Door {
         constructor(x, y, material, ang){
             this.x = x
@@ -1889,7 +2039,7 @@ module.exports = function (nsp, ns) {
             this.open = false
             this.opening = false
             this.opentimer = null
-            if(material == 'wood') this.health = 100
+            if(material == 'wood') this.health = 150
             if(material == 'stone') this.health = 250
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
             World.addBody(engine.world, this.body)
@@ -1960,13 +2110,10 @@ module.exports = function (nsp, ns) {
                             if(player.alusd) return
                             player.move.prot = true
                             player.alusd = true
-                            console.log('Rotating')
-                            
                             if(player.pang == 'up') player.pang = 'right'
                             else if(player.pang == 'right') player.pang = 'down'
                             else if(player.pang == 'down') player.pang = 'left'
                             else if(player.pang == 'left') player.pang = 'up'
-                            console.log(player.pang)
                         }else player.move.prot = false
                     }
                 }
@@ -1992,9 +2139,9 @@ module.exports = function (nsp, ns) {
                     }), 1);
                     World.remove(engine.world, player.body)
                     leaderboard.removePlayer(player.id)
-                    player.walls.forEach(wall => {
-                        wall.health = 0
-                    })
+                    player.walls.forEach(wall => wall.health = 0)
+                    player.doors.forEach(door => door.health = 0)
+                    player.floors.forEach(floor => floor.health = 0)
                     let toDrop = player.inventory.findAll(slot => slot !== 'empty') 
                     toDrop.forEach((slot, i) => {
                         let a = 360/toDrop.length
@@ -2059,7 +2206,8 @@ module.exports = function (nsp, ns) {
         gold:[],
         diamond:[],
         wall:[],
-        door:[]
+        door:[],
+        floor:[]
     }
     var removePack = {
         player: [],
@@ -2070,7 +2218,8 @@ module.exports = function (nsp, ns) {
         gold:[],
         diamond:[],  
         wall:[],
-        door:[]
+        door:[],
+        floor:[]
     } 
     let dropped = []
     var self = this
@@ -2112,6 +2261,9 @@ module.exports = function (nsp, ns) {
         Doors.list.forEach(door => {
             if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
         })
+        Floors.list.forEach(floor => {
+            if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
+        })
         if(inWay) return
         if(willAdd == 'tree') new STree(tempx, tempy, 10)
         if(willAdd == 'stone') new Stone(tempx, tempy, 10)
@@ -2121,6 +2273,7 @@ module.exports = function (nsp, ns) {
     }, 1000)
     //new Wall(50, 50, 'wood')
     new Door(50, 50, 'wood', 'right')
+    new Floor(50, 150, 'wood')
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
@@ -2170,7 +2323,9 @@ module.exports = function (nsp, ns) {
                 diamond:[],
                 leaderboard: leaderboard.getUpdate(),
                 wall:[],
-                door:[]
+                door:[],
+                floor:[]
+              
             }
             Players.list.forEach(function (player) {
                 pack.player.push(player.getUpdatePack())
@@ -2182,6 +2337,7 @@ module.exports = function (nsp, ns) {
             Diamonds.list.forEach( diamond => pack.diamond.push(diamond.getInitPack()))
             Walls.list.forEach( wall => pack.wall.push(wall.getInitPack()))
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
+            Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
             /*
             Bullets.list.forEach(function(bullet){
                 pack.bullet.push(bulle)
@@ -2205,6 +2361,7 @@ module.exports = function (nsp, ns) {
             diamond:Diamonds.update(),
             wall:Walls.update(),
             door:Doors.update(),
+            floor:Floors.update(),
             leaderboard: leaderboard.getUpdate(),
             dropped:dropped.map((item, i) => ({
                 slot:{
@@ -2231,7 +2388,8 @@ module.exports = function (nsp, ns) {
                     gold:[],
                     diamond:[],
                     wall:[],
-                    door:[]
+                    door:[],
+                    floor:[]
                 }
             }
         }
@@ -2252,7 +2410,8 @@ module.exports = function (nsp, ns) {
                     gold:[],
                     diamond:[],  
                     wall:[],
-                    door:[]
+                    door:[],
+                    floor:[]
                 }
             }
         }

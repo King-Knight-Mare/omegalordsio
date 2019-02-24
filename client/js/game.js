@@ -61,6 +61,7 @@ createImage('diamond', 'png')
 createImage('woodwall', 'png')
 createImage('stonewall', 'png')
 createImage('wooddoor', 'png')
+createImage('woodfloor', 'png')
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
 Img.map.src = '/client/img/map.png'
@@ -388,7 +389,7 @@ var init = function(name) {
                         ctx.restore()
                     }
                 }
-                if(/Wall|Door/.test(this.mainHand)){
+                if(/Wall|Door|Floor/.test(this.mainHand)){
                     let img = this.mainHand.toLowerCase().replace(/\s/, '')
                     ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                     ctx.save()
@@ -421,7 +422,7 @@ var init = function(name) {
             ctx.fill()
             ctx.restore();
             ctx.restore();
-            if(this.posPlace && /Door|Wall/.test(this.mainHand)){
+            if(this.posPlace && /Wall|Door|Floor/.test(this.mainHand)){
                 let img = this.mainHand.toLowerCase().replace(/\s/, '')
                 ctx.restore()
                 ctx.save()
@@ -746,6 +747,19 @@ var init = function(name) {
             this.open = pack.open
         }
     }
+    var Floors = new Map()
+    class Floor {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            this.material = pack.material
+            Floors.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img[this.material + 'floor'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
     class Bullet {
         /**
          * 
@@ -805,6 +819,10 @@ var init = function(name) {
         pack.door.forEach((initPack)=>{
             new Door(initPack)
         })
+        pack.floor.forEach((initPack)=>{
+            new Floor(initPack)
+        })
+        
     }
     /**
      * 
@@ -837,6 +855,9 @@ var init = function(name) {
         })
         pack.door.forEach((id) => {
             Doors.delete(id)
+        })
+        pack.floor.forEach((id) => {
+            Floors.delete(id)
         })
     }
     socket.on('death', die)
@@ -895,6 +916,9 @@ var init = function(name) {
                 Diamonds.forEach((diamond) => {
                     diamond.show(x, y)
                 })
+                Floors.forEach((floor) => {
+                    floor.show(x, y)
+                })
                 Walls.forEach((wall) => {
                     wall.show(x, y)
                 })
@@ -935,7 +959,6 @@ var init = function(name) {
                         ctx.save()
                         ctx.translate(item.x + x, item.y + y)
                         ctx.rotate(Math.PI/ 180 * 45)
-                        //console.log(image.slot.image)
                         ctx.drawImage(Img[item.slot.image], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
                     }
@@ -997,7 +1020,7 @@ var init = function(name) {
                         ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
                         ctx.restore()
                     }
-                    if(/Wall|Door/.test(craft)){
+                    if(/Wall|Door|Floor/.test(craft)){
                         let img = craft.toLowerCase().replace(/\s/, '')
                         ctx.globalAlpha = 0.875
                         ctx.lineWidth = 2
@@ -1058,7 +1081,7 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(/Wall|Door/.test(slot.type)){
+                    if(/Wall|Door|Floor/.test(slot.type)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 10)
