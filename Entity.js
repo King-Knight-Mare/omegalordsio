@@ -3021,10 +3021,10 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
         if(willAdd == 'demon') new Demon(tempx, tempy)
-        if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        //if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
-    new Destroyer(350, 350)
+   /// new Destroyer(350, 350)
     
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
