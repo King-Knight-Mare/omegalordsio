@@ -1255,10 +1255,9 @@ var init = function(name) {
                 }
                 if(pack.tod == 'night'){
                     ctx.fillStyle = 'black'
-                    ctx.globalAlpha = pack.per * 0.25
+                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.40
                     ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2500, 2500)
                 }
-                console.log(pack.tod, pack.tod)
                 ctx.globalAlpha = 1
             }
         }

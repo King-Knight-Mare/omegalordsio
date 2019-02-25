@@ -32,13 +32,13 @@ module.exports = function (nsp, ns) {
             if(timeOfDay == 'day') timeOfDay = 'night'
             else if(timeOfDay == 'night') timeOfDay = 'day'
             setDayTimeout()
-        }, 5000)
+        }, 60000)
     }
     dayTimeout = new Timeout(() => {
         if(timeOfDay == 'day') timeOfDay = 'night'
         else if(timeOfDay == 'night') timeOfDay = 'day'
         setDayTimeout()
-    }, 5000)
+    }, 60000)
     this.map = {
         width:2500,
         height:2500
@@ -1487,7 +1487,7 @@ module.exports = function (nsp, ns) {
                         this.targets.push(p)
                     }
                 }
-                for (var i = 0; i < Players.list.length; i++) {
+                for (var i = 0; i < Demons.list.length; i++) {
                     var d = Demons.list[i]
                     if ((
                         Vector.getDistance(this.hposfr, d.body.position) < d.rad + this.hrad || 
@@ -2578,7 +2578,7 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'iron') new Iron(tempx, tempy, 10)
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        //if(willAdd == 'demon') new Demon(tempx, tempy)
+        if(willAdd == 'demon') new Demon(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
