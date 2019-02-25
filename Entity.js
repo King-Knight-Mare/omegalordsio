@@ -40,8 +40,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 60000)
     this.map = {
-        width:2500,
-        height:2500
+        width:5000,
+        height:5000
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
