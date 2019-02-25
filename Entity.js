@@ -32,13 +32,13 @@ module.exports = function (nsp, ns) {
             if(timeOfDay == 'day') timeOfDay = 'night'
             else if(timeOfDay == 'night') timeOfDay = 'day'
             setDayTimeout()
-        }, 60000)
+        }, 1000)
     }
     dayTimeout = new Timeout(() => {
         if(timeOfDay == 'day') timeOfDay = 'night'
         else if(timeOfDay == 'night') timeOfDay = 'day'
         setDayTimeout()
-    }, 60000)
+    }, 1000)
     this.map = {
         width:2500,
         height:2500
@@ -362,7 +362,7 @@ module.exports = function (nsp, ns) {
                             {id:'wood', count:20},
                         ],
                         output:{
-                            count:1,
+                            count:2,
                             image:'woodwall',
                             stackSize:255,
                             equipable:true
@@ -393,7 +393,7 @@ module.exports = function (nsp, ns) {
                             {id:'iron', count:1},
                         ],
                         output:{
-                            count:1,
+                            count:2,
                             image:'wooddoor',
                             stackSize:255,
                             equipable:true
@@ -407,7 +407,7 @@ module.exports = function (nsp, ns) {
                             {id:'wood', count:10},
                         ],
                         output:{
-                            count:1,
+                            count:4,
                             image:'woodfloor',
                             stackSize:255,
                             equipable:true
@@ -435,15 +435,15 @@ module.exports = function (nsp, ns) {
             let output =  this.get(item).output
             recipe.forEach(req => {
                 inventory.forEach((slot, num) => {
-                  
                     if(slot == 'empty') return
                     if(req.count == 0) return
                     if(slot.id != req.id) return
                     slot.count -= req.count
+                    console.log(item, output)
                     if(slot.count == 0)inventory.set(num, 'empty')
                 })
             })
-            inventory.addItem(new Slot(item, 1, output.image, output.stackSize, output.equipable))
+            inventory.addItem(new Slot(item, output.count, output.image, output.stackSize, output.equipable))
             //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})\
         }
     }
@@ -642,7 +642,7 @@ module.exports = function (nsp, ns) {
                     speed: 20,
                     timer: 0
                 },
-                damage: 1 / 2,
+                damage: 1/2,
                 health: 1,
             }
             this.axe = {
@@ -919,6 +919,7 @@ module.exports = function (nsp, ns) {
                         Vector.add(this.body.position, axep, axep)
                         let treetargs = []
                         let targs = []
+                        let dtargs = []
                         let stonetargs = []
                         let irontargs = []
                         let goldtargs = []
@@ -942,7 +943,7 @@ module.exports = function (nsp, ns) {
                         for (var i = 0; i < Demons.list.length; i++) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
-                                targs.push(d)
+                                dtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1033,6 +1034,12 @@ module.exports = function (nsp, ns) {
                                     this.score += p.score/2 + 2
                                 }
                             })
+                            dtargs.forEach( d => {
+                                d.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 300
+                                }
+                            })
                         }, 2500/3)
                     }
                     if(/Pickaxe/.test(this.mainHands) && this.pickaxe.ready && this.move.att){
@@ -1054,6 +1061,7 @@ module.exports = function (nsp, ns) {
                         let goldtargs = []
                         let diamondtargs = []
                         let targs = []
+                        let dtargs = []
                         let walltargs = []
                         this.pickaxe.ready = false
                         this.hitting = true
@@ -1073,7 +1081,7 @@ module.exports = function (nsp, ns) {
                         for (var i = 0; i < Demons.list.length; i++) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
-                                targs.push(d)
+                                dtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1232,6 +1240,7 @@ module.exports = function (nsp, ns) {
                         saxep.y = Math.sin(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
                         Vector.add(this.body.position, saxep, saxep)
                         let targs = []
+                        let dtargs = []
                         this.sword.ready = false
                         this.hitting = true
                         this.sword.timeout = new Timeout(() => {
@@ -1250,7 +1259,7 @@ module.exports = function (nsp, ns) {
                         for (var i = 0; i < Demons.list.length; i++) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
-                                targs.push(d)
+                                dtargs.push(d)
                             }
                         }
                         let self = this
@@ -1259,6 +1268,12 @@ module.exports = function (nsp, ns) {
                                 p.health -= this.sword[u].damage
                                 if (p.health <= 0) {
                                     this.score += p.score/2 + 2
+                                }
+                            })
+                            dtargs.forEach( d => {
+                                d.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 300
                                 }
                             })
                         }, 2500/3)
@@ -1282,6 +1297,7 @@ module.exports = function (nsp, ns) {
                         let goldtargs = []
                         let diamondtargs = []
                         let targs = []
+                        let dtargs = []
                         let walltargs = []
                         this.hammer.ready = false
                         this.hitting = true
@@ -1300,8 +1316,8 @@ module.exports = function (nsp, ns) {
                         }
                         for (var i = 0; i < Demons.list.length; i++) {
                             var d = Demons.list[i]
-                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
-                                targs.push(d)
+                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
+                                dtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1334,12 +1350,6 @@ module.exports = function (nsp, ns) {
                                 walltargs.push(wall)
                             }
                         })
-                        targs.forEach( p => {
-                            p.health -= this.hammer[u].damage
-                            if (p.health <= 0) {
-                                this.score += p.score/2 + 2
-                            }
-                        })
                         let self = this
                         new Timeout(() => {
                             treetargs.forEach(tree => {
@@ -1370,6 +1380,12 @@ module.exports = function (nsp, ns) {
                                 p.health -= this.hammer[u].damage
                                 if (p.health <= 0) {
                                     this.score += p.score/2 + 2
+                                }
+                            })
+                            dtargs.forEach( d => {
+                                d.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 300
                                 }
                             })
                         }, 2500/3)
@@ -1473,6 +1489,11 @@ module.exports = function (nsp, ns) {
             if (this.punch.ready) {
                 //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
                 this.punch.ready = false
+                let dtargs = []
+                let targs = []
+                let walltargs = []
+                let treetargs = []
+                let stonetargs = []
                 this.punch.timeout = new Timeout(() => {
                     this.punch.timeout = null
                     this.punch.ready = true
@@ -1484,7 +1505,7 @@ module.exports = function (nsp, ns) {
                     if ((
                         Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad || 
                         Vector.getDistance(this.hposfl, p.body.position) < p.rad + this.hrad) && this.id != p.id) {
-                        this.targets.push(p)
+                        targs.push(p)
                     }
                 }
                 for (var i = 0; i < Demons.list.length; i++) {
@@ -1492,14 +1513,14 @@ module.exports = function (nsp, ns) {
                     if ((
                         Vector.getDistance(this.hposfr, d.body.position) < d.rad + this.hrad || 
                         Vector.getDistance(this.hposfl, d.body.position) < d.rad + this.hrad) && this.id != d.id) {
-                        this.targets.push(d)
+                        dtargs.push(d)
                     }
                 }
                 this.game.STrees.list.forEach(tree => {
                     if ((Vector.getDistance(
                         this.hposfr, {x: tree.x, y:tree.y}) < this.hrad - 50 || 
                         Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y}) < this.hrad + 50)) {
-                        this.treetargs.push(tree)
+                        treetargs.push(tree)
                     }
                 })
                 
@@ -1507,7 +1528,7 @@ module.exports = function (nsp, ns) {
                     if ((Vector.getDistance(
                         this.hposfr, {x: stone.x, y:stone.y}) < this.hrad + 50 || 
                         Vector.getDistance(this.hposfl, {x: stone.x, y:stone.y}) < this.hrad + 50)) {
-                        this.stonetargs.push(stone)
+                        stonetargs.push(stone)
                     }
                 })
                 if (this.next == 'l' && this.lhit == false && this.rhit == false) {
@@ -1521,59 +1542,68 @@ module.exports = function (nsp, ns) {
                 } else if (this.next == 'l' && this.rhit == true) {
                     this.rhit = false
                 }
-                this.punch.reload.timer = this.punch.reload.speed
-                this.targets.forEach( p => {
-                    p.health -= this.punch.damage
-                    if (p.health <= 0) {
-                        this.score += p.score/2 + 2
-                    }
-                })
-                this.treetargs.forEach(tree => {
-                    let rem = this.inventory.addItemMax(new Slot('wood', 1, 'draw', 255, false))
-                    this.score += 1
-                    if(rem){
-                        let ang = Math.getRandomNum(0, 360)
-                        let offset = Vector.create(0, 50 + 20)
-                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
-                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
-                        Vector.add(tree.body.position, offset, offset)
-                        let self = {
-                            item:rem,
-                            x:offset.x,
-                            y:offset.y, 
-                            timeout:new Timeout(() => {
-                                dropped.splice(dropped.findIndex(function (element) {
-                                    return element === self
-                                }), 1);
-                            }, 5000)
+                
+                setTimeout(() => {
+                    targs.forEach( p => {
+                        p.health -= this.punch.damage
+                        if (p.health <= 0) {
+                            this.score += p.score/2 + 2
                         }
-                        dropped.push(self)
-                    }
-                    this.needsSelfUpdate = true;
-                })
-                this.stonetargs.forEach(stone => {
-                    let rem = this.inventory.addItemMax(new Slot('stone', 1, 'stone', 255, false));
-                    this.score += 3 
-                    if(rem){
-                        let ang = Math.getRandomNum(0, 360)
-                        let offset = Vector.create(0, 50 + 20)
-                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
-                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
-                        Vector.add(stone.body.position, offset, offset)
-                        let self = {
-                            item:rem,
-                            x:offset.x,
-                            y:offset.y, 
-                            timeout:new Timeout(() => {
-                                dropped.splice(dropped.findIndex(function (element) {
-                                    return element === self
-                                }), 1);
-                            }, 5000)
+                    })
+                    dtargs.forEach( d => {
+                        d.health -= this.punch.damage
+                        if (d.health <= 0) {
+                            this.score += 300
                         }
-                        dropped.push(self)
-                    }
-                    this.needsSelfUpdate = true
-                })
+                    })
+                    treetargs.forEach(tree => {
+                        let rem = this.inventory.addItemMax(new Slot('wood', 1, 'draw', 255, false))
+                        this.score += 1
+                        if(rem){
+                            let ang = Math.getRandomNum(0, 360)
+                            let offset = Vector.create(0, 50 + 20)
+                            offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                            offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                            Vector.add(tree.body.position, offset, offset)
+                            let self = {
+                                item:rem,
+                                x:offset.x,
+                                y:offset.y, 
+                                timeout:new Timeout(() => {
+                                    dropped.splice(dropped.findIndex(function (element) {
+                                        return element === self
+                                    }), 1);
+                                }, 5000)
+                            }
+                            dropped.push(self)
+                        }
+                        this.needsSelfUpdate = true;
+                    })
+                    stonetargs.forEach(stone => {
+                        let rem = this.inventory.addItemMax(new Slot('stone', 1, 'stone', 255, false));
+                        this.score += 3 
+                        if(rem){
+                            let ang = Math.getRandomNum(0, 360)
+                            let offset = Vector.create(0, 50 + 20)
+                            offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                            offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                            Vector.add(stone.body.position, offset, offset)
+                            let self = {
+                                item:rem,
+                                x:offset.x,
+                                y:offset.y, 
+                                timeout:new Timeout(() => {
+                                    dropped.splice(dropped.findIndex(function (element) {
+                                        return element === self
+                                    }), 1);
+                                }, 5000)
+                            }
+                            dropped.push(self)
+                        }
+                        this.needsSelfUpdate = true
+})
+                }, 750/3)
+                
             }
         }
         getUpdatePack() {
