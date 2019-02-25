@@ -1316,7 +1316,7 @@ module.exports = function (nsp, ns) {
                         }
                         for (var i = 0; i < Demons.list.length; i++) {
                             var d = Demons.list[i]
-                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
                                 dtargs.push(d)
                             }
                         }
