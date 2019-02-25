@@ -24,5 +24,6 @@ Math.test = () => {
     console.log(Math.roundToDeci(.004005, 100))
     console.log(Math.roundToDeca(123456789, 1000))
 }
+Math.test()
 //Math.test()
 module.exports = Math
