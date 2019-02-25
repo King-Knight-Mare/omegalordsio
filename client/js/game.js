@@ -633,6 +633,95 @@ var init = function(name) {
             this.punchper = initPack.punchper
         }
     }
+    class Destroyer {
+          /**
+           * Creates a new Player
+           * @param {Number} x 
+           * @param {Number} y 
+           * @param {String} mainHand 
+           */
+          constructor(initPack) {
+              this.x = initPack.x
+              this.y = initPack.y
+              this.id = initPack.id
+              this.angle = initPack.angle
+              this.lhit = initPack.lhit
+              this.rhit = initPack.rhit
+              this.rad = 35
+              Destroyers.push(this)
+          }
+          draw(x, y) {
+              ctx.restore()
+              ctx.save()
+              ctx.scale(this.rad/25, this.rad/25)
+              var hpBar = 80 * this.rad/25 * this.hp / this.maxHp
+              var currx = (this.x + x)/(this.rad/25)
+              var curry = (this.y + y)/(this.rad/25)
+              if(currx < -this.rad || currx > canvas.width + this.rad) return
+              if(curry < -this.rad || curry > canvas.height + this.rad) return
+              ctx.save();
+
+              //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
+
+
+              ctx.save()
+              ctx.beginPath()
+              ctx.translate(currx, curry)
+              ctx.rotate((Math.PI / 180) * this.angle)
+              ctx.scale(this.rad/25, this.rad/25)
+              if (!(this.rhit)) {
+                  ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
+              } else {
+                  ctx.save();
+                  ctx.translate(32 - 7.5, 15 - 7.5);
+                  ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-160 * this.punchper + 80) + 80)))
+                  ctx.drawImage(Img.hand, 0, 0, 15, 15)
+                  ctx.restore()
+              }
+              if (!(this.lhit)) {
+                  ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
+              } else {
+                  ctx.save();
+                  ctx.translate(32 - 7.5, -(15 - 7.5));
+                  ctx.rotate((Math.PI / 180) * (0 + (-Math.abs(-160 * this.punchper + 80) + 80)))
+                  ctx.drawImage(Img.hand, 0, 0 - 15, 15, 15)
+                  ctx.restore();
+              }
+
+              ctx.restore()
+              ctx.beginPath()
+              ctx.fillStyle = '#000010'
+              ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
+              ctx.fill()
+              ctx.beginPath()
+              ctx.fillStyle = 'green'
+              ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
+              ctx.fill()
+              ctx.translate(currx, curry)
+              ctx.rotate((Math.PI / 180) * this.angle)
+              ctx.fillStyle = 'black'
+              ctx.beginPath()
+              ctx.arc(0 + 9, 0 + 8, 7, 0, 2*Math.PI);
+              ctx.arc(0 + 9, 0 - 8, 7, 0, 2*Math.PI);
+              ctx.fill()
+              ctx.fillStyle = 'yellow'
+              ctx.beginPath()
+              ctx.arc(0 + 6.5, 0 + 7, 3, 0, 2*Math.PI);
+              ctx.arc(0 + 6.5, 0 - 7, 3, 0, 2*Math.PI);
+              ctx.fill()
+              ctx.restore();
+              ctx.restore();
+          }
+          processInitpack(initPack) {
+              this.x = initPack.x
+              this.y = initPack.y
+              this.id = initPack.id
+              this.angle = initPack.angle
+              this.lhit = initPack.lhit
+              this.rhit = initPack.rhit
+              this.punchper = initPack.punchper
+          }
+      }
     var CTrees = new Map()
     class CTree {
         constructor(pack){
@@ -863,6 +952,7 @@ var init = function(name) {
     }
     var Players = []
     let Demons = []
+    let Destroyers = []
     var ctx = canvas.getContext('2d');
     var playa;
     /**
@@ -917,7 +1007,10 @@ var init = function(name) {
             if(Demons.find(demon => demon.id == initPack.id)) return
             new Demon(initPack)
         })
-        
+        pack.destroyer.forEach((initPack)=>{
+            if(Destroyers.find(demon => demon.id == initPack.id)) return
+            new Destroyer(initPack)
+        })
     }
     /**
      * 
@@ -932,6 +1025,11 @@ var init = function(name) {
         })
         pack.demon.forEach(function(id) {
             Demons.splice(Demons.findIndex(function(element) {
+                return element.id == id
+            }), 1)
+        })
+        pack.destroyer.forEach(function(id) {
+            Destroyers.splice(Demons.findIndex(function(element) {
                 return element.id == id
             }), 1)
         })
@@ -981,7 +1079,7 @@ var init = function(name) {
                 var y = canvas.height / 2 - playa.y
                 
                 ctx.fillStyle = '#876833'
-                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2500, 2500)
+                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 5000, 5000)
                 //ctx.drawImage(Img.map, canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2105, 1488)
                 pack.player.forEach(function(pack) {
                     /**
@@ -994,6 +1092,12 @@ var init = function(name) {
                 })
                 pack.demon.forEach(function(pack) {
                     var toUpdate = Demons.find(function(element) {
+                        return element.id === pack.id
+                    })
+                    toUpdate.processInitpack(pack)
+                })
+                pack.destroyer.forEach(function(pack) {
+                    var toUpdate = Destroyers.find(function(element) {
                         return element.id === pack.id
                     })
                     toUpdate.processInitpack(pack)
@@ -1152,6 +1256,9 @@ var init = function(name) {
                 Demons.forEach(function(demon) {
                     demon.draw(x, y)
                 })
+                Destroyers.forEach(function(demon) {
+                    demon.draw(x, y)
+                })
                 ctx.restore();
                 playa.inventory.forEach((slot, i) => {
                     ctx.beginPath()
@@ -1255,10 +1362,19 @@ var init = function(name) {
                 }
                 if(pack.tod == 'night'){
                     ctx.fillStyle = 'black'
-                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.40
-                    ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2500, 2500)
+                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.6
+                    ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 5000, 5000)
                 }
+                
                 ctx.globalAlpha = 1
+                ctx.beginPath()
+                ctx.fillStyle = 'yellow'
+                ctx.arc(canvas.width - 100, canvas.height - 200, 50, Math.PI, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = 'darkblue'
+                ctx.arc(canvas.width - 100, canvas.height - 200, 50, 0, 1 * Math.PI)
+                ctx.fill()
             }
         }
     }
