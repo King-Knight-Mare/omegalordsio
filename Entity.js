@@ -32,13 +32,13 @@ module.exports = function (nsp, ns) {
             if(timeOfDay == 'day') timeOfDay = 'night'
             else if(timeOfDay == 'night') timeOfDay = 'day'
             setDayTimeout()
-        }, 1000)
+        }, 15000)
     }
     dayTimeout = new Timeout(() => {
         if(timeOfDay == 'day') timeOfDay = 'night'
         else if(timeOfDay == 'night') timeOfDay = 'day'
         setDayTimeout()
-    }, 1000)
+    }, 15000)
     this.map = {
         width:2500,
         height:2500
@@ -865,7 +865,7 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     if(!posd.size && !possible.size) return
-                    if((!dis || dis > disd) && !this.doors[nearestd].opening){
+                    if(!dis || (dis > disd && !this.doors[nearestd].opening)){
                         let door = this.doors[nearestd]
                         if(door.ang == 'left' && !door.open){
                             Body.translate(door.body, Vector.create(-100, -100))
