@@ -32,16 +32,16 @@ module.exports = function (nsp, ns) {
             if(timeOfDay == 'day') timeOfDay = 'night'
             else if(timeOfDay == 'night') timeOfDay = 'day'
             setDayTimeout()
-        }, 15000)
+        }, 60000)
     }
     dayTimeout = new Timeout(() => {
         if(timeOfDay == 'day') timeOfDay = 'night'
         else if(timeOfDay == 'night') timeOfDay = 'day'
         setDayTimeout()
-    }, 15000)
+    }, 60000)
     this.map = {
-        width:500,
-        height:500
+        width:5000,
+        height:5000
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),

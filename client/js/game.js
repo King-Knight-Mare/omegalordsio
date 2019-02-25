@@ -1362,7 +1362,7 @@ var init = function(name) {
                 }
                 if(pack.tod == 'night'){
                     ctx.fillStyle = 'black'
-                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.6
+                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.8
                     ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 5000, 5000)
                 }
                 
