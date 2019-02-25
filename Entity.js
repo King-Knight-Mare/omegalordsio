@@ -1733,7 +1733,7 @@ module.exports = function (nsp, ns) {
         updatePath() {
             let possible = new Mapper()
             Players.list.forEach((player, i)=> {
-                if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 500) possible.set(i, player)
+                if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
             })
             let dis
             let nearest
@@ -1757,6 +1757,8 @@ module.exports = function (nsp, ns) {
             let fx = Math.roundToDeca(possible.get(nearest).body.position.x - 50, 100)/100
             let fy = Math.roundToDeca(possible.get(nearest).body.position.y - 50, 100)/100
             this.pos = possible.get(nearest)
+            if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
+            x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
             this.curr = 0
         }
