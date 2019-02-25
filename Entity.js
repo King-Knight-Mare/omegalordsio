@@ -40,8 +40,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 15000)
     this.map = {
-        width:5000,
-        height:5000
+        width:500,
+        height:500
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
@@ -459,7 +459,7 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('wood', 255, 'draw', 255, false)],
+                ['1', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
                 ['2', 'empty'],
                 ['3', 'empty'],
                 ['4', 'empty'],
@@ -920,6 +920,7 @@ module.exports = function (nsp, ns) {
                         let treetargs = []
                         let targs = []
                         let dtargs = []
+                        let destargs = []
                         let stonetargs = []
                         let irontargs = []
                         let goldtargs = []
@@ -944,6 +945,12 @@ module.exports = function (nsp, ns) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
                                 dtargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Destroyers.list.length; i++) {
+                            var d = Destroyers.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                destargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -990,6 +997,18 @@ module.exports = function (nsp, ns) {
                             p.health -= this.axe[u].damage
                             if (p.health <= 0) {
                                 this.score += p.score/2 + 2
+                            }
+                        })
+                        dtargs.forEach( p => {
+                            p.health -= this.axe[u].damage
+                            if (p.health <= 0) {
+                                this.score += 300
+                            }
+                        })
+                        destargs.forEach( p => {
+                            p.health -= this.axe[u].damage
+                            if (p.health <= 0) {
+                                this.score += 600
                             }
                         })
                         let self = this
@@ -1050,6 +1069,12 @@ module.exports = function (nsp, ns) {
                                     this.score += 300
                                 }
                             })
+                            destargs.forEach( d => {
+                                d.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 600
+                                }
+                            })
                         }, 2500/3)
                     }
                     if(/Pickaxe/.test(this.mainHands) && this.pickaxe.ready && this.move.att){
@@ -1072,6 +1097,7 @@ module.exports = function (nsp, ns) {
                         let diamondtargs = []
                         let targs = []
                         let dtargs = []
+                        let destargs = []
                         let walltargs = []
                         this.pickaxe.ready = false
                         this.hitting = true
@@ -1092,6 +1118,18 @@ module.exports = function (nsp, ns) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
                                 dtargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Destroyers.list.length; i++) {
+                            var d = Destroyers.list[i]
+                            if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
+                                destargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Destroyers.list.length; i++) {
+                            var d = Destroyers.list[i]
+                            if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
+                                destargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1140,6 +1178,18 @@ module.exports = function (nsp, ns) {
                                 p.health -= this.pickaxe[u].damage
                                 if (p.health <= 0) {
                                     this.score += p.score/2 + 2
+                                }
+                            })
+                            dtargs.forEach( p => {
+                                p.health -= this.pickaxe[u].damage
+                                if (p.health <= 0) {
+                                    this.score += 300
+                                }
+                            })
+                            destargs.forEach( p => {
+                                p.health -= this.pickaxe[u].damage
+                                if (p.health <= 0) {
+                                    this.score += 600
                                 }
                             })
                             self.needsSelfUpdate = true
@@ -1261,6 +1311,7 @@ module.exports = function (nsp, ns) {
                         Vector.add(this.body.position, saxep, saxep)
                         let targs = []
                         let dtargs = []
+                        let destargs = []
                         this.sword.ready = false
                         this.hitting = true
                         this.sword.timeout = new Timeout(() => {
@@ -1282,6 +1333,12 @@ module.exports = function (nsp, ns) {
                                 dtargs.push(d)
                             }
                         }
+                        for (var i = 0; i < Destroyers.list.length; i++) {
+                            var d = Destroyers.list[i]
+                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
+                                destargs.push(d)
+                            }
+                        }
                         let self = this
                         new Timeout(() => {
                             targs.forEach( p => {
@@ -1294,6 +1351,12 @@ module.exports = function (nsp, ns) {
                                 d.health -= this.sword[u].damage
                                 if (d.health <= 0) {
                                     this.score += 300
+                                }
+                            })
+                            destargs.forEach( d => {
+                                d.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 600
                                 }
                             })
                         }, 2500/3)
@@ -2733,7 +2796,7 @@ module.exports = function (nsp, ns) {
                         let a = 360/toDrop.length
                         let ang = a * i + 77
                         let offset = Vector.create(0, player.rad + 20)
-                        
+                        console.log(slot)
                         offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
                         offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
                         Vector.add(player.body.position, offset, offset)
@@ -2811,7 +2874,6 @@ module.exports = function (nsp, ns) {
                 var demon = Destroyers.list[i];
                 demon.update();
                 if (demon.health <= 0) {
-                    demon.emit('death')
                     removePack.destroyer.push(demon.id)
                     Destroyers.list.splice(Destroyers.list.findIndex(function (element) {
                         return element.id === demon.id
@@ -2910,8 +2972,8 @@ module.exports = function (nsp, ns) {
         if(Irons.list.length < 20) canAdd.push('iron')
         if(Golds.list.length < 16) canAdd.push('gold')
         if(Diamonds.list.length < 10) canAdd.push('diamond')
-        if(Demons.list.length < 7 && timeOfDay == 'night') canAdd.push('demon')
-        if(Destroyers.list.length < 5 && timeOfDay == 'night' && dayTimeout.timeout.percntDone > 0.40 && dayTimeout.timeout.percntDone < 0.60) canAdd.push('destroyer')
+        if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
+        if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.4 && dayTimeout.percntDone < 0.6) canAdd.push('destroyer')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
@@ -2969,6 +3031,7 @@ module.exports = function (nsp, ns) {
         socket.on('craft', item => {
             let playa = Players.list.find(player => player.id == socket.id)
             playa.crafter.craftItem(item, playa.inventory)
+            playa.alusd = true
             playa.needsSelfUpdate = true
         })
         socket.on('lc', slotnum => {
