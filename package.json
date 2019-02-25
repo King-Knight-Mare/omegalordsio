@@ -1,36 +1,35 @@
 {
-	"name": "Quasar.io",
-	"version": "0.0.0",
-	"description": "It's a game",
-  "homepage": "https://github.com/Electrox-Qui-Mortem/wordlearner#readme",
-	"main": "server",
-  "license" : "Apache 2.0",
-  "author":{ 
-    "name" : "Electrox Qui Mortem", 
-    "email" : "QuiMortemKing@Gmail.com", 
-    "url" : "http://"
+  "name": "Quasar.io",
+  "version": "0.0.0",
+  "description": "It's a game",
+  "homepage": "https://github.com/Electrox-Qui-Mortem/omegalords#readme",
+  "main": "server",
+  "license": "MIT",
+  "author": {
+    "name": "Electrox Qui Mortem",
+    "email": "QuiMortemKing@Gmail.com",
+    "url": "http://"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/Electrox-Qui-Mortem/omegalords.git"
+    "type": "git",
+    "url": "https://github.com/Electrox-Qui-Mortem/omegalords.git"
   },
-	"dependencies": {
-		"express": "^4.16.3",
-		"serve-favicon": "^2.5.0",
-		"socket.io": "^2.1.1",
-		"socketio": "^1.0.0",
-    "matter-js": "^0.14.2"
-	},
-	"scripts": {
-		"start": "node server",
-    "test":"node test"
-	},
-	"license": "MIT",
-	"homepage": "https://github.com/Electrox-Qui-Mortem/omegalords#readme",
-	"bugs": {
-		"url": "https://github.com/Electrox-Qui-Mortem/omegalords/issues",
-		"email": "QuiMortemKing@gmail.com"
-	},
+  "dependencies": {
+    "express": "^4.16.4",
+    "serve-favicon": "^2.5.0",
+    "socket.io": "^2.2.0",
+    "socketio": "^1.0.0",
+    "matter-js": "^0.14.2",
+    "pathfinding": "^0.4.18"
+  },
+  "scripts": {
+    "start": "node server",
+    "test": "node test"
+  },
+  "bugs": {
+    "url": "https://github.com/Electrox-Qui-Mortem/omegalords/issues",
+    "email": "QuiMortemKing@gmail.com"
+  },
   "engines": {
     "node": "8.0"
   },

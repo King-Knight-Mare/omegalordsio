@@ -1,13 +1,10 @@
 Math = require("./math.js");
 const Matter = require("matter-js")
 const Timeout = require('./timeout.js')
-const Engine = Matter.Engine,
-      Render = Matter.Render,
-      World = Matter.World,
-      Bodies = Matter.Bodies,
-      Body = Matter.Body,
-      Vector = Matter.Vector; 
+
+const {Engine, Render, World, Bodies, Body, Vector} = require('matter-js')
 const EventEmitter = require('events')
+const PF = require('pathfinding')
 Vector.getDistance = function (vectorA, vectorB) {  
     return Math.sqrt(Math.pow(vectorA.x - vectorB.x, 2) + Math.pow(vectorA.y - vectorB.y, 2))
 };
@@ -28,6 +25,20 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
+    let timeOfDay = 'day'
+    let dayTimeout
+    let setDayTimeout = () => {
+        dayTimeout = new Timeout(() => {
+            if(timeOfDay == 'day') timeOfDay = 'night'
+            else if(timeOfDay == 'night') timeOfDay = 'day'
+            setDayTimeout()
+        }, 5000)
+    }
+    dayTimeout = new Timeout(() => {
+        if(timeOfDay == 'day') timeOfDay = 'night'
+        else if(timeOfDay == 'night') timeOfDay = 'day'
+        setDayTimeout()
+    }, 5000)
     this.map = {
         width:2500,
         height:2500
@@ -505,46 +516,31 @@ module.exports = function (nsp, ns) {
             let found = false;
             let posSlots =  this.findAll(item => item.id == toAdd.id)
             let ret = true
-            posSlots.forEach(item => {
-                if(!ret) return
-                if(item.count + toAdd.count > item.stackSize && 
-                    this.find(slot => {
-                        if(slot == 'empty') return true; 
-                        if(slot.id == toAdd.id && slot.count != slot.stackSize && item != slot ) return true;
-                        return false;
-                    })
-                ){
-                    toAdd.count -= (item.stackSize - item.count)
-                    item.count = item.stackSize
-                    while(this.find(item => {
-                        if(item == 'empty') return true; 
-                        if(item.id == toAdd.id && item.count != item.stackSize) return true;
-                        return false;
-                    }) && toAdd.count && ret){
-                        let i = this.find(item => {
-                            if(item == 'empty') return true; 
-                            if(item.id == toAdd.id && item.count != item.stackSize) return true;
-                            return false;
-                        })
-                        if(i == 'empty'){ 
-                            ret = false
-                            return i = toAdd
-                        }
-                        toAdd.count -= (item.stackSize - item.count)
-                        item.count = item.stackSize
-                    }
+            if(!ret) return
+            while(this.find(item => {
+                if(item == 'empty') return true; 
+                if(item.id == toAdd.id && item.count !== item.stackSize) return true;
+                return false;
+            }) && toAdd.count && ret){
+                let i = this.find(item => {
+                    if(item == 'empty') return true; 
+                    if(item.id == toAdd.id && item.count !== item.stackSize) return true;
+                    return false;
+                })
+                if(i == 'empty'){ 
+                    ret = false
+                    this.set(this.findKey(item => item == 'empty'), toAdd)
+                    return 
 
-                }else if(item.count + toAdd.count > item.stackSize){
-                    toAdd.count -= (item.stackSize - item.count)
-                    item.count = item.stackSize
-                    return
                 }
-                item.count += toAdd.count;
-                toAdd.count = 0
-                ret = false
-            })
-            
-            if(this.find(item => item == 'empty') && toAdd.count){this.set(this.findKey(item => item == 'empty'), toAdd);ret=false}
+                if(toAdd.count + i.count > i.stackSize){
+                    toAdd.count -= (i.stackSize - i.count)
+                    i.count = i.stackSize
+                }else {
+                    i.count += toAdd.count
+                    ret = false
+                }
+            }
             if(ret) return toAdd
         }
     }
@@ -943,6 +939,12 @@ module.exports = function (nsp, ns) {
                                 targs.push(p)
                             }
                         }
+                        for (var i = 0; i < Demons.list.length; i++) {
+                            var d = Demons.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                targs.push(d)
+                            }
+                        }
                         this.game.STrees.list.forEach(tree => {
                             if(Vector.getDistance(axep, tree.body.position) < axerad + 50) {
                                 treetargs.push(tree)
@@ -1066,6 +1068,12 @@ module.exports = function (nsp, ns) {
                             if (Vector.getDistance(paxep, p.body.position) < p.rad + paxerad
                                   && this.id != p.id) {
                                 targs.push(p)
+                            }
+                        }
+                        for (var i = 0; i < Demons.list.length; i++) {
+                            var d = Demons.list[i]
+                            if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
+                                targs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1239,6 +1247,12 @@ module.exports = function (nsp, ns) {
                                 targs.push(p)
                             }
                         }
+                        for (var i = 0; i < Demons.list.length; i++) {
+                            var d = Demons.list[i]
+                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
+                                targs.push(d)
+                            }
+                        }
                         let self = this
                         new Timeout(() => {
                             targs.forEach( p => {
@@ -1282,6 +1296,12 @@ module.exports = function (nsp, ns) {
                             if (Vector.getDistance(axep, p.body.position) < p.rad + axerad
                                   && this.id != p.id) {
                                 targs.push(p)
+                            }
+                        }
+                        for (var i = 0; i < Demons.list.length; i++) {
+                            var d = Demons.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                targs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1376,6 +1396,7 @@ module.exports = function (nsp, ns) {
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
                         if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return
+                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return
                         if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
                         if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
                         if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
@@ -1398,6 +1419,7 @@ module.exports = function (nsp, ns) {
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
                         if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return
+                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return
                         if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
                         if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
                         if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
@@ -1420,6 +1442,7 @@ module.exports = function (nsp, ns) {
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
                         if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad && player != this)) return
+                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return
                         if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
                         if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
                         if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
@@ -1462,6 +1485,14 @@ module.exports = function (nsp, ns) {
                         Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad || 
                         Vector.getDistance(this.hposfl, p.body.position) < p.rad + this.hrad) && this.id != p.id) {
                         this.targets.push(p)
+                    }
+                }
+                for (var i = 0; i < Players.list.length; i++) {
+                    var d = Demons.list[i]
+                    if ((
+                        Vector.getDistance(this.hposfr, d.body.position) < d.rad + this.hrad || 
+                        Vector.getDistance(this.hposfl, d.body.position) < d.rad + this.hrad) && this.id != d.id) {
+                        this.targets.push(d)
                     }
                 }
                 this.game.STrees.list.forEach(tree => {
@@ -1571,6 +1602,231 @@ module.exports = function (nsp, ns) {
                craftables:this.crafter.checkCraft(this.inventory),
                posPlace:this.posPlace
            }
+        }
+        setHands(){
+            this.hrad = this.rad/25 * 7.5
+            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            Vector.add(this.body.position, this.hposfl, this.hposfl)
+
+            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            Vector.add(this.body.position, this.hposfr, this.hposfr)
+        }
+    }
+    class Demon extends EventEmitter{
+        /**
+         * @param {String} id 
+         * @param {String} usr 
+         */
+        constructor(x, y) {
+            super()
+            this.rad = 30
+            this.id = Math.random()
+            this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
+            World.addBody(engine.world, this.body)
+            this.bullets = [];
+            this.punch = {
+                speed: 3,
+                ready:true,
+                reload: {
+                    speed: 20,
+                    timer: 0
+                },
+                damage: 2,
+                health: 1,
+            }
+            this.hands = {
+                l: {
+                    hit: false,
+                },
+                r: {
+                    hit: false,
+                }
+            }
+            this.move = {
+                r: false,
+                l: false,
+                u: false,
+                d: false,
+                att: false,
+                run:false,
+                ang: 0,
+                mdis:0
+            }
+            this.hrad = this.rad/25 * 7.5
+            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            Vector.add(this.body.position, this.hposfl, this.hposfl)
+
+            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            Vector.add(this.body.position, this.hposfr, this.hposfr)
+            this.next = 'l'
+            this.lhit = false
+            this.rhit = false
+            this.maxSpd = 4;
+            this.health = 20;
+            this.maxHealth = 20;
+            this.stamina = 20
+            this.maxStamina = 20
+            var self = this
+            this.bulletSpeed = 1;
+            this.targets = []
+            this.treetargs = []
+            this.stonetargs = []
+            this.kills = 0;
+            this.needsUpdate = false
+            this.needsSelfUpdate = false
+            this.mainHands = 'hand'
+            /*this.afkTimer = setTimeout(function () {
+                self.dead = true
+                setInterval(function () {
+                    self.health -= self.maxHealth / 100
+                }, 100)
+            }, 10000);*/
+            this.dead = false;
+            initPack.demon.push({
+                x: this.body.position.x,
+                y: this.body.position.y,
+                id: this.id,
+                angle: this.move.ang,
+                lhit: this.lhit,
+                rhit: this.rhit
+            })
+            Demons.list.push(this);
+        }
+        updatePath() {
+            let possible = new Mapper()
+            Players.list.forEach((player, i)=> {
+                if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 500) possible.set(i, player)
+            })
+            let dis
+            let nearest
+            if(possible.size){
+                possible.forEach((player, index) => {
+                    if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                    if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                })
+            }
+            if(!possible.get(nearest)) return this.path = null
+            let grid = new PF.Grid(game.map.width/100, game.map.width/100)
+            let finder = new PF.AStarFinder()
+            STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Stones.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            
+            let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
+            let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
+            let fx = Math.roundToDeca(possible.get(nearest).body.position.x - 50, 100)/100
+            let fy = Math.roundToDeca(possible.get(nearest).body.position.y - 50, 100)/100
+            this.pos = possible.get(nearest)
+            this.path = finder.findPath(x, y, fx, fy, grid)
+            this.curr = 0
+        }
+        updateSpd() {
+          if(!this.path) this.updatePath()
+          if(!this.path) return
+          this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
+          var m = this.move
+          let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+          let n = path[this.curr]
+          if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
+          if(!this.path) return
+          path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+          n = path[this.curr]
+          if(Vector.getDistance(this.body.position, this.pos.body.position) < 35.34119409414458 + this.rad + this.rad) this.move.att = true
+          else this.move.att = false
+          if(!this.path) return
+          this.acc = Vector.create(0, 0)
+         
+          if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
+          if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
+          if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
+          if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
+          if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
+          Body.applyForce(this.body, this.body.position, this.acc)
+        }
+        update() {
+            if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
+                this.maxSpd = 3
+                this.stamina -= this.maxStamina/5/60
+                this.needsSelfUpdate = true
+            }else if(this.stamina < this.maxStamina){
+                this.maxSpd = 2
+                if(Vector.magnitude(this.acc) <= 0) this.stamina += this.maxStamina/25/60
+                else this.stamina += this.maxStamina/100/60
+                this.needsSelfUpdate = true
+            }
+            this.health += this.maxStamina/50/60
+            if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
+            if(this.health > this.maxHealth) this.health = this.maxHealth
+            this.updateSpd();
+            if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
+            this.targets = []
+            if (this.punch.reload.timer > 0) {
+                this.punch.reload.timer--
+            } 
+            if (this.move.att) {
+                    this.hit()
+            }
+        }
+        hit(){        
+            if (this.punch.ready) {
+                //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
+                this.punch.ready = false
+                this.punch.timeout = new Timeout(() => {
+                    this.punch.timeout = null
+                    this.punch.ready = true
+                    this.lhit =  false
+                    this.rhit = false
+                }, 1500/3)
+                for (var i = 0; i < Players.list.length; i++) {
+                    var p = Players.list[i]
+                    if ((
+                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad || 
+                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad) && this.id != p.id) {
+                        this.targets.push(p)
+                    }
+                }
+               
+                if (this.next == 'l' && this.lhit == false && this.rhit == false) {
+                    this.lhit = true
+                    this.next = 'r'
+                } else if (this.next == 'r' && this.lhit == true) {
+                    this.lhit = false
+                } else if (this.next == 'r' && this.rhit == false) {
+                    this.rhit = true
+                    this.next = 'l'
+                } else if (this.next == 'l' && this.rhit == true) {
+                    this.rhit = false
+                }
+                this.punch.reload.timer = this.punch.reload.speed
+                this.targets.forEach( p => {
+                    p.health -= this.punch.damage
+                    if (p.health <= 0) {
+                        this.score += p.score/2 + 2
+                    }
+                })
+            }
+        }
+        getUpdatePack() {
+            var pack = {
+                x: this.body.position.x,
+                y: this.body.position.y,
+                id: this.id,
+                angle: this.move.ang,
+                lhit: this.lhit,
+                rhit: this.rhit,
+            }
+            if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
+            return pack
         }
         setHands(){
             this.hrad = this.rad/25 * 7.5
@@ -2169,6 +2425,51 @@ module.exports = function (nsp, ns) {
             return pack;
         }
     }
+    var Demons = {
+        list: [],
+        update: () => {
+            var pack = [];
+            for (var i = 0; i < Demons.list.length; i++) {
+                /**
+                 * @type {Player}
+                 */
+                var demon = Demons.list[i];
+                demon.update();
+                if (demon.health <= 0) {
+                    demon.emit('death')
+                    removePack.demon.push(demon.id)
+                    Demons.list.splice(Demons.list.findIndex(function (element) {
+                        return element.id === demon.id
+                    }), 1);
+                    World.remove(engine.world, demon.body)
+                    /*let toDrop = demon.inventory.findAll(slot => slot !== 'empty') 
+                    toDrop.forEach((slot, i) => {
+                        let a = 360/toDrop.length
+                        let ang = a * i + 77
+                        let offset = Vector.create(0, demon.rad + 20)
+                        
+                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        Vector.add(demon.body.position, offset, offset)
+                        let self = {
+                            item:slot,
+                            x:offset.x,
+                            y:offset.y, 
+                            timeout:new Timeout(() => {
+                                dropped.splice(dropped.findIndex(function (element) {
+                                    return element === self
+                                }), 1);
+                            }, 5000)
+                        }
+                        dropped.push(self)
+                    })
+                    */
+                }
+                pack.push(demon.getUpdatePack())
+            }
+            return pack;
+        }
+    }
     var Bullets = {
         list: [],
         update: function () {
@@ -2207,7 +2508,8 @@ module.exports = function (nsp, ns) {
         diamond:[],
         wall:[],
         door:[],
-        floor:[]
+        floor:[],
+        demon:[]
     }
     var removePack = {
         player: [],
@@ -2219,7 +2521,8 @@ module.exports = function (nsp, ns) {
         diamond:[],  
         wall:[],
         door:[],
-        floor:[]
+        floor:[],
+        demon:[]
     } 
     let dropped = []
     var self = this
@@ -2230,6 +2533,7 @@ module.exports = function (nsp, ns) {
         if(Irons.list.length < 10) canAdd.push('iron')
         if(Golds.list.length < 8) canAdd.push('gold')
         if(Diamonds.list.length < 5) canAdd.push('diamond')
+        if(Demons.list.length < 3 && timeOfDay == 'night') canAdd.push('demon')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
@@ -2264,16 +2568,19 @@ module.exports = function (nsp, ns) {
         Floors.list.forEach(floor => {
             if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
         })
+        Demons.list.forEach(demon => {
+            if(Vector.getDistance({x:tempx, y:tempy}, demon.body.position) <= 150) inWay = true
+        })
+        
         if(inWay) return
         if(willAdd == 'tree') new STree(tempx, tempy, 10)
         if(willAdd == 'stone') new Stone(tempx, tempy, 10)
         if(willAdd == 'iron') new Iron(tempx, tempy, 10)
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
+        //if(willAdd == 'demon') new Demon(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
-    new Door(50, 50, 'wood', 'right')
-    new Floor(50, 150, 'wood')
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
@@ -2324,7 +2631,8 @@ module.exports = function (nsp, ns) {
                 leaderboard: leaderboard.getUpdate(),
                 wall:[],
                 door:[],
-                floor:[]
+                floor:[],
+                demon:[]
               
             }
             Players.list.forEach(function (player) {
@@ -2338,6 +2646,9 @@ module.exports = function (nsp, ns) {
             Walls.list.forEach( wall => pack.wall.push(wall.getInitPack()))
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
+            Demons.list.forEach(function (demon) {
+                pack.demon.push(demon.getUpdatePack())
+            })
             /*
             Bullets.list.forEach(function(bullet){
                 pack.bullet.push(bulle)
@@ -2353,6 +2664,7 @@ module.exports = function (nsp, ns) {
         leaderboard.update()
         let pack = {
             player: Players.update(),
+            demon:Demons.update(),
             bullet: Bullets.update(),
             tree:STrees.update(),
             stone:Stones.update(),
@@ -2371,7 +2683,9 @@ module.exports = function (nsp, ns) {
                 x:item.x,
                 y:item.y,
                 index:i
-            }))
+            })),
+            tod:timeOfDay,
+            per:dayTimeout.percntDone
         }
         let alr = false
         for(let prop in initPack){
@@ -2389,7 +2703,8 @@ module.exports = function (nsp, ns) {
                     diamond:[],
                     wall:[],
                     door:[],
-                    floor:[]
+                    floor:[],
+                    demon:[]
                 }
             }
         }
@@ -2411,7 +2726,8 @@ module.exports = function (nsp, ns) {
                     diamond:[],  
                     wall:[],
                     door:[],
-                    floor:[]
+                    floor:[],
+                    demon:[]
                 }
             }
         }
