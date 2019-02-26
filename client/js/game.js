@@ -1376,16 +1376,42 @@ var init = function(name) {
                 ctx.arc(canvas.width - 100, canvas.height - 200, 50, 0, 1 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.moveTo(canvas.width - 100, canvas.height - 200, 50, 0, 1 * Math.PI)
+                ctx.moveTo(canvas.width - 100, canvas.height - 200)
+                let xclocke
+                let yclocke
+                let xclockr
+                let yclockr
+                let xclockl
+                let yclockl
                 if(pack.tod == 'day'){
-                    ctx.lineTo(Math.cos((pack.per * 180 + 180) * Math.PI / 180) * 45 + canvas.width - 100, 
-                           Math.sin((pack.per * 180 + 180) * Math.PI / 180) * 45 + canvas.height - 200)
+                    xclocke = Math.cos((pack.per * 180 + 180) * Math.PI / 180) * 45 + canvas.width - 100
+                    yclocke = Math.sin((pack.per * 180 + 180) * Math.PI / 180) * 45 + canvas.height - 200
+                    xclockr = Math.cos((pack.per * 180 + 180 + 5) * Math.PI / 180) * 35 + canvas.width - 100
+                    yclockr = Math.sin((pack.per * 180 + 180 + 5) * Math.PI / 180) * 35 + canvas.height - 200
+                    xclockl = Math.cos((pack.per * 180 + 180 - 5) * Math.PI / 180) * 35 + canvas.width - 100
+                    yclockl = Math.sin((pack.per * 180 + 180 - 5) * Math.PI / 180) * 35 + canvas.height - 200
                 }else {
-                    ctx.lineTo(Math.cos(pack.per * 180 * Math.PI / 180) * 45 + canvas.width - 100, 
-                           Math.sin(pack.per * 180 * Math.PI / 180) * 45 + canvas.height - 200)
+                    xclocke = Math.cos(pack.per * 180 * Math.PI / 180) * 45 + canvas.width - 100
+                    yclocke = Math.sin(pack.per * 180 * Math.PI / 180) * 45 + canvas.height - 200
+                    xclockr = Math.cos((pack.per * 180 + 5) * Math.PI / 180) * 35 + canvas.width - 100
+                    yclockr = Math.sin((pack.per * 180 + 5) * Math.PI / 180) * 35 + canvas.height - 200
+                    xclockl = Math.cos((pack.per * 180 - 5) * Math.PI / 180) * 35 + canvas.width - 100
+                    yclockl = Math.sin((pack.per * 180 - 5) * Math.PI / 180) * 35 + canvas.height - 200
                 }
-                
+                ctx.lineTo(xclocke, yclocke)
                 ctx.stroke()
+                ctx.beginPath()
+                ctx.moveTo(xclocke, yclocke)
+                ctx.lineTo(xclockr, yclockr)
+                ctx.stroke()
+                ctx.beginPath()
+                ctx.moveTo(xclocke, yclocke)
+                ctx.lineTo(xclockl, yclockl)
+                ctx.stroke()
+                ctx.beginPath()
+                ctx.fillStyle = '#FDB813'
+                ctx.arc(canvas.width - 100, canvas.height - 200, 10, 0, 2 * Math.PI)
+                ctx.fill()
             }
         }
     }

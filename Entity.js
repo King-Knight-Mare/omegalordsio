@@ -40,8 +40,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 60000)
     this.map = {
-        width:5000,
-        height:5000
+        width:500,
+        height:500
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
@@ -993,24 +993,6 @@ module.exports = function (nsp, ns) {
                                 walltargs.push(wall)
                             }
                         })
-                        targs.forEach( p => {
-                            p.health -= this.axe[u].damage
-                            if (p.health <= 0) {
-                                this.score += p.score/2 + 2
-                            }
-                        })
-                        dtargs.forEach( p => {
-                            p.health -= this.axe[u].damage
-                            if (p.health <= 0) {
-                                this.score += 300
-                            }
-                        })
-                        destargs.forEach( p => {
-                            p.health -= this.axe[u].damage
-                            if (p.health <= 0) {
-                                this.score += 600
-                            }
-                        })
                         let self = this
                         new Timeout(() => {
                             treetargs.forEach(tree => {
@@ -1064,13 +1046,15 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             dtargs.forEach( d => {
-                                d.health -= this.sword[u].damage
+                                d.health -= this.axe[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 300
                                 }
                             })
                             destargs.forEach( d => {
-                                d.health -= this.sword[u].damage
+                                d.health -= this.axe[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 600
                                 }
@@ -1118,12 +1102,6 @@ module.exports = function (nsp, ns) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
                                 dtargs.push(d)
-                            }
-                        }
-                        for (var i = 0; i < Destroyers.list.length; i++) {
-                            var d = Destroyers.list[i]
-                            if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
-                                destargs.push(d)
                             }
                         }
                         for (var i = 0; i < Destroyers.list.length; i++) {
@@ -1180,14 +1158,16 @@ module.exports = function (nsp, ns) {
                                     this.score += p.score/2 + 2
                                 }
                             })
-                            dtargs.forEach( p => {
-                                p.health -= this.pickaxe[u].damage
-                                if (p.health <= 0) {
+                            dtargs.forEach( d => {
+                                d.health -= this.pickaxe[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
+                                if (d.health <= 0) {
                                     this.score += 300
                                 }
                             })
                             destargs.forEach( p => {
                                 p.health -= this.pickaxe[u].damage
+                                if(!p.agro.find(p => p == this)) p.agro.push(this)
                                 if (p.health <= 0) {
                                     this.score += 600
                                 }
@@ -1349,12 +1329,14 @@ module.exports = function (nsp, ns) {
                             })
                             dtargs.forEach( d => {
                                 d.health -= this.sword[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 300
                                 }
                             })
                             destargs.forEach( d => {
                                 d.health -= this.sword[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 600
                                 }
@@ -1381,6 +1363,7 @@ module.exports = function (nsp, ns) {
                         let diamondtargs = []
                         let targs = []
                         let dtargs = []
+                        let destargs = []
                         let walltargs = []
                         this.hammer.ready = false
                         this.hitting = true
@@ -1401,6 +1384,12 @@ module.exports = function (nsp, ns) {
                             var d = Demons.list[i]
                             if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
                                 dtargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Destroyers.list.length; i++) {
+                            var d = Destroyers.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                destargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1477,6 +1466,14 @@ module.exports = function (nsp, ns) {
                             })
                             dtargs.forEach( d => {
                                 d.health -= this.sword[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
+                                if (d.health <= 0) {
+                                    this.score += 300
+                                }
+                            })
+                            destargs.forEach( d => {
+                                d.health -= this.sword[u].damage
+                                if(!d.agro.find(p => p == this)) d.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 300
                                 }
@@ -1657,12 +1654,14 @@ module.exports = function (nsp, ns) {
                     })
                     dtargs.forEach( d => {
                         d.health -= this.punch.damage
+                        if(!d.agro.find(p => p == this)) d.agro.push(this)
                         if (d.health <= 0) {
                             this.score += 300
                         }
                     })
                     destargs.forEach( d => {
                         d.health -= this.punch.damage
+                        if(!d.agro.find(p => p == this)) d.agro.push(this)
                         if (d.health <= 0) {
                             this.score += 600
                         }
@@ -1824,12 +1823,7 @@ module.exports = function (nsp, ns) {
             this.needsUpdate = false
             this.needsSelfUpdate = false
             this.mainHands = 'hand'
-            /*this.afkTimer = setTimeout(function () {
-                self.dead = true
-                setInterval(function () {
-                    self.health -= self.maxHealth / 100
-                }, 100)
-            }, 10000);*/
+            this.agro = []
             this.dead = false;
             initPack.demon.push({
                 x: this.body.position.x,
@@ -1842,19 +1836,34 @@ module.exports = function (nsp, ns) {
             Demons.list.push(this);
         }
         updatePath() {
+            this.pos = null
             let possible = new Mapper()
-            Players.list.forEach((player, i)=> {
-                if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
-            })
             let dis
             let nearest
-            if(possible.size){
+            while(this.agro.find(player => player.health <= 0)){
+                this.agro.splice(this.agro.findIndex(player => player.health <= 0), 1)
+            }
+            if(this.agro.length){
+                this.agro.forEach((player, index) => {
+                    if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                    if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                })
+                
+                this.pos = this.agro[nearest]
+            }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500)){
+                Players.list.forEach((player, i)=> {
+                    if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500) possible.set(i, player)
+                })
+
                 possible.forEach((player, index) => {
                     if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
                     if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
                 })
+                
+                this.pos = possible.get(nearest)
+            }else {
+                this.pos = Vector.create(Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50, Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50)
             }
-            if(!possible.get(nearest)) return this.path = null
             let grid = new PF.Grid(game.map.width/100, game.map.width/100)
             let finder = new PF.AStarFinder()
             STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
@@ -1862,39 +1871,48 @@ module.exports = function (nsp, ns) {
             Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            
-            let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
-            let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
-            let fx = Math.roundToDeca(possible.get(nearest).body.position.x - 50, 100)/100
-            let fy = Math.roundToDeca(possible.get(nearest).body.position.y - 50, 100)/100
-            this.pos = possible.get(nearest)
+            let x
+            let y
+            let fx
+            let fy
+            if(this.pos.body){
+                x = Math.roundToDeca(this.body.position.x - 50, 100)/100
+                y = Math.roundToDeca(this.body.position.y - 50, 100)/100
+                fx = Math.roundToDeca(this.pos.body.position.x - 50, 100)/100
+                fy = Math.roundToDeca(this.pos.body.position.y - 50, 100)/100
+            }
+            else {
+                x = Math.roundToDeca(this.body.position.x - 50, 100)/100
+                y = Math.roundToDeca(this.body.position.y - 50, 100)/100
+                fx = Math.roundToDeca(this.pos.x - 50, 100)/100
+                fy = Math.roundToDeca(this.pos.y - 50, 100)/100
+            }
             if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
             x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
             this.curr = 0
         }
         updateSpd() {
-          if(!this.path) this.updatePath()
-          if(!this.path) return
-          this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
-          var m = this.move
-          let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          let n = path[this.curr]
-          if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
-          if(!this.path) return
-          path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          n = path[this.curr]
-          if(Vector.getDistance(this.body.position, this.pos.body.position) < 35.34119409414458 + this.rad + this.rad) this.move.att = true
-          else this.move.att = false
-          if(!this.path) return
-          this.acc = Vector.create(0, 0)
-         
-          if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
-          if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
-          if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
-          if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
-          if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
-          Body.applyForce(this.body, this.body.position, this.acc)
+            if(!this.path || (this.agro.length && !this.pos.body)) this.updatePath()
+            if(this.pos.body) this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
+            else this.move.ang = Math.atan2(this.pos.y - this.body.position.y, this.pos.x - this.body.position.x) * 180 / Math.PI
+            var m = this.move
+            let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            let n = path[this.curr]
+            if(this.pos.body && Vector.getDistance(path[path.length - 1], this.pos.body.position) > 100) return this.updatePath()
+            if(this.pos.body && Vector.getDistance(this.hposfr, this.pos.body.position) < this.pos.rad + this.rad ||
+              Walls.list.find( wall => Vector.getDistance(this.hposfr, wall.body.position) < 70.7 + this.hrad)) this.move.att = true
+            if(!n) return
+            
+            else this.move.att = false
+            this.acc = Vector.create(0, 0)
+
+            if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
+            if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
+            if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
+            if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
+            if(Vector.getDistance(this.body.position, n) < 100 + this.rad) this.curr++
+            Body.applyForce(this.body, this.body.position, this.acc)
         }
         update() {
             if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
@@ -2014,6 +2032,7 @@ module.exports = function (nsp, ns) {
                     hit: false,
                 }
             }
+            this.agro = []
             this.move = {
                 r: false,
                 l: false,
@@ -2070,19 +2089,36 @@ module.exports = function (nsp, ns) {
             Destroyers.list.push(this);
         }
         updatePath() {
+            this.pos = null
             let possible = new Mapper()
-            Players.list.forEach((player, i)=> {
-                if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500) possible.set(i, player)
-            })
             let dis
             let nearest
-            if(possible.size){
+            while(this.agro.find(player => player.health <= 0)){
+                this.agro.splice(this.agro.findIndex(player => player.health <= 0), 1)
+                console.log('Enemy is dead')
+            }
+            if(this.agro.length){
+                console.log(this.agro, this.agro.length, this.agro[nearest])
+                this.agro.forEach((player, index) => {
+                    if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                    if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                })
+                
+                this.pos = this.agro[nearest]
+            }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500)){
+                Players.list.forEach((player, i)=> {
+                    if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500) possible.set(i, player)
+                })
+
                 possible.forEach((player, index) => {
                     if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
                     if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
                 })
+                
+                this.pos = possible.get(nearest)
+            }else {
+                this.pos = Vector.create(Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50, Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50)
             }
-            if(!possible.get(nearest)) return this.path = null
             let grid = new PF.Grid(game.map.width/100, game.map.width/100)
             let finder = new PF.AStarFinder()
             STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
@@ -2090,40 +2126,48 @@ module.exports = function (nsp, ns) {
             Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            
-            let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
-            let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
-            let fx = Math.roundToDeca(possible.get(nearest).body.position.x - 50, 100)/100
-            let fy = Math.roundToDeca(possible.get(nearest).body.position.y - 50, 100)/100
-            this.pos = possible.get(nearest)
+            let x
+            let y
+            let fx
+            let fy
+            if(this.pos.body){
+                x = Math.roundToDeca(this.body.position.x - 50, 100)/100
+                y = Math.roundToDeca(this.body.position.y - 50, 100)/100
+                fx = Math.roundToDeca(this.pos.body.position.x - 50, 100)/100
+                fy = Math.roundToDeca(this.pos.body.position.y - 50, 100)/100
+            }
+            else {
+                x = Math.roundToDeca(this.body.position.x - 50, 100)/100
+                y = Math.roundToDeca(this.body.position.y - 50, 100)/100
+                fx = Math.roundToDeca(this.pos.x - 50, 100)/100
+                fy = Math.roundToDeca(this.pos.y - 50, 100)/100
+            }
             if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
             x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
             this.curr = 0
         }
         updateSpd() {
-          if(!this.path) this.updatePath()
-          if(!this.path) return
-          this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
-          var m = this.move
-          let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          let n = path[this.curr]
-          if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
-          if(!this.path) return
-          path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          n = path[this.curr]
-          if(Vector.getDistance(this.hposfr, this.pos.body.position) < this.pos.rad + this.rad ||
-            Walls.list.find( wall => Vector.getDistance(this.hposfr, wall.body.position) < 70.7 + this.hrad)) this.move.att = true
-          else this.move.att = false
-          if(!this.path) return
-          this.acc = Vector.create(0, 0)
-         
-          if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
-          if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
-          if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
-          if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
-          if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
-          Body.applyForce(this.body, this.body.position, this.acc)
+            if(!this.path || (this.agro.length && !this.pos.body)) this.updatePath()
+            if(this.pos.body) this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
+            else this.move.ang = Math.atan2(this.pos.y - this.body.position.y, this.pos.x - this.body.position.x) * 180 / Math.PI
+            var m = this.move
+            let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            let n = path[this.curr]
+            if(this.pos.body && Vector.getDistance(path[path.length - 1], this.pos.body.position) > 200) return this.updatePath()
+            if(this.pos.body && Vector.getDistance(this.hposfr, this.pos.body.position) < this.pos.rad + this.rad ||
+              Walls.list.find( wall => Vector.getDistance(this.hposfr, wall.body.position) < 70.7 + this.hrad)) this.move.att = true
+            if(!n) return
+            
+            else this.move.att = false
+            this.acc = Vector.create(0, 0)
+
+            if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
+            if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
+            if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
+            if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
+            if(Vector.getDistance(this.body.position, n) < 100 + this.rad) this.curr++
+            Body.applyForce(this.body, this.body.position, this.acc)
         }
         update() {
             if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
