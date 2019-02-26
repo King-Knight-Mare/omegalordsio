@@ -25,7 +25,7 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
-    let timeOfDay = 'day'
+    let timeOfDay = 'night'
     let dayTimeout
     let setDayTimeout = () => {
         dayTimeout = new Timeout(() => {
@@ -3024,7 +3024,7 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
-    new Destroyer(350, 350)
+     new Destroyer(350, 350)
     
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))

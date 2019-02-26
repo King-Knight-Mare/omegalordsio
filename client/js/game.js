@@ -1375,6 +1375,17 @@ var init = function(name) {
                 ctx.fillStyle = 'darkblue'
                 ctx.arc(canvas.width - 100, canvas.height - 200, 50, 0, 1 * Math.PI)
                 ctx.fill()
+                ctx.beginPath()
+                ctx.moveTo(canvas.width - 100, canvas.height - 200, 50, 0, 1 * Math.PI)
+                if(pack.tod == 'day'){
+                    ctx.lineTo(Math.cos((pack.per * 180 + 180) * Math.PI / 180) * 45 + canvas.width - 100, 
+                           Math.sin((pack.per * 180 + 180) * Math.PI / 180) * 45 + canvas.height - 200)
+                }else {
+                    ctx.lineTo(Math.cos(pack.per * 180 * Math.PI / 180) * 45 + canvas.width - 100, 
+                           Math.sin(pack.per * 180 * Math.PI / 180) * 45 + canvas.height - 200)
+                }
+                
+                ctx.stroke()
             }
         }
     }
