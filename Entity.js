@@ -261,7 +261,7 @@ module.exports = function (nsp, ns) {
         }
     }
     class CraftingTable extends Mapper{
-        constructor(){
+        constructor(x, y){
             super([
                 [
                     'Iron Axe', 
@@ -478,6 +478,27 @@ module.exports = function (nsp, ns) {
                     }
                 ],
             ])
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 100
+            this.deathTimeout = setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.iron.push(this.id)
+                Irons.list.splice(Irons.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 600000)
+            this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            CraftingTables.list.push(this)
+            initPack.ctable.push(pack)
+            
         }
         checkCraft(inventory){
             let craftables = []
@@ -486,12 +507,13 @@ module.exports = function (nsp, ns) {
                 val.recipe.forEach(supply => {
                     if(!inventory.find(slot => slot.count >= supply.count && slot.id == supply.id)) return craftable = false 
                 })
-                if(craftable) craftables.push(key)
+                if(craftable) craftables.push({craft:key, craftable:true})
+                else craftables.push({craft:key, craftable:false})
             }
+            
             return craftables;
         }
         craftItem(item, inventory){
-            if(!this.checkCraft(inventory).find(craftable => craftable == item)) return console.log('Not found')
             var recipe = this.get(item).recipe
             let output =  this.get(item).output
             recipe.forEach(req => {
@@ -3084,7 +3106,7 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
-     new Destroyer(350, 350)
+    new Destroyer(350, 350)
     
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
