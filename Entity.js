@@ -32,13 +32,13 @@ module.exports = function (nsp, ns) {
             if(timeOfDay == 'day') timeOfDay = 'night'
             else if(timeOfDay == 'night') timeOfDay = 'day'
             setDayTimeout()
-        }, 60000)
+        }, 360000)
     }
     dayTimeout = new Timeout(() => {
         if(timeOfDay == 'day') timeOfDay = 'night'
         else if(timeOfDay == 'night') timeOfDay = 'day'
         setDayTimeout()
-    }, 60000)
+    }, 360000)
     this.map = {
         width:5000,
         height:5000
@@ -1020,24 +1020,6 @@ module.exports = function (nsp, ns) {
                                 walltargs.push(wall)
                             }
                         })
-                        targs.forEach( p => {
-                            p.health -= this.axe[u].damage
-                            if (p.health <= 0) {
-                                this.score += p.score/2 + 2
-                            }
-                        })
-                        dtargs.forEach( p => {
-                            p.health -= this.axe[u].damage
-                            if (p.health <= 0) {
-                                this.score += 300
-                            }
-                        })
-                        destargs.forEach( p => {
-                            p.health -= this.axe[u].damage
-                            if (p.health <= 0) {
-                                this.score += 600
-                            }
-                        })
                         let self = this
                         new Timeout(() => {
                             treetargs.forEach(tree => {
@@ -1803,7 +1785,7 @@ module.exports = function (nsp, ns) {
                     speed: 20,
                     timer: 0
                 },
-                damage: 2,
+                damage: 1.25,
                 health: 1,
             }
             this.hands = {
@@ -1901,27 +1883,27 @@ module.exports = function (nsp, ns) {
             this.curr = 0
         }
         updateSpd() {
-          if(!this.path) this.updatePath()
-          if(!this.path) return
-          this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
-          var m = this.move
-          let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          let n = path[this.curr]
-          if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
-          if(!this.path) return
-          path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          n = path[this.curr]
-          if(Vector.getDistance(this.body.position, this.pos.body.position) < 35.34119409414458 + this.rad + this.rad) this.move.att = true
-          else this.move.att = false
-          if(!this.path) return
-          this.acc = Vector.create(0, 0)
-         
-          if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
-          if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
-          if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
-          if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
-          if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
-          Body.applyForce(this.body, this.body.position, this.acc)
+            this.move.att = false
+            if(!this.path) this.updatePath()
+            if(!this.path) return
+            this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
+            var m = this.move
+            let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            let n = path[this.curr]
+            if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
+            if(!this.path) return
+            path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            n = path[this.curr]
+            if(Vector.getDistance(this.body.position, this.pos.body.position) < 35.34119409414458 + this.rad + this.rad) this.move.att = true
+            if(!this.path) return
+            this.acc = Vector.create(0, 0)
+
+            if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
+            if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
+            if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
+            if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
+            if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
+            Body.applyForce(this.body, this.body.position, this.acc)
         }
         update() {
             if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
@@ -2129,28 +2111,29 @@ module.exports = function (nsp, ns) {
             this.curr = 0
         }
         updateSpd() {
-          if(!this.path) this.updatePath()
-          if(!this.path) return
-          this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
-          var m = this.move
-          let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          let n = path[this.curr]
-          if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
-          if(!this.path) return
-          path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-          n = path[this.curr]
-          if(Vector.getDistance(this.hposfr, this.pos.body.position) < this.pos.rad + this.rad ||
-            Walls.list.find( wall => Vector.getDistance(this.hposfr, wall.body.position) < 70.7 + this.hrad)) this.move.att = true
-          else this.move.att = false
-          if(!this.path) return
-          this.acc = Vector.create(0, 0)
-         
-          if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
-          if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
-          if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
-          if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
-          if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
-          Body.applyForce(this.body, this.body.position, this.acc)
+            this.move.att = false
+            if(!this.path) this.updatePath()
+            if(!this.path) return
+            this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
+            var m = this.move
+            let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            let n = path[this.curr]
+            if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
+            if(!this.path) return
+            path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            n = path[this.curr]
+            if(Vector.getDistance(this.hposfr, this.pos.body.position) < this.pos.rad + this.rad ||
+              Walls.list.find( wall => Vector.getDistance(this.hposfr, wall.body.position) < 70.7 + this.hrad)) this.move.att = true
+            else this.move.att = false
+            if(!this.path) return
+            this.acc = Vector.create(0, 0)
+
+            if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
+            if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
+            if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
+            if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
+            if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
+            Body.applyForce(this.body, this.body.position, this.acc)
         }
         update() {
             if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
@@ -2651,6 +2634,7 @@ module.exports = function (nsp, ns) {
             
             if(material == 'wood') this.health = 100
             if(material == 'stone') this.health = 225
+            if(material == 'iron') this.health = 375
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -2683,6 +2667,7 @@ module.exports = function (nsp, ns) {
             
             if(material == 'wood') this.health = 75
             if(material == 'stone') this.health = 150
+            if(material == 'iron') this.health = 275
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
             this.needsUpdate = false
             //grow(this)
@@ -2717,6 +2702,7 @@ module.exports = function (nsp, ns) {
             this.opentimer = null
             if(material == 'wood') this.health = 150
             if(material == 'stone') this.health = 250
+            if(material == 'stone') this.health = 400
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -2855,6 +2841,16 @@ module.exports = function (nsp, ns) {
                  */
                 var demon = Demons.list[i];
                 demon.update();
+                if(timeOfDay == 'day'){
+                    demon.punch.damage = dayTimeout.percntDone * 1 + 0.5
+                    demon.maxHealth = dayTimeout.percntDone * 15 + 5
+                    if(demon.health > demon.maxHealth) demon.health = demon.maxHealth
+                    demon.maxSpd =  (-2 * Math.abs(dayTimeout.percntDone - 0.5) + 1) * 1 + 0.5
+                    demon.health *= 0.9
+                }else {
+                    demon.punch.damage = 2 + (-2 * Math.abs(dayTimeout.percntDone - 0.5) + 1) * 2
+                    demon.maxSpd = 2 + (-2 * Math.abs(dayTimeout.percntDone - 0.5) + 1) * 2
+                }
                 if (demon.health <= 0) {
                     demon.emit('death')
                     removePack.demon.push(demon.id)
@@ -2900,6 +2896,9 @@ module.exports = function (nsp, ns) {
                  */
                 var demon = Destroyers.list[i];
                 demon.update();
+                if(timeOfDay == 'day'){
+                    demon.health -= 3/60
+                }
                 if (demon.health <= 0) {
                     removePack.destroyer.push(demon.id)
                     Destroyers.list.splice(Destroyers.list.findIndex(function (element) {
