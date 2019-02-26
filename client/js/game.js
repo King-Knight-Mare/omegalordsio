@@ -1029,7 +1029,7 @@ var init = function(name) {
             }), 1)
         })
         pack.destroyer.forEach(function(id) {
-            Destroyers.splice(Demons.findIndex(function(element) {
+            Destroyers.splice(Destroyers.findIndex(function(element) {
                 return element.id == id
             }), 1)
         })
