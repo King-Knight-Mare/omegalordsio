@@ -65,6 +65,7 @@ createImage('ironwall', 'png')
 createImage('wooddoor', 'png')
 createImage('woodfloor', 'png')
 createImage('stonefloor', 'png')
+createImage('craftingtable', 'png')
 
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
@@ -942,6 +943,19 @@ var init = function(name) {
             ctx.drawImage(Img[this.material + 'floor'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    var CraftingTables = new Map()
+    class CraftingTable {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            this.material = pack.material
+            CraftingTables.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['craftingtable'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
     class Bullet {
         /**
          * 
@@ -1006,6 +1020,9 @@ var init = function(name) {
         pack.floor.forEach((initPack)=>{
             new Floor(initPack)
         })
+        pack.ctable.forEach((initPack)=>{
+            new CraftingTable(initPack)
+        })
         pack.demon.forEach((initPack)=>{
             if(Demons.find(demon => demon.id == initPack.id)) return
             new Demon(initPack)
@@ -1059,6 +1076,9 @@ var init = function(name) {
         })
         pack.floor.forEach((id) => {
             Floors.delete(id)
+        })
+        pack.ctable.forEach((id) => {
+            CraftingTables.delete(id)
         })
     }
     socket.on('death', die)
@@ -1138,6 +1158,9 @@ var init = function(name) {
                 })
                 Doors.forEach((door) => {
                     door.show(x, y)
+                })
+                CraftingTables.forEach((ctable) => {
+                    ctable.show(x, y)
                 })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()
@@ -1365,7 +1388,7 @@ var init = function(name) {
                 }
                 if(pack.tod == 'night'){
                     ctx.fillStyle = 'black'
-                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.8
+                    ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.9
                     ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 5000, 5000)
                 }
                 

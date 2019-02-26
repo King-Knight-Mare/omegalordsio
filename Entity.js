@@ -529,6 +529,13 @@ module.exports = function (nsp, ns) {
             inventory.addItem(new Slot(item, output.count, output.image, output.stackSize, output.equipable))
             //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})\
         }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
     }
     class Slot {
         constructor(type, count, image, stackSize = 255, equipable = false){
@@ -2583,6 +2590,21 @@ module.exports = function (nsp, ns) {
             return pack
         }
     }
+    var CraftingTables = {
+        list:[],
+        update:function(){
+            var pack = []
+            CraftingTables.list.forEach(floor => {
+                if(floor.health <= 0) {
+                    removePack.ctable.push(floor.id)
+                    CraftingTables.list.splice(CraftingTables.list.findIndex(function (element) {
+                        return element.id === floor.id
+                    }), 1);
+                }
+            })
+            return pack
+        }
+    }
     class Iron {
         constructor(x, y){
             this.x = x
@@ -3029,7 +3051,8 @@ module.exports = function (nsp, ns) {
         door:[],
         floor:[],
         demon:[],
-        destroyer:[]
+        destroyer:[],
+        ctable:[]
     }
     var removePack = {
         player: [],
@@ -3047,6 +3070,7 @@ module.exports = function (nsp, ns) {
     } 
     let dropped = []
     var self = this
+    
     setInterval(function(){
         let canAdd = []
         if(STrees.list.length < 55) canAdd.push('tree')
@@ -3107,7 +3131,7 @@ module.exports = function (nsp, ns) {
     }, 1000)
     //new Wall(50, 50, 'wood')
     new Destroyer(350, 350)
-    
+    new CraftingTable(50, 50)
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
@@ -3162,7 +3186,8 @@ module.exports = function (nsp, ns) {
                 door:[],
                 floor:[],
                 demon:[],
-                destroyer:[]
+                destroyer:[],
+                ctable:[]
               
             }
             Players.list.forEach(function (player) {
@@ -3239,7 +3264,8 @@ module.exports = function (nsp, ns) {
                     door:[],
                     floor:[],
                     demon:[],
-                    destroyer:[]
+                    destroyer:[],
+                    ctable:[]
                 }
             }
         }
@@ -3263,7 +3289,8 @@ module.exports = function (nsp, ns) {
                     door:[],
                     floor:[],
                     demon:[],
-                    destroyer:[]
+                    destroyer:[],
+                    ctable:[]
                 }
             }
         }
