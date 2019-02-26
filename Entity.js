@@ -172,6 +172,98 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Wood Wall', 
+                    {
+                        recipe:[
+                            {id:'wood', count:20},
+                        ],
+                        output:{
+                            count:2,
+                            image:'woodwall',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Stone Wall', 
+                    {
+                        recipe:[
+                            {id:'stone', count:20},
+                        ],
+                        output:{
+                            count:1,
+                            image:'stonewall',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Wood Floor', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                        ],
+                        output:{
+                            count:4,
+                            image:'woodfloor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Stone Floor', 
+                    {
+                        recipe:[
+                            {id:'stone', count:10},
+                        ],
+                        output:{
+                            count:4,
+                            image:'stonefloor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
+                //['Black Ability', [{id:'wood', count:20}]]
+            ])
+        }
+        checkCraft(inventory){
+            let craftables = []
+            for(const [key, val] of this){
+                let craftable = true
+                val.recipe.forEach(supply => {
+                    if(!inventory.find(slot => slot.count >= supply.count && slot.id == supply.id)) return craftable = false 
+                })
+                if(craftable) craftables.push(key)
+            }
+            return craftables;
+        }
+        craftItem(item, inventory){
+            if(!this.checkCraft(inventory).find(craftable => craftable == item)) return console.log('Not found')
+            var recipe = this.get(item).recipe
+            let output =  this.get(item).output
+            recipe.forEach(req => {
+                inventory.forEach((slot, num) => {
+                    if(slot == 'empty') return
+                    if(req.count == 0) return
+                    if(slot.id != req.id) return
+                    slot.count -= req.count
+                    console.log(item, output)
+                    if(slot.count == 0)inventory.set(num, 'empty')
+                })
+            })
+            inventory.addItem(new Slot(item, output.count, output.image, output.stackSize, output.equipable))
+            //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})\
+        }
+    }
+    class CraftingTable extends Mapper{
+        constructor(){
+            super([
+                [
                     'Iron Axe', 
                     {
                         recipe:[
@@ -356,34 +448,6 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
-                    'Wood Wall', 
-                    {
-                        recipe:[
-                            {id:'wood', count:20},
-                        ],
-                        output:{
-                            count:2,
-                            image:'woodwall',
-                            stackSize:255,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Stone Wall', 
-                    {
-                        recipe:[
-                            {id:'stone', count:20},
-                        ],
-                        output:{
-                            count:1,
-                            image:'stonewall',
-                            stackSize:255,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
                     'Iron Wall', 
                     {
                         recipe:[
@@ -413,36 +477,6 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
-                [
-                    'Wood Floor', 
-                    {
-                        recipe:[
-                            {id:'wood', count:10},
-                        ],
-                        output:{
-                            count:4,
-                            image:'woodfloor',
-                            stackSize:255,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Stone Floor', 
-                    {
-                        recipe:[
-                            {id:'stone', count:10},
-                        ],
-                        output:{
-                            count:4,
-                            image:'stonefloor',
-                            stackSize:255,
-                            equipable:true
-                        }
-                    }
-                ],
-                //['Spear', [{id:'wood', count:15, output:1, image;'spear'}]],
-                //['Black Ability', [{id:'wood', count:20}]]
             ])
         }
         checkCraft(inventory){
