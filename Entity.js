@@ -2095,10 +2095,8 @@ module.exports = function (nsp, ns) {
             let nearest
             while(this.agro.find(player => player.health <= 0)){
                 this.agro.splice(this.agro.findIndex(player => player.health <= 0), 1)
-                console.log('Enemy is dead')
             }
             if(this.agro.length){
-                console.log(this.agro, this.agro.length, this.agro[nearest])
                 this.agro.forEach((player, index) => {
                     if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
                     if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
