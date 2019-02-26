@@ -2821,7 +2821,7 @@ module.exports = function (nsp, ns) {
                                 dropped.splice(dropped.findIndex(function (element) {
                                     return element === self
                                 }), 1);
-                            }, 5000)
+                            }, 20000)
                         }
                         dropped.push(self)
                     })
@@ -3084,7 +3084,7 @@ module.exports = function (nsp, ns) {
                     dropped.splice(dropped.findIndex(function (element) {
                         return element === self
                     }), 1);
-                }, 5000)
+                }, 20000)
             }
             dropped.push(self)
             playa.inventory.set(slotnum, 'empty')
