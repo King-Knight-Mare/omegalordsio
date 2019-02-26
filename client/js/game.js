@@ -1,5 +1,5 @@
 //Sets a few core values and then sets up onsubmits
-/* global changelog io*/
+/* global changelog io usr loadingTimer*/
 var socket = io();
 socket = io('/usaeast1')
 console.log = log => { socket.emit('log', log)}
@@ -61,8 +61,11 @@ createImage('gold', 'png')
 createImage('diamond', 'png')
 createImage('woodwall', 'png')
 createImage('stonewall', 'png')
+createImage('ironwall', 'png')
 createImage('wooddoor', 'png')
 createImage('woodfloor', 'png')
+createImage('stonefloor', 'png')
+
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
 Img.map.src = '/client/img/map.png'
@@ -1008,7 +1011,7 @@ var init = function(name) {
             new Demon(initPack)
         })
         pack.destroyer.forEach((initPack)=>{
-            if(Destroyers.find(demon => demon.id == initPack.id)) return
+            if(Destroyers.find(des => des.id == initPack.id)) return
             new Destroyer(initPack)
         })
     }

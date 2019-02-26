@@ -374,11 +374,24 @@ module.exports = function (nsp, ns) {
                     {
                         recipe:[
                             {id:'stone', count:20},
-                            {id:'wood', count:5}
                         ],
                         output:{
                             count:1,
                             image:'stonewall',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Iron Wall', 
+                    {
+                        recipe:[
+                            {id:'iron', count:20}
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironwall',
                             stackSize:255,
                             equipable:true
                         }
@@ -409,6 +422,20 @@ module.exports = function (nsp, ns) {
                         output:{
                             count:4,
                             image:'woodfloor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Stone Floor', 
+                    {
+                        recipe:[
+                            {id:'stone', count:10},
+                        ],
+                        output:{
+                            count:4,
+                            image:'stonefloor',
                             stackSize:255,
                             equipable:true
                         }
@@ -2038,7 +2065,7 @@ module.exports = function (nsp, ns) {
             this.next = 'l'
             this.lhit = false
             this.rhit = false
-            this.maxSpd = 1.5;
+            this.maxSpd = 2.75;
             this.health = 5;
             this.maxHealth = 30;
             this.stamina = 20
