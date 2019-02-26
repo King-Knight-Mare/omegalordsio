@@ -3063,6 +3063,7 @@ module.exports = function (nsp, ns) {
         socket.on('lc', slotnum => {
             slotnum = slotnum.toString()
             let playa = Players.list.find(player => player.id == socket.id)
+            if(!playa) return
             let slot = playa.inventory.get(slotnum)
             if(playa.hitting || playa.punch.timeout) return
             if(playa.mainHand == slotnum) return playa.mainHand = '-1'
