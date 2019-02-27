@@ -40,8 +40,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:500,
-        height:500
+        width:5000,
+        height:5000
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
@@ -278,11 +278,21 @@ module.exports = function (nsp, ns) {
             var recipe = this.get(item).recipe
             let output =  this.get(item).output
             recipe.forEach(req => {
+                let r = JSON.parse(JSON.stringify(req))
                 inventory.forEach((slot, num) => {
                     if(slot == 'empty') return
-                    if(req.count == 0) return
+                    if(r.count == 0) return
                     if(slot.id != req.id) return
-                    slot.count -= req.count
+                    if(r.count < slot.count){
+                        slot.count -= r.count
+                        r.count = 0
+                    }else if(r.count > slot.count){
+                        r.count -= slot.count
+                        slot.count = 0
+                    }else {
+                        r.count = 0
+                        slot.count = 0
+                    }
                     console.log(item, output)
                     if(slot.count == 0)inventory.set(num, 'empty')
                 })
@@ -529,14 +539,25 @@ module.exports = function (nsp, ns) {
             return craftables;
         }
         craftItem(item, inventory){
+            if(!this.checkCraft(inventory).find(craftable => craftable == item)) return console.log('Not found')
             var recipe = this.get(item).recipe
             let output =  this.get(item).output
             recipe.forEach(req => {
+                let r = JSON.parse(JSON.stringify(req))
                 inventory.forEach((slot, num) => {
                     if(slot == 'empty') return
-                    if(req.count == 0) return
+                    if(r.count == 0) return
                     if(slot.id != req.id) return
-                    slot.count -= req.count
+                    if(r.count < slot.count){
+                        slot.count -= r.count
+                        r.count = 0
+                    }else if(r.count > slot.count){
+                        r.count -= slot.count
+                        slot.count = 0
+                    }else {
+                        r.count = 0
+                        slot.count = 0
+                    }
                     console.log(item, output)
                     if(slot.count == 0)inventory.set(num, 'empty')
                 })
@@ -564,8 +585,8 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('stone', 15, 'stone', 1, true)],
-                ['2', new Slot('iron', 20, 'iron', 1, true)],
+                ['1', new Slot('stone', 5, 'stone', 255, false)],
+                ['2', new Slot('wood', 5, 'draw', 255, false)],
                 ['3', 'empty'],
                 ['4', 'empty'],
                 ['5', 'empty'],
@@ -3200,8 +3221,6 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
-    new Destroyer(350, 350)
-    new CraftingTable(50, 50)
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
         socket.on('craft', item => {
