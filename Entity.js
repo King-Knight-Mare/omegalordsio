@@ -539,7 +539,7 @@ module.exports = function (nsp, ns) {
             return craftables;
         }
         craftItem(item, inventory){
-            if(!this.checkCraft(inventory).find(craftable => craftable == item)) return console.log('Not found')
+            if(!this.checkCraft(inventory).find(craftable => craftable.craft == item)) return console.log('Not found')
             var recipe = this.get(item).recipe
             let output =  this.get(item).output
             recipe.forEach(req => {
@@ -585,8 +585,8 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('stone', 5, 'stone', 255, false)],
-                ['2', new Slot('wood', 5, 'draw', 255, false)],
+                ['1', 'empty'],
+                ['2', 'empty'],
                 ['3', 'empty'],
                 ['4', 'empty'],
                 ['5', 'empty'],
