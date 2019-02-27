@@ -107,6 +107,7 @@ document.getElementById('server').addEventListener('change', e => {
     socket = io('/' + select.value)
 })
 var init = function(name) {
+    
     var movement = {
         up: false,
         down: false,
@@ -125,6 +126,7 @@ var init = function(name) {
     })
     socket.on('disconnect', () => {die()})
     handlekeyDown = function(event) {
+        
         switch (event.keyCode) {
             case 65: // A
                 movement.left = true;
@@ -169,6 +171,13 @@ var init = function(name) {
                 }
                 break
         }
+        if(playa && playa.crafting){
+            movement.up = false
+            movement.down = false
+            movement.left = false
+            movement.right = false
+            return
+        }
     }
     document.addEventListener('keydown', handlekeyDown);
     handlekeyUp = function(event) {
@@ -207,6 +216,13 @@ var init = function(name) {
                 movement.prot = false
                 break;
         }
+        if(playa && playa.crafting){
+            movement.up = false
+            movement.down = false
+            movement.left = false
+            movement.right = false
+            return
+        }
     }
     document.addEventListener('keyup', handlekeyUp);
     document.addEventListener('contextmenu', event => event.preventDefault());
@@ -222,13 +238,27 @@ var init = function(name) {
             }
         })
         if(found) return
-        playa.craftables.forEach((craft, i) => {
-            if(e.clientX > 90 + (i % 2 == 1 ? 80 : 0) && e.clientX < 90 + (i % 2 == 1 ? 80 : 0) + 90
-              && e.clientY > 90 + (Math.floor(i / 2) * 80) && e.clientY < 90 + (Math.floor(i / 2) * 80) + 90){
-                found = true
-               socket.emit('craft', craft)
-            }
-        })
+        if(playa.crafting && playa.craftablesEx){
+            
+            playa.craftablesEx.forEach((craft, i) => {
+                let offSetX = ((i - Math.floor(i/13) * 13) * 80)
+                let offSetY = (Math.floor(i / 13) * 80)
+                if(e.clientX > offSetX + 120 && e.clientX < offSetX + 120 + 60
+                  && e.clientY > offSetY + 120 && e.clientY < offSetY + 120 + 60){
+                    found = true
+                     if(craft.craftable) socket.emit('craftEx', craft.craft)
+                }
+            })
+        }
+        else {
+            playa.craftables.forEach((craft, i) => {
+                if(e.clientX > 90 + (i % 2 == 1 ? 80 : 0) && e.clientX < 90 + (i % 2 == 1 ? 80 : 0) + 90
+                  && e.clientY > 90 + (Math.floor(i / 2) * 80) && e.clientY < 90 + (Math.floor(i / 2) * 80) + 90){
+                    found = true
+                   socket.emit('craft', craft)
+                }
+            })
+        }
         if(e.button == 2) found = true
         /*
         
@@ -394,7 +424,7 @@ var init = function(name) {
                         ctx.restore()
                     }
                 }
-                if(/Wall|Door|Floor/.test(this.mainHand)){
+                if(/Wall|Door|Floor|Crafting Table/.test(this.mainHand)){
                     let img = this.mainHand.toLowerCase().replace(/\s/, '')
                     ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                     ctx.save()
@@ -427,7 +457,7 @@ var init = function(name) {
             ctx.fill()
             ctx.restore();
             ctx.restore();
-            if(this.posPlace && /Wall|Door|Floor/.test(this.mainHand)){
+            if(this.posPlace && /Wall|Door|Floor|Crafting Table/.test(this.mainHand)){
                 let img = this.mainHand.toLowerCase().replace(/\s/, '')
                 ctx.restore()
                 ctx.save()
@@ -544,7 +574,9 @@ var init = function(name) {
             this.stamina = initPack.stamina
             this.maxStamina = initPack.maxStamina
             this.inventory = initPack.inventory
+            this.crafting = initPack.crafting
             this.craftables = initPack.craftables
+            this.craftablesEx = initPack.craftablesEx
             this.posPlace = initPack.posPlace
         }
     }
@@ -1032,11 +1064,6 @@ var init = function(name) {
             new Destroyer(initPack)
         })
     }
-    /**
-     * 
-     * @param {array} pack 
-     */
-
     readRemovePack = function(pack) {
         pack.player.forEach(function(id) {
             Players.splice(Players.findIndex(function(element) {
@@ -1238,44 +1265,7 @@ var init = function(name) {
                 ctx.lineWidth = 0.5
                 ctx.strokeStyle = 'black'
                 ctx.font  = '10px Arial'
-                playa.craftables.forEach((craft, i) => {
-                    if(/Axe|Pickaxe|Sword|Hammer/.test(craft)){
-                        let img = craft.toLowerCase().replace(/\s/, '')
-                        ctx.globalAlpha = 0.875
-                        ctx.lineWidth = 2
-                        ctx.fillStyle = 'black'
-                        ctx.beginPath()
-                        ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
-                        ctx.stroke()
-                        ctx.globalAlpha = 0.5
-                        ctx.beginPath()
-                        ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
-                        ctx.globalAlpha = 1
-                        ctx.save()
-                        ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
-                        ctx.rotate(Math.PI/180 * 45)
-                        ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
-                        ctx.restore()
-                    }
-                    if(/Wall|Door|Floor/.test(craft)){
-                        let img = craft.toLowerCase().replace(/\s/, '')
-                        ctx.globalAlpha = 0.875
-                        ctx.lineWidth = 2
-                        ctx.fillStyle = 'black'
-                        ctx.beginPath()
-                        ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
-                        ctx.stroke()
-                        ctx.globalAlpha = 0.5
-                        ctx.beginPath()
-                        ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
-                        ctx.globalAlpha = 1
-                        ctx.save()
-                        ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30)
-                        ctx.rotate(Math.PI/180 * 8)
-                        ctx.drawImage(Img[img], 0 - 15, 0 - 15, 30, 30)
-                        ctx.restore()
-                    }
-                })
+                
                 Players.forEach(function(player) {
                     player.draw(x, y)
                 })
@@ -1286,6 +1276,88 @@ var init = function(name) {
                     demon.draw(x, y)
                 })
                 ctx.restore();
+                if(playa.crafting && playa.craftablesEx){
+                    ctx.fillStyle = 'black'
+                    ctx.lineWidth = 2
+                    ctx.beginPath()
+                    ctx.globalAlpha = 0.5
+                    
+                    ctx.rect(100, 100, canvas.width - 200, canvas.height - 300)
+                    ctx.fill()
+                    playa.craftablesEx.forEach((craft, i) => {
+                        ctx.lineWidth = 2
+                        let offSetX = ((i - Math.floor(i/13) * 13) * 80)
+                        let offSetY = (Math.floor(i / 13) * 80)
+                        ctx.beginPath()
+                        ctx.globalAlpha = 0.875
+                        ctx.rect(120 + offSetX, 120 + offSetY, 60, 60)
+                        ctx.stroke()
+                        if(craft.craftable) ctx.fillStyle = 'black'
+                        else ctx.fillStyle = 'red'
+                        ctx.globalAlpha = 0.5
+                        ctx.beginPath()
+                        ctx.fillRect(120 + offSetX, 120 + offSetY, 60, 60)
+                        if(/Axe|Pickaxe|Sword|Hammer/.test(craft.craft)){
+                            let img = craft.craft.toLowerCase().replace(/\s/, '')
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(120 + offSetX + 27.5, 120 + offSetY + 27.5 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                        }
+                        if(/Wall|Door|Floor|Crafting/.test(craft.craft)){
+                            let img = craft.craft.toLowerCase().replace(/\s/, '')
+                              
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(120 + offSetX + 30, 120 + offSetY + 30)
+                            ctx.rotate(Math.PI/180 * 8)
+                            ctx.drawImage(Img[img], 0 - 15, 0 - 15, 30, 30)
+                            ctx.restore()
+                        }
+                    })
+                    ctx.globalAlpha = 1
+                } else {
+                    playa.craftables.forEach((craft, i) => {
+                        if(/Axe|Pickaxe|Sword|Hammer/.test(craft)){
+                            let img = craft.toLowerCase().replace(/\s/, '')
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                        }
+                        if(/Wall|Door|Floor|Crafting/.test(craft)){
+                            let img = craft.toLowerCase().replace(/\s/, '')
+                            ctx.globalAlpha = 0.875
+                            ctx.lineWidth = 2
+                            ctx.fillStyle = 'black'
+                            ctx.beginPath()
+                            ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.stroke()
+                            ctx.globalAlpha = 0.5
+                            ctx.beginPath()
+                            ctx.fillRect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate(90 + (i % 2 == 1 ? 80 : 0) + 30, 90 + (Math.floor(i / 2) * 80) + 30)
+                            ctx.rotate(Math.PI/180 * 8)
+                            ctx.drawImage(Img[img], 0 - 15, 0 - 15, 30, 30)
+                            ctx.restore()
+                        }
+                    })
+                }
                 playa.inventory.forEach((slot, i) => {
                     ctx.beginPath()
                     ctx.lineWidth = 1.5
@@ -1324,7 +1396,7 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(/Wall|Door|Floor/.test(slot.type)){
+                    if(/Wall|Door|Floor|Crafting Table/.test(slot.type)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 10)
