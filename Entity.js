@@ -40,8 +40,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:5000,
-        height:5000
+        width:500,
+        height:500
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
@@ -222,6 +222,37 @@ module.exports = function (nsp, ns) {
                         output:{
                             count:4,
                             image:'stonefloor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Crafting Table', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                            {id:'stone', count:10},
+                        ],
+                        output:{
+                            count:2,
+                            image:'craftingtable',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Wood Door', 
+                    {
+                        recipe:[
+                            {id:'wood', count:10},
+                            {id:'stone', count:1},
+                            {id:'iron', count:1},
+                        ],
+                        output:{
+                            count:2,
+                            image:'wooddoor',
                             stackSize:255,
                             equipable:true
                         }
@@ -461,22 +492,6 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
-                [
-                    'Wood Door', 
-                    {
-                        recipe:[
-                            {id:'wood', count:10},
-                            {id:'stone', count:1},
-                            {id:'iron', count:1},
-                        ],
-                        output:{
-                            count:2,
-                            image:'wooddoor',
-                            stackSize:255,
-                            equipable:true
-                        }
-                    }
-                ],
             ])
             this.x = x
             this.y = y
@@ -549,8 +564,8 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('Stone Sword', 1, 'stonesword', 1, true)],
-                ['2', 'empty'],
+                ['1', new Slot('stone', 15, 'stone', 1, true)],
+                ['2', new Slot('iron', 20, 'iron', 1, true)],
                 ['3', 'empty'],
                 ['4', 'empty'],
                 ['5', 'empty'],
@@ -645,6 +660,7 @@ module.exports = function (nsp, ns) {
             this.id = id
             this.socket = socket
             this.rad = 30
+            this.crafting = false
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             let inWay = false
@@ -724,6 +740,7 @@ module.exports = function (nsp, ns) {
             this.walls = []
             this.doors = []
             this.floors = []
+            this.ctables = []
             this.pang = 'left'
             this.punch = {
                 speed: 3,
@@ -920,6 +937,12 @@ module.exports = function (nsp, ns) {
             }
             this.health += this.maxStamina/50/60
             if(this.crafter.checkCraft(this.inventory)) this.needsUpdate = true
+            if(this.crafting){
+                if(this.craftingctable.health <= 0) this.crafting = false
+                this.craftablesEx = this.craftingctable.checkCraft(this.inventory)
+                this.needsSelfUpdate = true
+                //if()
+            }
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
             if(this.health > this.maxHealth) this.health = this.maxHealth
             this.updateSpd();
@@ -929,7 +952,7 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if((dropped.length || this.doors.length) && !this.alusd){
+                if((dropped.length || this.doors.length || CraftingTables.list.length) && !this.alusd){
                     let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
@@ -954,8 +977,21 @@ module.exports = function (nsp, ns) {
                             if(Vector.getDistance(door, this.body.position) < disd){disd = Vector.getDistance(door, this.body.position); nearestd = index}
                         })
                     }
-                    if(!posd.size && !possible.size) return
-                    if(!dis || (dis > disd && !this.doors[nearestd].opening)){
+                    let posctable = new Mapper()
+                    CraftingTables.list.forEach((door, i)=> {
+                        if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad) posctable.set(i, door)
+                    })
+                    let disctable
+                    let nearestctable
+                    if(posctable.size){
+                        posctable.forEach((ctable, index) => {
+                            if(!nearestctable){nearestctable = index; disctable = Vector.getDistance(ctable, this.body.position); return}
+                            if(Vector.getDistance(ctable, this.body.position) < disctable){disctable = Vector.getDistance(ctable, this.body.position); nearestctable = index}
+                        })
+                    }
+                    if(!posd.size && !possible.size && !posctable.size) return
+                    console.log(disctable)
+                    if((!dis && !disctable)|| (dis > disd && disctable > disd &&!this.doors[nearestd].opening)){
                         let door = this.doors[nearestd]
                         if(door.ang == 'left' && !door.open){
                             Body.translate(door.body, Vector.create(-100, -100))
@@ -976,9 +1012,14 @@ module.exports = function (nsp, ns) {
                         door.opening = true
                         door.needsUpdate = true
                         this.alusd = true
-                    }else if((!disd || disd > dis)){
+                    }else if((!disd && !disctable) || (disd > dis && disctable > dis)){
                         let res = this.inventory.addItemMax(dropped[nearest].item)
                         if(!res) dropped.splice(nearest, 1);
+                        this.needsSelfUpdate = true
+                        this.alusd = true
+                    }else if((!disd && !dis) || (dis > disctable && dis > disctable)){
+                        this.craftingctable = posctable.get(nearestctable)
+                        this.crafting = !this.crafting
                         this.needsSelfUpdate = true
                         this.alusd = true
                     }
@@ -1556,7 +1597,7 @@ module.exports = function (nsp, ns) {
                         }, 2500/3)
                     }
                 }
-                if(/Wall|Floor|Door/.test(this.mainHands)){
+                if(/Wall|Floor|Door|Crafting Table/.test(this.mainHands)){
                     let mvect
                     if(this.move.mdis > 141.42 + this.rad){
                         mvect = Vector.create()
@@ -1586,6 +1627,7 @@ module.exports = function (nsp, ns) {
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return
+                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return
                         if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
@@ -1610,6 +1652,7 @@ module.exports = function (nsp, ns) {
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return
+                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return
                         if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
@@ -1619,6 +1662,29 @@ module.exports = function (nsp, ns) {
                         if(/Wood/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'wood', this.pang))
                         if(/Stone/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'stone', this.pang))
                         if(/Iron/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'iron', this.pang))
+                        this.alusd = true
+                    }
+                    if(/Crafting Table/.test(this.mainHands) && this.move.att && !this.alusd){
+                        mvect.y = Math.floor(mvect.y/100) * 100 + 50
+                        mvect.x = Math.floor(mvect.x/100) * 100 + 50
+                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return
+                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return
+                        if(Destroyers.list.find(des => Vector.getDistance(des.body.position, mvect) < 70.7106781187 + des.rad)) return
+                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return
+                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return
+                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return
+                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return
+                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
+                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return
+                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return
+                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return
+                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
+                        let slot = this.inventory.get(this.mainHand)
+                        slot.count -= 1
+                        if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
+                        this.needsSelfUpdate = true
+                        this.ctables.push(new CraftingTable(mvect.x, mvect.y))
                         this.alusd = true
                     }
                     if(/Floor/.test(this.mainHands) && this.move.att && !this.alusd){
@@ -1634,6 +1700,7 @@ module.exports = function (nsp, ns) {
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y && !this.walls.find(w => w == wall))) return
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y && !this.doors.find(d => d == door))) return
+                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y && !this.ctables.find(d => d == ctable))) return
                         if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y)) return
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
@@ -1808,13 +1875,16 @@ module.exports = function (nsp, ns) {
             return pack
         }
         getSelfUpdatePack() {
-          return {
-               inventory:this.inventory.listItems(),
-               stamina:this.stamina,
-               maxStamina:this.maxStamina,
-               craftables:this.crafter.checkCraft(this.inventory),
-               posPlace:this.posPlace
-           }
+            //console.log(this.crafting)
+            return {
+                inventory:this.inventory.listItems(),
+                stamina:this.stamina,
+                maxStamina:this.maxStamina,
+                craftables:this.crafter.checkCraft(this.inventory),
+                crafting:this.crafting,
+                posPlace:this.posPlace,
+                craftablesEx:this.craftablesEx
+            }
         }
         setHands(){
             this.hrad = this.rad/25 * 7.5
@@ -3140,6 +3210,12 @@ module.exports = function (nsp, ns) {
             playa.alusd = true
             playa.needsSelfUpdate = true
         })
+        socket.on('craftEx', item => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            playa.craftingctable.craftItem(item, playa.inventory)
+            playa.alusd = true
+            playa.needsSelfUpdate = true
+        })
         socket.on('lc', slotnum => {
             slotnum = slotnum.toString()
             let playa = Players.list.find(player => player.id == socket.id)
@@ -3201,12 +3277,14 @@ module.exports = function (nsp, ns) {
             Walls.list.forEach( wall => pack.wall.push(wall.getInitPack()))
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
+            CraftingTables.list.forEach( ctable => pack.ctable.push(ctable.getInitPack()))
             Demons.list.forEach(function (demon) {
                 pack.demon.push(demon.getUpdatePack())
             })
             Destroyers.list.forEach(function (demon) {
                 pack.destroyer.push(demon.getUpdatePack())
             })
+            
             /*
             Bullets.list.forEach(function(bullet){
                 pack.bullet.push(bulle)
