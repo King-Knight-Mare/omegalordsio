@@ -994,8 +994,8 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     let posctable = new Mapper()
-                    CraftingTables.list.forEach((door, i)=> {
-                        if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad) posctable.set(i, door)
+                    CraftingTables.list.forEach((ctable, i)=> {
+                        if(Vector.getDistance(ctable, this.hposfr) < 70.7 + this.hrad) posctable.set(i, ctable)
                     })
                     let disctable
                     let nearestctable
