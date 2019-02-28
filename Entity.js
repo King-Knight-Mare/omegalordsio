@@ -25,7 +25,7 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
-    let timeOfDay = 'day'
+    let timeOfDay = 'night'
     let dayTimeout
     let setDayTimeout = () => {
         dayTimeout = new Timeout(() => {
@@ -1983,233 +1983,6 @@ module.exports = function (nsp, ns) {
             Vector.add(this.body.position, this.hposfr, this.hposfr)
         }
     }
-    class Rabbit extends EventEmitter{
-        /**
-         * @param {String} id 
-         * @param {String} usr 
-         */
-        constructor(x, y) {
-            super()
-            this.rad = 30
-            this.id = Math.random()
-            this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
-            World.addBody(engine.world, this.body)
-            this.bullets = [];
-            this.punch = {
-                speed: 3,
-                ready:true,
-                reload: {
-                    speed: 20,
-                    timer: 0
-                },
-                damage: 1.25,
-                health: 1,
-            }
-            this.hands = {
-                l: {
-                    hit: false,
-                },
-                r: {
-                    hit: false,
-                }
-            }
-            this.move = {
-                r: false,
-                l: false,
-                u: false,
-                d: false,
-                att: false,
-                run:false,
-                ang: 0,
-                mdis:0
-            }
-            this.hrad = this.rad/25 * 7.5
-            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            Vector.add(this.body.position, this.hposfl, this.hposfl)
-
-            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            Vector.add(this.body.position, this.hposfr, this.hposfr)
-            this.next = 'l'
-            this.lhit = false
-            this.rhit = false
-            this.maxSpd = 4;
-            this.health = 20;
-            this.maxHealth = 20;
-            this.stamina = 20
-            this.maxStamina = 20
-            var self = this
-            this.bulletSpeed = 1;
-            this.targets = []
-            this.treetargs = []
-            this.stonetargs = []
-            this.kills = 0;
-            this.needsUpdate = false
-            this.needsSelfUpdate = false
-            this.mainHands = 'hand'
-            /*this.afkTimer = setTimeout(function () {
-                self.dead = true
-                setInterval(function () {
-                    self.health -= self.maxHealth / 100
-                }, 100)
-            }, 10000);*/
-            this.dead = false;
-            initPack.demon.push({
-                x: this.body.position.x,
-                y: this.body.position.y,
-                id: this.id,
-                angle: this.move.ang,
-                lhit: this.lhit,
-                rhit: this.rhit
-            })
-            Demons.list.push(this);
-        }
-        updatePath() {
-            let possible = new Mapper()
-            Players.list.forEach((player, i)=> {
-                if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
-            })
-            let dis
-            let nearest
-            if(possible.size){
-                possible.forEach((player, index) => {
-                    if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
-                    if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
-                })
-            }
-            if(!possible.get(nearest)) return this.path = null
-            let grid = new PF.Grid(game.map.width/100, game.map.width/100)
-            let finder = new PF.AStarFinder()
-            STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            Stones.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
-            
-            let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
-            let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
-            let fx = Math.roundToDeca(possible.get(nearest).body.position.x - 50, 100)/100
-            let fy = Math.roundToDeca(possible.get(nearest).body.position.y - 50, 100)/100
-            this.pos = possible.get(nearest)
-            if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
-            x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
-            this.path = finder.findPath(x, y, fx, fy, grid)
-            this.curr = 0
-        }
-        updateSpd() {
-            this.move.att = false
-            if(!this.path) this.updatePath()
-            if(!this.path) return
-            this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
-            var m = this.move
-            let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-            let n = path[this.curr]
-            if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
-            if(!this.path) return
-            path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-            n = path[this.curr]
-            if(Vector.getDistance(this.body.position, this.pos.body.position) < 35.34119409414458 + this.rad + this.rad) this.move.att = true
-            if(!this.path) return
-            this.acc = Vector.create(0, 0)
-
-            if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
-            if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
-            if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
-            if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
-            if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
-            Body.applyForce(this.body, this.body.position, this.acc)
-        }
-        update() {
-            if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
-                this.maxSpd = 3
-                this.stamina -= this.maxStamina/5/60
-                this.needsSelfUpdate = true
-            }else if(this.stamina < this.maxStamina){
-                this.maxSpd = 2
-                if(Vector.magnitude(this.acc) <= 0) this.stamina += this.maxStamina/25/60
-                else this.stamina += this.maxStamina/100/60
-                this.needsSelfUpdate = true
-            }
-            this.health += this.maxStamina/50/60
-            if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
-            if(this.health > this.maxHealth) this.health = this.maxHealth
-            this.updateSpd();
-            if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
-            this.targets = []
-            if (this.punch.reload.timer > 0) {
-                this.punch.reload.timer--
-            } 
-            if (this.move.att) {
-                    this.hit()
-            }
-        }
-        hit(){        
-            if (this.punch.ready) {
-                //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
-                this.punch.ready = false
-                this.punch.timeout = new Timeout(() => {
-                    this.punch.timeout = null
-                    this.punch.ready = true
-                    this.lhit =  false
-                    this.rhit = false
-                }, 1500/3)
-                for (var i = 0; i < Players.list.length; i++) {
-                    var p = Players.list[i]
-                    if ((
-                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad || 
-                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad) && this.id != p.id) {
-                        this.targets.push(p)
-                    }
-                }
-               
-                if (this.next == 'l' && this.lhit == false && this.rhit == false) {
-                    this.lhit = true
-                    this.next = 'r'
-                } else if (this.next == 'r' && this.lhit == true) {
-                    this.lhit = false
-                } else if (this.next == 'r' && this.rhit == false) {
-                    this.rhit = true
-                    this.next = 'l'
-                } else if (this.next == 'l' && this.rhit == true) {
-                    this.rhit = false
-                }
-                this.punch.reload.timer = this.punch.reload.speed
-                this.targets.forEach( p => {
-                    p.health -= this.punch.damage
-                    if (p.health <= 0) {
-                        this.score += p.score/2 + 2
-                    }
-                })
-            }
-        }
-        getUpdatePack() {
-            var pack = {
-                x: this.body.position.x,
-                y: this.body.position.y,
-                id: this.id,
-                angle: this.move.ang,
-                lhit: this.lhit,
-                rhit: this.rhit,
-            }
-            if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
-            return pack
-        }
-        setHands(){
-            this.hrad = this.rad/25 * 7.5
-            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
-            Vector.add(this.body.position, this.hposfl, this.hposfl)
-
-            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
-            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
-            Vector.add(this.body.position, this.hposfr, this.hposfr)
-        }
-    }
     class Destroyer extends EventEmitter{
         /**
          * @param {String} id 
@@ -2286,6 +2059,7 @@ module.exports = function (nsp, ns) {
                 }, 100)
             }, 10000);*/
             this.dead = false;
+            this.pathTimer = null
             initPack.destroyer.push({
                 x: this.body.position.x,
                 y: this.body.position.y,
@@ -2296,52 +2070,69 @@ module.exports = function (nsp, ns) {
             })
             Destroyers.list.push(this);
         }
-        updatePath() {
-            this.pos = null
-            this.path = null
-            if(this.agro.length == 1){
-                this.pos = this.agro[0]
-            }else if(this.agro.length){
-                let possible = new Mapper()
-                this.agro.forEach((player, i)=> {
-                    if(Vector.getDistance(player.body.position, this.body.position) < 1000 + this.rad) possible.set(i, player)
-                })
-                let dis
-                let nearest
-                if(possible.size){
-                    possible.forEach((player, index) => {
-                        if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
-                        if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+        updatePath(pos) {
+            if(this.pathTimer) clearTimeout(this.pathTimer)
+            if(!pos){ 
+                this.pos = null
+                this.path = null
+                if(this.agro.length == 1){
+                    this.pos = this.agro[0]
+                }else if(this.agro.length){
+                    let possible = new Mapper()
+                    this.agro.forEach((player, i)=> {
+                        if(Vector.getDistance(player.body.position, this.body.position) < 1000 + this.rad) possible.set(i, player)
                     })
-                }    
-                this.pos = possible.get(nearest)
-            }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500)){
-                let possible = new Mapper()
-                Players.list.forEach((player, i)=> {
-                    if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500) possible.set(i, player)
-                })
-                let dis
-                let nearest
-                if(possible.size){
-                    possible.forEach((player, index) => {
-                        if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
-                        if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((player, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                            if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500)){
+                    let possible = new Mapper()
+                    Players.list.forEach((player, i)=> {
+                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500) possible.set(i, player)
                     })
-                }    
-                this.pos = possible.get(nearest)
-            }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
-                let canReach = []
-                if(Stones.list.length) canReach.push('stone')
-                if(Irons.list.length) canReach.push('iron')
-                if(Golds.list.length) canReach.push('gold')
-                if(Diamonds.list.length) canReach.push('diamond')
-                let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
-                if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
-                if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
-                if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
-                if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((player, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                            if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Destroyers.list.find(des => Vector.getDistance(des.body.position, this.body.position) < 700)){
+                    let possible = new Mapper()
+                    Destroyers.list.forEach((des, i)=> {
+                        if(Vector.getDistance(des.body.position, this.body.position) < 700) possible.set(i, des)
+                    })
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((des, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(des.body.position, this.body.position); return}
+                            if(Vector.getDistance(des.body.position, this.body.position) < dis){dis = Vector.getDistance(des.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
+                    let canReach = []
+                    if(Stones.list.length) canReach.push('stone')
+                    if(Irons.list.length) canReach.push('iron')
+                    if(Golds.list.length) canReach.push('gold')
+                    if(Diamonds.list.length) canReach.push('diamond')
+                    let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
+                    if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
+                    if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
+                    if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
+                    if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                }
+                if(!this.pos) return this.path = null
             }
-            if(!this.pos) return this.path = null
             let grid = new PF.Grid(game.map.width/100, game.map.width/100)
             let finder = new PF.AStarFinder()
             STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
@@ -2357,11 +2148,14 @@ module.exports = function (nsp, ns) {
             if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
             x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
+            setTimeout(() => {
+                this.updatePath(this.pos)
+            }, 2000)
             this.curr = 0
         }
         updateSpd() {
             this.move.att = false
-            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos))) this.updatePath()
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos) || Destroyers.list.find(des => Vector.getDistance(this.body.position, des.body.position) < 700))) this.updatePath()
             if(!this.path || !this.path.length) return
             this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
             while(this.agro.find(player => player.health <= 0)){
@@ -2578,67 +2372,71 @@ module.exports = function (nsp, ns) {
                 rhit: this.rhit
             })
             Demons.list.push(this);
+            this.pathTimer = null
         }
-        updatePath() {
-            this.pos = null
-            this.path = null
-            if(this.agro.length == 1){
-                this.pos = this.agro[0]
-            }else if(this.agro.length){
-                let possible = new Mapper()
-                this.agro.forEach((player, i)=> {
-                    if(Vector.getDistance(player.body.position, this.body.position) < 1000 + this.rad) possible.set(i, player)
-                })
-                let dis
-                let nearest
-                if(possible.size){
-                    possible.forEach((player, index) => {
-                        if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
-                        if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+        updatePath(pos) {
+            if(this.pathTimer) clearTimeout(this.pathTimer)
+            if(!pos){ 
+                this.pos = null
+                this.path = null
+                if(this.agro.length == 1){
+                    this.pos = this.agro[0]
+                }else if(this.agro.length){
+                    let possible = new Mapper()
+                    this.agro.forEach((player, i)=> {
+                        if(Vector.getDistance(player.body.position, this.body.position) < 1000 + this.rad) possible.set(i, player)
                     })
-                }    
-                this.pos = possible.get(nearest)
-            }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750)){
-                let possible = new Mapper()
-                Players.list.forEach((player, i)=> {
-                    if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
-                })
-                let dis
-                let nearest
-                if(possible.size){
-                    possible.forEach((player, index) => {
-                        if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
-                        if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((player, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                            if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750)){
+                    let possible = new Mapper()
+                    Players.list.forEach((player, i)=> {
+                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
                     })
-                }    
-                this.pos = possible.get(nearest)
-            }else if(Destroyers.list.find(des => Vector.getDistance(des.body.position, this.body.position) < 700)){
-                let possible = new Mapper()
-                Destroyers.list.forEach((des, i)=> {
-                    if(Vector.getDistance(des.body.position, this.body.position) < 700) possible.set(i, des)
-                })
-                let dis
-                let nearest
-                if(possible.size){
-                    possible.forEach((des, index) => {
-                        if(!nearest){nearest = index; dis = Vector.getDistance(des.body.position, this.body.position); return}
-                        if(Vector.getDistance(des.body.position, this.body.position) < dis){dis = Vector.getDistance(des.body.position, this.body.position); nearest = index}
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((player, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
+                            if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Destroyers.list.find(des => Vector.getDistance(des.body.position, this.body.position) < 700)){
+                    let possible = new Mapper()
+                    Destroyers.list.forEach((des, i)=> {
+                        if(Vector.getDistance(des.body.position, this.body.position) < 700) possible.set(i, des)
                     })
-                }    
-                this.pos = possible.get(nearest)
-            }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
-                let canReach = []
-                if(Stones.list.length) canReach.push('stone')
-                if(Irons.list.length) canReach.push('iron')
-                if(Golds.list.length) canReach.push('gold')
-                if(Diamonds.list.length) canReach.push('diamond')
-                let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
-                if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
-                if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
-                if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
-                if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((des, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(des.body.position, this.body.position); return}
+                            if(Vector.getDistance(des.body.position, this.body.position) < dis){dis = Vector.getDistance(des.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
+                    let canReach = []
+                    if(Stones.list.length) canReach.push('stone')
+                    if(Irons.list.length) canReach.push('iron')
+                    if(Golds.list.length) canReach.push('gold')
+                    if(Diamonds.list.length) canReach.push('diamond')
+                    let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
+                    if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
+                    if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
+                    if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
+                    if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                }
+                if(!this.pos) return this.path = null
             }
-            if(!this.pos) return this.path = null
             let grid = new PF.Grid(game.map.width/100, game.map.width/100)
             let finder = new PF.AStarFinder()
             STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
@@ -2654,6 +2452,9 @@ module.exports = function (nsp, ns) {
             if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
             x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
+            setTimeout(() => {
+                this.updatePath(this.pos)
+            }, 2000)
             this.curr = 0
         }
         updateSpd() {
