@@ -107,7 +107,6 @@ document.getElementById('server').addEventListener('change', e => {
     socket = io('/' + select.value)
 })
 var init = function(name) {
-    
     var movement = {
         up: false,
         down: false,
@@ -118,15 +117,26 @@ var init = function(name) {
         angle: 0,
         grab:false,
         mousedis:0,
-        prot:false
+        prot:false,
+        chatting:false
     }
     let pang = 'left'
+    let chatString = ''
     socket.on('unable', function() {
 
     })
     socket.on('disconnect', () => {die()})
     handlekeyDown = function(event) {
-        
+        if(event.keyCode == 13){ 
+            movement.chatting = !movement.chatting
+            if(!chatboxDestroyed){
+                if(chatbox.value().length) socket.emit('chat', chatbox.value())
+            }
+        }
+        if(movement.chatting){
+            
+            return
+        }
         switch (event.keyCode) {
             case 65: // A
                 movement.left = true;
@@ -171,6 +181,7 @@ var init = function(name) {
                 }
                 break
         }
+        
         if(playa && playa.crafting){
             movement.up = false
             movement.down = false
@@ -181,6 +192,7 @@ var init = function(name) {
     }
     document.addEventListener('keydown', handlekeyDown);
     handlekeyUp = function(event) {
+        if(movement.chatting) return
         switch (event.keyCode) {
             case 65: // A
                 movement.left = false;
@@ -287,6 +299,8 @@ var init = function(name) {
     }
     var leaderboard = []
     let dropped = []
+    let chatbox
+    let chatboxDestroyed = true
     document.addEventListener('mousemove', handlemouseMove);
     window.moveinterval = setInterval(function() {
         socket.emit('movement', movement);
@@ -310,6 +324,7 @@ var init = function(name) {
             this.lhit = initPack.lhit
             this.rhit = initPack.rhit
             this.rad = 30
+            this.msg = []
             Players.push(this)
         }
         draw(x, y) {
@@ -325,7 +340,6 @@ var init = function(name) {
             
             //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
             
-            
             ctx.save()
             ctx.beginPath()
             ctx.fillStyle = 'red';
@@ -339,10 +353,46 @@ var init = function(name) {
             ctx.font = '18px Zorque';
             ctx.strokeStyle = 'black';
             ctx.lineWidth = 2;
+            ctx.beginPath()
             ctx.strokeText(this.usr, currx, curry + 55 * this.rad/25);
             ctx.fillStyle = 'white';
             ctx.fillText(this.usr, currx, curry + 55 * this.rad/25);
+            this.msg.forEach((msgObj, i) => {
+                if(this.msg.length == 1 && i == 0){
+                    ctx.globalAlpha = Math.abs(msgObj.per - 1)
+                    ctx.textAlign = "center"
+                    ctx.font = '9px Zorque';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath()
+                    ctx.strokeText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                }else if(this.msg.length == 2 && i == 1){
+                    ctx.globalAlpha = Math.abs(msgObj.per - 1)
+                    ctx.textAlign = "center"
+                    ctx.font = '9px Zorque';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath()
+                    ctx.strokeText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                }else if(this.msg.length == 2 && i == 0){
+                    ctx.globalAlpha = Math.abs(msgObj.per - 1)
+                    ctx.textAlign = "center"
+                    ctx.font = '9px Zorque';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath()
+                    ctx.strokeText(msgObj.msg, currx, curry - 20 - 60 * this.rad/25);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msgObj.msg, currx, curry - 20 - 60 * this.rad/25);
+                }
+            })
+            ctx.globalAlpha = 1
             ctx.translate(currx, curry)
+            
             ctx.rotate((Math.PI / 180) * this.angle)
             ctx.scale(this.rad/25, this.rad/25)
             if (this.mainHand == 'hand') {
@@ -569,6 +619,7 @@ var init = function(name) {
             this.hitting = initPack.hitting
             this.punchper = initPack.punchper
             this.per = initPack.per
+            this.msg = initPack.msg
         }
         processSelfInitPack(initPack) {
             this.stamina = initPack.stamina
@@ -737,13 +788,13 @@ var init = function(name) {
               ctx.rotate((Math.PI / 180) * this.angle)
               ctx.fillStyle = 'black'
               ctx.beginPath()
-              ctx.arc(0 + 9, 0 + 8, 7, 0, 2*Math.PI);
-              ctx.arc(0 + 9, 0 - 8, 7, 0, 2*Math.PI);
+              ctx.arc(0 + 9 * 50/35, 0 + 8 * 50/35, 6 * 50/35, 0, 2*Math.PI);
+              ctx.arc(0 + 9 * 50/35, 0 - 8 * 50/35, 6 * 50/35, 0, 2*Math.PI);
               ctx.fill()
               ctx.fillStyle = 'yellow'
               ctx.beginPath()
-              ctx.arc(0 + 6.5, 0 + 7, 3, 0, 2*Math.PI);
-              ctx.arc(0 + 6.5, 0 - 7, 3, 0, 2*Math.PI);
+              ctx.arc(0 + 6.5 * 50/35, 0 + 7 * 50/35, 2.5 * 50/35, 0, 2*Math.PI);
+              ctx.arc(0 + 6.5 * 50/35, 0 - 7 * 50/35, 2.5 * 50/35, 0, 2*Math.PI);
               ctx.fill()
               ctx.restore();
               ctx.restore();
@@ -1265,7 +1316,6 @@ var init = function(name) {
                 ctx.lineWidth = 0.5
                 ctx.strokeStyle = 'black'
                 ctx.font  = '10px Arial'
-                
                 Players.forEach(function(player) {
                     player.draw(x, y)
                 })
@@ -1357,6 +1407,29 @@ var init = function(name) {
                             ctx.restore()
                         }
                     })
+                }
+                if(movement.chatting){
+                    if(chatboxDestroyed){
+                        chatbox = new CanvasInput({
+                            canvas:canvas,
+                            x:canvas.width/2 - 75,
+                            y:canvas.height/2 - 77,
+                            fontSize: 14,
+                            borderWidth: 1,
+                            borderColor: 'none',
+                            borderRadius: 50,
+                            boxShadow: 'none',
+                            innerShadow: 'none',
+                            placeHolder: 'Enter message here...'
+                        })
+                        chatboxDestroyed = false
+                        chatbox.focus()
+                    }
+                    chatbox.render()
+                    //chatbox.blur()
+                }else if(chatbox && !chatboxDestroyed){
+                    chatbox.destroy()
+                    chatboxDestroyed = true
                 }
                 playa.inventory.forEach((slot, i) => {
                     ctx.beginPath()
@@ -1515,6 +1588,7 @@ var init = function(name) {
     }
     socket.on('state', readPack);
 }
+
 var die = function() {
     loaded = false
     document.removeEventListener("keydown", handlekeyDown)

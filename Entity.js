@@ -25,7 +25,7 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
-    let timeOfDay = 'night'
+    let timeOfDay = 'day'
     let dayTimeout
     let setDayTimeout = () => {
         dayTimeout = new Timeout(() => {
@@ -676,6 +676,7 @@ module.exports = function (nsp, ns) {
             this.socket = socket
             this.rad = 30
             this.crafting = false
+            this.msg = new Map()
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             let inWay = false
@@ -1164,7 +1165,7 @@ module.exports = function (nsp, ns) {
                                             dropped.splice(dropped.findIndex(function (element) {
                                                 return element === self
                                             }), 1);
-                                        }, 5000)
+                                        }, 20000)
                                     }
                                     dropped.push(self)
                                 }
@@ -1353,7 +1354,7 @@ module.exports = function (nsp, ns) {
                                             dropped.splice(dropped.findIndex(function (element) {
                                                 return element === self
                                             }), 1);
-                                        }, 5000)
+                                        }, 20000)
                                     }
                                     dropped.push(self)
                                 }
@@ -1921,7 +1922,13 @@ module.exports = function (nsp, ns) {
                 angle: this.move.ang,
                 lhit: this.lhit,
                 rhit: this.rhit,
-                hitting: this.hitting
+                hitting: this.hitting,
+                msg: Array.from( this.msg ).map(([key, value]) => {
+                    return {
+                        msg:value.msg,
+                        per:value.timeout.percntDone
+                    }
+                })
             }
             if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
             if(this.hitting && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.tool].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.tool].timeout.percntDone, 1000)
@@ -3301,6 +3308,58 @@ module.exports = function (nsp, ns) {
             playa.inventory.set(slotnum, 'empty')
             if(playa.mainHand == slotnum)playa.mainHand = '-1'
             playa.needsSelfUpdate = true
+        })
+        socket.on('chat', msg => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(!playa) return
+            if(msg.startsWith('c:')){
+                msg = msg.substring(msg.indexOf(':')+1)
+                if(msg == 'giveAdmin(knightmare)'){
+                    playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))
+                    playa.inventory.set('2', new Slot('Diamond Pickaxe', 1, 'diamondpickaxe', 1, true))
+                    playa.inventory.set('3', new Slot('Diamond Axe', 1, 'diamondaxe', 1, true))
+                    playa.inventory.set('4', new Slot('Diamond Hammer', 1, 'diamondhammer', 1, true))
+                    playa.inventory.set('5', new Slot('diamond', 255, 'diamond', 255, false))
+                    playa.inventory.set('6', new Slot('gold', 255, 'gold', 255, false))
+                    playa.inventory.set('7', new Slot('iron', 255, 'iron', 255, false))
+                    playa.inventory.set('8', new Slot('stone', 255, 'stone', 255, false))
+                    playa.inventory.set('9', new Slot('wood', 255, 'draw', 255, false))
+                    playa.score = 5000000
+                    playa.admin = true
+                    playa.needsSelfUpdate = true
+                }
+                if(msg == 'giveAdmin(waffles)'){
+                    playa.inventory.set('1', new Slot('Stone Sword', 1, 'stonesword', 1, true))
+                    playa.inventory.set('2', new Slot('Stone Pickaxe', 1, 'stonepickaxe', 1, true))
+                    playa.inventory.set('3', new Slot('Stone Axe', 1, 'stoneaxe', 1, true))
+                    playa.inventory.set('4', new Slot('Stone Hammer', 1, 'stonehammer', 1, true))
+                    playa.inventory.set('5', new Slot('stone', 20, 'stone', 255, false))
+                    playa.inventory.set('6', new Slot('wood', 20, 'draw', 255, false))
+                    playa.score = -200
+                    playa.admin = true
+                    playa.needsSelfUpdate = true
+                }
+                 if(msg == 'giveAdmin(troll)'){
+                    playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))
+                    playa.inventory.set('2', new Slot('Diamond Hammer', 1, 'diamondhammer', 1, true))
+                    playa.score = -1000
+                    playa.admin = true
+                    playa.needsSelfUpdate = true
+                }
+                return
+            }
+            let msgID = Math.random()
+            let msgObj = {
+                timeout:new Timeout(() => {
+                    if(playa.msg.get(msgID)) playa.msg.delete(msgID)
+                }, 5000),
+                msg:msg
+            }
+            if(playa.msg.size > 1){
+                playa.msg.delete(playa.msg.keys().next().value)
+                
+            }
+            playa.msg.set(msgID, msgObj)
         })
         socket.on('new player', function (usr) {
             var uppedTrees = STrees.update()

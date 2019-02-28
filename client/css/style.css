@@ -113,3 +113,11 @@ body {
 	height: 150px;
 	overflow:auto;
 }
+#chat {
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:100px;
+    height:20px;
+    margin:0 0 0 -50px
+}
