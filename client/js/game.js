@@ -66,6 +66,7 @@ createImage('wooddoor', 'png')
 createImage('woodfloor', 'png')
 createImage('stonefloor', 'png')
 createImage('craftingtable', 'png')
+createImage('carrotfarm', 'png')
 
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
