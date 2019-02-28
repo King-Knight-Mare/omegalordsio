@@ -2615,7 +2615,7 @@ module.exports = function (nsp, ns) {
             }else if(Destroyers.list.find(des => Vector.getDistance(des.body.position, this.body.position) < 700)){
                 let possible = new Mapper()
                 Destroyers.list.forEach((des, i)=> {
-                    if(Vector.des(des.body.position, this.body.position) < 700) possible.set(i, des)
+                    if(Vector.getDistance(des.body.position, this.body.position) < 700) possible.set(i, des)
                 })
                 let dis
                 let nearest
