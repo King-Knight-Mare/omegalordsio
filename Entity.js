@@ -676,6 +676,7 @@ module.exports = function (nsp, ns) {
             this.socket = socket
             this.rad = 30
             this.crafting = false
+            this.msg = new Map()
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             let inWay = false
@@ -1921,7 +1922,13 @@ module.exports = function (nsp, ns) {
                 angle: this.move.ang,
                 lhit: this.lhit,
                 rhit: this.rhit,
-                hitting: this.hitting
+                hitting: this.hitting,
+                msg: Array.from( this.msg ).map(([key, value]) => {
+                    return {
+                        msg:value.msg,
+                        per:value.timeout.percntDone
+                    }
+                })
             }
             if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
             if(this.hitting && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.tool].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.tool].timeout.percntDone, 1000)
@@ -3301,6 +3308,24 @@ module.exports = function (nsp, ns) {
             playa.inventory.set(slotnum, 'empty')
             if(playa.mainHand == slotnum)playa.mainHand = '-1'
             playa.needsSelfUpdate = true
+        })
+        socket.on('chat', msg => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(!playa) return
+            let msgID = Math.random()
+            let msgObj = {
+                timeout:new Timeout(() => {
+                    if(playa.msg.get(msgID)) playa.msg.delete(msgID)
+                }, 5000),
+                msg:msg
+            }
+            console.log(playa.msg.size)
+            if(playa.msg.size > 1){
+                console.log(playa.msg.size, playa.msg.keys().next().value, playa.msg)
+                playa.msg.delete(playa.msg.keys().next().value)
+                
+            }
+            playa.msg.set(msgID, msgObj)
         })
         socket.on('new player', function (usr) {
             var uppedTrees = STrees.update()
