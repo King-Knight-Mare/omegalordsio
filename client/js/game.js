@@ -788,13 +788,13 @@ var init = function(name) {
               ctx.rotate((Math.PI / 180) * this.angle)
               ctx.fillStyle = 'black'
               ctx.beginPath()
-              ctx.arc(0 + 9, 0 + 8, 7, 0, 2*Math.PI);
-              ctx.arc(0 + 9, 0 - 8, 7, 0, 2*Math.PI);
+              ctx.arc(0 + 9 * 50/35, 0 + 8 * 50/35, 6 * 50/35, 0, 2*Math.PI);
+              ctx.arc(0 + 9 * 50/35, 0 - 8 * 50/35, 6 * 50/35, 0, 2*Math.PI);
               ctx.fill()
               ctx.fillStyle = 'yellow'
               ctx.beginPath()
-              ctx.arc(0 + 6.5, 0 + 7, 3, 0, 2*Math.PI);
-              ctx.arc(0 + 6.5, 0 - 7, 3, 0, 2*Math.PI);
+              ctx.arc(0 + 6.5 * 50/35, 0 + 7 * 50/35, 2.5 * 50/35, 0, 2*Math.PI);
+              ctx.arc(0 + 6.5 * 50/35, 0 - 7 * 50/35, 2.5 * 50/35, 0, 2*Math.PI);
               ctx.fill()
               ctx.restore();
               ctx.restore();
@@ -1588,6 +1588,7 @@ var init = function(name) {
     }
     socket.on('state', readPack);
 }
+
 var die = function() {
     loaded = false
     document.removeEventListener("keydown", handlekeyDown)
