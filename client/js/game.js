@@ -677,6 +677,9 @@ var init = function(name) {
             this.lhit = initPack.lhit
             this.rhit = initPack.rhit
             this.rad = 30
+            this.kills = 0
+            this.bcolor = 'crimson'
+            this.hcolor = 'maroon'
             Demons.push(this)
         }
         draw(x, y) {
@@ -704,7 +707,7 @@ var init = function(name) {
                 ctx.arc(32, 15, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
                 //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
@@ -717,7 +720,7 @@ var init = function(name) {
                 ctx.arc(7.5, 7.5, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(7.5, 7.5, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.restore()
@@ -729,7 +732,7 @@ var init = function(name) {
                 ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
             } else {
@@ -741,7 +744,7 @@ var init = function(name) {
                 ctx.arc(7.5, -7.5, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(7.5, -7.5, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.restore();
@@ -753,7 +756,7 @@ var init = function(name) {
             ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
             ctx.fill()
             ctx.beginPath()
-            ctx.fillStyle = 'crimson'
+            ctx.fillStyle = this.bcolor
             ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
             ctx.fill()
             ctx.translate(currx, curry)
@@ -772,6 +775,15 @@ var init = function(name) {
             ctx.restore();
         }
         processInitpack(initPack) {
+            if(initPack.kills == 1){
+                this.rad = 32
+                this.hcolor = 'coral'
+                this.bcolor = 'orange'
+            }else if(initPack.kills == 2){
+                this.rad = 32
+                this.hcolor = 'khaki'
+                this.bcolor = 'yellow'
+            }
             this.x = initPack.x
             this.y = initPack.y
             this.id = initPack.id
@@ -930,6 +942,18 @@ var init = function(name) {
         }
         show(x, y){
             ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var CarrotFarms = new Map()
+    class CarrotFarm {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            CarrotFarms.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['carrotfarm'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
     var Walls = new Map()
@@ -1175,6 +1199,9 @@ var init = function(name) {
             if(Destroyers.find(des => des.id == initPack.id)) return
             new Destroyer(initPack)
         })
+        pack.cfarm.forEach((initPack)=>{
+            new CarrotFarm(initPack)
+        })
     }
     readRemovePack = function(pack) {
         pack.player.forEach(function(id) {
@@ -1218,6 +1245,9 @@ var init = function(name) {
         })
         pack.ctable.forEach((id) => {
             CraftingTables.delete(id)
+        })
+        pack.cfarm.forEach((id)=>{
+            CarrotFarms.delete(id)
         })
     }
     socket.on('death', die)
@@ -1301,6 +1331,9 @@ var init = function(name) {
                 CraftingTables.forEach((ctable) => {
                     ctable.show(x, y)
                 })
+                CarrotFarms.forEach((ctable) => {
+                    ctable.show(x, y)
+                })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()
                 if(leaderboard.length > 10) var l = 10
@@ -1328,7 +1361,7 @@ var init = function(name) {
                 }
                 dropped = pack.dropped
                 dropped.forEach(item => {
-                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold'){
+                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold' || item.slot.image == 'diamond'){
                         ctx.drawImage(Img[item.slot.image], item.x + x - 20, item.y + y - 20, 40, 40)
                     }
                     if(/Axe|Pickaxe|Sword|Hammer/.test(item.slot.type)){
