@@ -362,7 +362,7 @@ var init = function(name) {
                 if(this.msg.length == 1 && i == 0){
                     ctx.globalAlpha = Math.abs(msgObj.per - 1)
                     ctx.textAlign = "center"
-                    ctx.font = '9px Zorque';
+                    ctx.font = '12px Arial';
                     ctx.strokeStyle = 'black';
                     ctx.lineWidth = 2;
                     ctx.beginPath()
@@ -372,7 +372,7 @@ var init = function(name) {
                 }else if(this.msg.length == 2 && i == 1){
                     ctx.globalAlpha = Math.abs(msgObj.per - 1)
                     ctx.textAlign = "center"
-                    ctx.font = '9px Zorque';
+                    ctx.font = '12px Arial';
                     ctx.strokeStyle = 'black';
                     ctx.lineWidth = 2;
                     ctx.beginPath()
@@ -382,7 +382,7 @@ var init = function(name) {
                 }else if(this.msg.length == 2 && i == 0){
                     ctx.globalAlpha = Math.abs(msgObj.per - 1)
                     ctx.textAlign = "center"
-                    ctx.font = '9px Zorque';
+                    ctx.font = '12px Arial';
                     ctx.strokeStyle = 'black';
                     ctx.lineWidth = 2;
                     ctx.beginPath()
@@ -398,21 +398,51 @@ var init = function(name) {
             ctx.scale(this.rad/25, this.rad/25)
             if (this.mainHand == 'hand') {
                 if (!(this.rhit)) {
-                    ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(32, 15, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
+                    //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
                 } else {
                     ctx.save();
                     ctx.translate(32 - 7.5, 15 - 7.5);
                     ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-160 * this.punchper + 80) + 80)))
-                    ctx.drawImage(Img.hand, 0, 0, 15, 15)
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(7.5, 7.5, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(7.5, 7.5, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
                     ctx.restore()
                 }
                 if (!(this.lhit)) {
                     ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
                 } else {
                     ctx.save();
                     ctx.translate(32 - 7.5, -(15 - 7.5));
                     ctx.rotate((Math.PI / 180) * (0 + (-Math.abs(-160 * this.punchper + 80) + 80)))
-                    ctx.drawImage(Img.hand, 0, 0 - 15, 15, 15)
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(7.5, -7.5, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(7.5, -7.5, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
                     ctx.restore();
                 }
             } else {
@@ -669,21 +699,51 @@ var init = function(name) {
             ctx.rotate((Math.PI / 180) * this.angle)
             ctx.scale(this.rad/25, this.rad/25)
             if (!(this.rhit)) {
-                ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(32, 15, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = 'maroon'
+                ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
+                //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
             } else {
                 ctx.save();
                 ctx.translate(32 - 7.5, 15 - 7.5);
                 ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-160 * this.punchper + 80) + 80)))
-                ctx.drawImage(Img.hand, 0, 0, 15, 15)
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(7.5, 7.5, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = 'maroon'
+                ctx.arc(7.5, 7.5, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
                 ctx.restore()
             }
             if (!(this.lhit)) {
                 ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = 'maroon'
+                ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
             } else {
                 ctx.save();
                 ctx.translate(32 - 7.5, -(15 - 7.5));
                 ctx.rotate((Math.PI / 180) * (0 + (-Math.abs(-160 * this.punchper + 80) + 80)))
-                ctx.drawImage(Img.hand, 0, 0 - 15, 15, 15)
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(7.5, -7.5, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = 'maroon'
+                ctx.arc(7.5, -7.5, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
                 ctx.restore();
             }
             
@@ -693,7 +753,7 @@ var init = function(name) {
             ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
             ctx.fill()
             ctx.beginPath()
-            ctx.fillStyle = '#C3C3C3'
+            ctx.fillStyle = 'crimson'
             ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
             ctx.fill()
             ctx.translate(currx, curry)

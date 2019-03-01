@@ -1006,7 +1006,6 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     if(!posd.size && !possible.size && !posctable.size) return
-                    console.log(disctable)
                     if(!this.crafting && ((!dis && !disctable)|| (dis > disd && disctable > disd &&!this.doors[nearestd].opening))){
                         let door = this.doors[nearestd]
                         if(door.ang == 'left' && !door.open){
@@ -2091,10 +2090,10 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750)){
+                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500)){
                     let possible = new Mapper()
                     Players.list.forEach((player, i)=> {
-                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
+                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500) possible.set(i, player)
                     })
                     let dis
                     let nearest
@@ -2134,11 +2133,14 @@ module.exports = function (nsp, ns) {
             if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
             x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
+            setTimeout(() => {
+                if(Vector.magnitude(this.body.velocity) < 1) this.updatePath(this.pos)
+            }, 10000)
             this.curr = 0
         }
         updateSpd() {
             this.move.att = false
-            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos))) this.updatePath()
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 1500 && !this.pos instanceof Player)) this.updatePath()
             if(!this.path || !this.path.length) return
             this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
             while(this.agro.find(player => player.health <= 0)){
@@ -2146,11 +2148,16 @@ module.exports = function (nsp, ns) {
             }
             var m = this.move
             let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
-            let n = path[this.curr]  
+            let n = path[this.curr]
+            if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
+            if(!this.path || !this.path.length) return
+            path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            n = path[this.curr]
             if(Players.list.find(player => Vector.getDistance(this.hposfr, player.body.position) < this.hrad + player.rad)) this.move.att = true
             else this.move.att = false
-            if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) return this.updatePath()
+            if(!n) return
             this.acc = Vector.create(0, 0)
+
             if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
             if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
             if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
@@ -2374,7 +2381,7 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750)){
+                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score >750)){
                     let possible = new Mapper()
                     Players.list.forEach((player, i)=> {
                         if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
@@ -2385,20 +2392,6 @@ module.exports = function (nsp, ns) {
                         possible.forEach((player, index) => {
                             if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
                             if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
-                        })
-                    }    
-                    this.pos = possible.get(nearest)
-                }else if(Destroyers.list.find(des => Vector.getDistance(des.body.position, this.body.position) < 700)){
-                    let possible = new Mapper()
-                    Destroyers.list.forEach((des, i)=> {
-                        if(Vector.getDistance(des.body.position, this.body.position) < 700) possible.set(i, des)
-                    })
-                    let dis
-                    let nearest
-                    if(possible.size){
-                        possible.forEach((des, index) => {
-                            if(!nearest){nearest = index; dis = Vector.getDistance(des.body.position, this.body.position); return}
-                            if(Vector.getDistance(des.body.position, this.body.position) < dis){dis = Vector.getDistance(des.body.position, this.body.position); nearest = index}
                         })
                     }    
                     this.pos = possible.get(nearest)
@@ -2438,7 +2431,7 @@ module.exports = function (nsp, ns) {
         }
         updateSpd() {
             this.move.att = false
-            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos) || (Destroyers.list.find(des => Vector.getDistance(this.body.position, des.body.position)) < 700 && !(this.pos instanceof Destroyer)))) this.updatePath()
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 600 + this.rad && player.score > 750 && !this.pos instanceof Player)) this.updatePath()
             if(!this.path || !this.path.length) return
             this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
             while(this.agro.find(player => player.health <= 0)){
@@ -2478,6 +2471,7 @@ module.exports = function (nsp, ns) {
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
             if(this.health > this.maxHealth) this.health = this.maxHealth
             this.updateSpd();
+            this.setHands()
             if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
             this.targets = []
             if (this.punch.reload.timer > 0) {
