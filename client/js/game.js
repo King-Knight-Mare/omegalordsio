@@ -677,6 +677,9 @@ var init = function(name) {
             this.lhit = initPack.lhit
             this.rhit = initPack.rhit
             this.rad = 30
+            this.kills = 0
+            this.bcolor = 'crimson'
+            this.hcolor = 'maroon'
             Demons.push(this)
         }
         draw(x, y) {
@@ -704,7 +707,7 @@ var init = function(name) {
                 ctx.arc(32, 15, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
                 //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
@@ -717,7 +720,7 @@ var init = function(name) {
                 ctx.arc(7.5, 7.5, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(7.5, 7.5, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.restore()
@@ -729,7 +732,7 @@ var init = function(name) {
                 ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
             } else {
@@ -741,7 +744,7 @@ var init = function(name) {
                 ctx.arc(7.5, -7.5, 7.5, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.beginPath()
-                ctx.fillStyle = 'maroon'
+                ctx.fillStyle = this.hcolor
                 ctx.arc(7.5, -7.5, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
                 ctx.restore();
@@ -753,7 +756,138 @@ var init = function(name) {
             ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
             ctx.fill()
             ctx.beginPath()
-            ctx.fillStyle = 'crimson'
+            ctx.fillStyle = this.bcolor
+            ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.translate(currx, curry)
+            ctx.rotate((Math.PI / 180) * this.angle)
+            ctx.fillStyle = 'black'
+            ctx.beginPath()
+            ctx.arc(0 + 9, 0 + 8, 6, 0, 2*Math.PI);
+            ctx.arc(0 + 9, 0 - 8, 6, 0, 2*Math.PI);
+            ctx.fill()
+            ctx.fillStyle = 'white'
+            ctx.beginPath()
+            ctx.arc(0 + 6.5, 0 + 7, 2.5, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
+            ctx.fill()
+            ctx.restore();
+            ctx.restore();
+        }
+        processInitpack(initPack) {
+            if(initPack.kills == 1){
+                this.rad = 32
+                this.hcolor = 'coral'
+                this.bcolor = 'orange'
+            }else if(initPack.kills == 2){
+                this.rad = 32
+                this.hcolor = 'khaki'
+                this.bcolor = 'yellow'
+            }
+            this.x = initPack.x
+            this.y = initPack.y
+            this.id = initPack.id
+            this.angle = initPack.angle
+            this.lhit = initPack.lhit
+            this.rhit = initPack.rhit
+            this.punchper = initPack.punchper
+        }
+    }
+    class Rabbit {
+        /**
+         * Creates a new Player
+         * @param {Number} x 
+         * @param {Number} y 
+         * @param {String} mainHand 
+         */
+        constructor(initPack) {
+            this.x = initPack.x
+            this.y = initPack.y
+            this.id = initPack.id
+            this.angle = initPack.angle
+            this.lhit = initPack.lhit
+            this.rhit = initPack.rhit
+            this.rad = 20
+            this.kills = 0
+            this.bcolor = 'white'
+            this.hcolor = 'grey'
+            Rabbits.push(this)
+        }
+        draw(x, y) {
+            ctx.restore()
+            ctx.save()
+            ctx.scale(this.rad/25, this.rad/25)
+            var hpBar = 80 * this.rad/25 * this.hp / this.maxHp
+            var currx = (this.x + x)/(this.rad/25)
+            var curry = (this.y + y)/(this.rad/25)
+            if(currx < -this.rad/25 || currx > canvas.width) return
+            if(curry < -this.rad/25 || curry > canvas.height) return
+            ctx.save();
+            
+            //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
+            
+            
+            ctx.save()
+            ctx.beginPath()
+            ctx.translate(currx, curry)
+            ctx.rotate((Math.PI / 180) * this.angle)
+            ctx.scale(this.rad/25, this.rad/25)
+            if (!(this.rhit)) {
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(32, 15, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = this.hcolor
+                ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
+                //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
+            } else {
+                ctx.save();
+                ctx.translate(32 - 7.5, 15 - 7.5);
+                ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-160 * this.punchper + 80) + 80)))
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(7.5, 7.5, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = this.hcolor
+                ctx.arc(7.5, 7.5, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.restore()
+            }
+            if (!(this.lhit)) {
+                ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = this.hcolor
+                ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
+            } else {
+                ctx.save();
+                ctx.translate(32 - 7.5, -(15 - 7.5));
+                ctx.rotate((Math.PI / 180) * (0 + (-Math.abs(-160 * this.punchper + 80) + 80)))
+                ctx.beginPath()
+                ctx.fillStyle = 'black'
+                ctx.arc(7.5, -7.5, 7.5, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.fillStyle = this.hcolor
+                ctx.arc(7.5, -7.5, 7.5 - 2, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.restore();
+            }
+            
+            ctx.restore()
+            ctx.beginPath()
+            ctx.fillStyle = '#000010'
+            ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.beginPath()
+            ctx.fillStyle = this.bcolor
             ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
             ctx.fill()
             ctx.translate(currx, curry)
@@ -870,7 +1004,7 @@ var init = function(name) {
               this.punchper = initPack.punchper
           }
       }
-    var CTrees = new Map()
+    var CTrees = new Map() 
     class CTree {
         constructor(pack){
             this.x = pack.x
@@ -930,6 +1064,18 @@ var init = function(name) {
         }
         show(x, y){
             ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var CarrotFarms = new Map()
+    class CarrotFarm {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            CarrotFarms.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['carrotfarm'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
     var Walls = new Map()
@@ -1114,6 +1260,7 @@ var init = function(name) {
     var Players = []
     let Demons = []
     let Destroyers = []
+    let Rabbits = []
     var ctx = canvas.getContext('2d');
     var playa;
     /**
@@ -1175,6 +1322,14 @@ var init = function(name) {
             if(Destroyers.find(des => des.id == initPack.id)) return
             new Destroyer(initPack)
         })
+        pack.cfarm.forEach((initPack)=>{
+            new CarrotFarm(initPack)
+        })
+        pack.rabbit.forEach((initPack)=>{
+            if(Rabbits.find(rabbit => rabbit.id == initPack.id)) return
+            console.log(initPack)
+            new Rabbit(initPack)
+        })
     }
     readRemovePack = function(pack) {
         pack.player.forEach(function(id) {
@@ -1189,6 +1344,11 @@ var init = function(name) {
         })
         pack.destroyer.forEach(function(id) {
             Destroyers.splice(Destroyers.findIndex(function(element) {
+                return element.id == id
+            }), 1)
+        })
+        pack.rabbit.forEach(function(id) {
+            Rabbits.splice(Rabbits.findIndex(function(element) {
                 return element.id == id
             }), 1)
         })
@@ -1218,6 +1378,11 @@ var init = function(name) {
         })
         pack.ctable.forEach((id) => {
             CraftingTables.delete(id)
+        })
+        pack.cfarm.forEach((id)=>{
+            console.log(CarrotFarms)
+            console.log(id)
+            CarrotFarms.delete(id)
         })
     }
     socket.on('death', die)
@@ -1264,6 +1429,13 @@ var init = function(name) {
                     })
                     toUpdate.processInitpack(pack)
                 })
+                pack.rabbit.forEach(function(pack) {
+                    var toUpdate = Rabbits.find(function(element) {
+                        return element.id === pack.id
+                    })
+                    //console.log(pack)
+                    toUpdate.processInitpack(pack)
+                })
                 pack.tree.forEach(pack => {
                     var toUpdate = CTrees.get(pack.id)
                     //document.write(pack.leaves)
@@ -1301,6 +1473,9 @@ var init = function(name) {
                 CraftingTables.forEach((ctable) => {
                     ctable.show(x, y)
                 })
+                CarrotFarms.forEach((ctable) => {
+                    ctable.show(x, y)
+                })
                 leaderboard = pack.leaderboard
                 ctx.beginPath()
                 if(leaderboard.length > 10) var l = 10
@@ -1328,7 +1503,7 @@ var init = function(name) {
                 }
                 dropped = pack.dropped
                 dropped.forEach(item => {
-                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold'){
+                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold' || item.slot.image == 'diamond'){
                         ctx.drawImage(Img[item.slot.image], item.x + x - 20, item.y + y - 20, 40, 40)
                     }
                     if(/Axe|Pickaxe|Sword|Hammer/.test(item.slot.type)){
@@ -1385,6 +1560,9 @@ var init = function(name) {
                 })
                 Destroyers.forEach(function(demon) {
                     demon.draw(x, y)
+                })
+                Rabbits.forEach(function(rabbit) {
+                    rabbit.draw(x, y)
                 })
                 ctx.restore();
                 if(playa.crafting && playa.craftablesEx){

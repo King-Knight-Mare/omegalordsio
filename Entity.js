@@ -25,7 +25,7 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
-    let timeOfDay = 'night'
+    let timeOfDay = 'day'
     let dayTimeout
     let setDayTimeout = () => {
         dayTimeout = new Timeout(() => {
@@ -44,10 +44,10 @@ module.exports = function (nsp, ns) {
         height:5000
     }
     let walls = {
-        top:Bodies.rectangle(this.map.width/2, -10, this.map.width, 20, {isStatic:true}),
-        bottom:Bodies.rectangle(this.map.width/2, this.map.height + 10, this.map.width, 20, {isStatic:true}),
-        left:Bodies.rectangle(-10, this.map.height/2, 20, this.map.height, {isStatic:true}),
-        right:Bodies.rectangle(this.map.width + 10, this.map.height/2, 20, this.map.height, {isStatic:true})
+        top:Bodies.rectangle(this.map.width/2, -500, this.map.width, 1000, {isStatic:true}),
+          bottom:Bodies.rectangle(this.map.width/2, this.map.height + 500, this.map.width, 1000, {isStatic:true}),
+        left:Bodies.rectangle(-500, this.map.height/2, 1000, this.map.height, {isStatic:true}),
+        right:Bodies.rectangle(this.map.width + 500, this.map.height/2, 1000, this.map.height, {isStatic:true})
     }
     World.add(engine.world, [ 
         walls.top, 
@@ -1072,6 +1072,7 @@ module.exports = function (nsp, ns) {
                         let goldtargs = []
                         let diamondtargs = []
                         let walltargs = []
+                        let rtargs = []
                         this.axe.ready = false
                         this.hitting = true
                         this.axe.timeout = new Timeout(() => {
@@ -1097,6 +1098,12 @@ module.exports = function (nsp, ns) {
                             var d = Destroyers.list[i]
                             if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
                                 destargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                rtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1211,6 +1218,12 @@ module.exports = function (nsp, ns) {
                                     this.score += 600
                                 }
                             })
+                            rtargs.forEach( des => {
+                                des.health -= this.axe[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
+                                }
+                            })
                         }, 2500/3)
                     }
                     if(/Pickaxe/.test(this.mainHands) && this.pickaxe.ready && this.move.att){
@@ -1235,6 +1248,7 @@ module.exports = function (nsp, ns) {
                         let dtargs = []
                         let destargs = []
                         let walltargs = []
+                        let rtargs = []
                         this.pickaxe.ready = false
                         this.hitting = true
                         this.pickaxe.timeout = new Timeout(() => {
@@ -1266,6 +1280,12 @@ module.exports = function (nsp, ns) {
                             var d = Destroyers.list[i]
                             if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
                                 destargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
+                                rtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1333,6 +1353,12 @@ module.exports = function (nsp, ns) {
                                 if(!des.agro.find(p => p == this)) des.agro.push(this)
                                 if (p.health <= 0) {
                                     this.score += 600
+                                }
+                            })
+                            rtargs.forEach( des => {
+                                des.health -= this.pickaxe[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
                                 }
                             })
                             self.needsSelfUpdate = true
@@ -1455,6 +1481,7 @@ module.exports = function (nsp, ns) {
                         let targs = []
                         let dtargs = []
                         let destargs = []
+                        let rtargs = []
                         this.sword.ready = false
                         this.hitting = true
                         this.sword.timeout = new Timeout(() => {
@@ -1482,6 +1509,12 @@ module.exports = function (nsp, ns) {
                                 destargs.push(d)
                             }
                         }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
+                                rtargs.push(d)
+                            }
+                        }
                         let self = this
                         new Timeout(() => {
                             targs.forEach( p => {
@@ -1502,6 +1535,12 @@ module.exports = function (nsp, ns) {
                                 if(!des.agro.find(p => p == this)) des.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 600
+                                }
+                            })
+                            rtargs.forEach( des => {
+                                des.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
                                 }
                             })
                         }, 2500/3)
@@ -1528,6 +1567,7 @@ module.exports = function (nsp, ns) {
                         let dtargs = []
                         let destargs = []
                         let walltargs = []
+                        let rtargs = []
                         this.hammer.ready = false
                         this.hitting = true
                         this.hammer.timeout = new Timeout(() => {
@@ -1553,6 +1593,12 @@ module.exports = function (nsp, ns) {
                             var des = Destroyers.list[i]
                             if (Vector.getDistance(axep, d.body.position) < des.rad + axerad) {
                                 destargs.push(des)
+                            }
+                        }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                rtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1645,6 +1691,12 @@ module.exports = function (nsp, ns) {
                                 if(!des.agro.find(p => p == this)) des.agro.push(this)
                                 if (des.health <= 0) {
                                     this.score += 600
+                                }
+                            })
+                            rtargs.forEach( des => {
+                                des.health -= this.hammer[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
                                 }
                             })
                         }, 2500/3)
@@ -2381,7 +2433,7 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score >750)){
+                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750)){
                     let possible = new Mapper()
                     Players.list.forEach((player, i)=> {
                         if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
@@ -2431,7 +2483,7 @@ module.exports = function (nsp, ns) {
         }
         updateSpd() {
             this.move.att = false
-            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 600 + this.rad && player.score > 750 && !this.pos instanceof Player)) this.updatePath()
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 600 + this.rad && player.score > -1 && !this.pos instanceof Player)) this.updatePath()
             if(!this.path || !this.path.length) return
             this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
             while(this.agro.find(player => player.health <= 0)){
@@ -2515,8 +2567,286 @@ module.exports = function (nsp, ns) {
                 this.targets.forEach( p => {
                     p.health -= this.punch.damage
                     if (p.health <= 0) {
+                        this.kills++
+                        if(this.kills == 1){
+                            this.rad = 40
+                            World.remove(engine.world, this.body)
+                            this.body = Bodies.circle(this.body.position.x, this.body.position.y, this.rad, {frictionAir:0.02, restitution:0.15})
+                            World.addBody(engine.world, this.body)
+                        }else if(this.kills == 2){
+                            this.rad = 45
+                            World.remove(engine.world, this.body)
+                            this.body = Bodies.circle(this.body.position.x, this.body.position.y, this.rad, {frictionAir:0.02, restitution:0.15})
+                            World.addBody(engine.world, this.body)
+                        }else if(this.kills == 3){
+                            this.health = 0
+                            new Destroyer(this.body.position.x, this.body.position.y)
+                        }
+                        
+                    }
+                })
+            }
+        }
+        getUpdatePack() {
+            var pack = {
+                x: this.body.position.x,
+                y: this.body.position.y,
+                id: this.id,
+                angle: this.move.ang,
+                lhit: this.lhit,
+                rhit: this.rhit,
+                kills: this.kills
+            }
+            if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
+            return pack
+        }
+        setHands(){
+            this.hrad = this.rad/25 * 7.5
+            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            Vector.add(this.body.position, this.hposfl, this.hposfl)
+
+            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            Vector.add(this.body.position, this.hposfr, this.hposfr)
+        }
+    }
+    class Rabbit extends EventEmitter{
+        /**
+         * @param {String} id 
+         * @param {String} usr 
+         */
+        constructor(x, y) {
+            super()
+            this.rad = 20
+            this.id = Math.random()
+            this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
+            World.addBody(engine.world, this.body)
+            this.bullets = [];
+            this.agro = []
+            this.punch = {
+                speed: 3,
+                ready:true,
+                reload: {
+                    speed: 20,
+                    timer: 0
+                },
+                damage: 1.25,
+                health: 1,
+            }
+            this.hands = {
+                l: {
+                    hit: false,
+                },
+                r: {
+                    hit: false,
+                }
+            }
+            this.move = {
+                r: false,
+                l: false,
+                u: false,
+                d: false,
+                att: false,
+                run:false,
+                ang: 0,
+                mdis:0
+            }
+            this.hrad = this.rad/25 * 7.5
+            this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            this.hposfl.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
+            Vector.add(this.body.position, this.hposfl, this.hposfl)
+
+            this.hposfr = Vector.create(0, -35.34119409414458 * this.rad/25)
+            this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
+            Vector.add(this.body.position, this.hposfr, this.hposfr)
+            this.next = 'l'
+            this.lhit = false
+            this.rhit = false
+            this.maxSpd = 4;
+            this.health = 5;
+            this.maxHealth = 5;
+            this.stamina = 20
+            this.maxStamina = 20
+            var self = this
+            this.bulletSpeed = 1;
+            this.targets = []
+            this.treetargs = []
+            this.stonetargs = []
+            this.kills = 0;
+            this.needsUpdate = false
+            this.needsSelfUpdate = false
+            this.mainHands = 'hand'
+            /*this.afkTimer = setTimeout(function () {
+                self.dead = true
+                setInterval(function () {
+                    self.health -= self.maxHealth / 100
+                }, 100)
+            }, 10000);*/
+            this.dead = false;
+            initPack.rabbit.push({
+                x: this.body.position.x,
+                y: this.body.position.y,
+                id: this.id,
+                angle: this.move.ang,
+                lhit: this.lhit,
+                rhit: this.rhit
+            })
+            Rabbits.list.push(this);
+            this.pathTimer = null
+        }
+        updatePath(pos) {
+            if(this.pathTimer) clearTimeout(this.pathTimer)
+            if(!pos){ 
+                this.pos = null
+                this.path = null
+                if(CarrotFarms.list.find(cfarm => Vector.getDistance(cfarm.body.position, this.body.position) < 700 + this.rad)){
+                    let possible = new Mapper()
+                    CarrotFarms.list.forEach((cfarm, i)=> {
+                        if(Vector.getDistance(cfarm.body.position, this.body.position) < 700 + this.rad) possible.set(i, cfarm)
+                    })
+                    let dis
+                    let nearest
+                    if(possible.size){
+                        possible.forEach((cfarm, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(cfarm.body.position, this.body.position); return}
+                            if(Vector.getDistance(cfarm.body.position, this.body.position) < dis){dis = Vector.getDistance(cfarm.body.position, this.body.position); nearest = index}
+                        })
+                    }    
+                    this.pos = possible.get(nearest)
+                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
+                    let canReach = []
+                    if(Stones.list.length) canReach.push('stone')
+                    if(Irons.list.length) canReach.push('iron')
+                    if(Golds.list.length) canReach.push('gold')
+                    if(Diamonds.list.length) canReach.push('diamond')
+                    let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
+                    if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
+                    if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
+                    if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
+                    if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                }
+                if(!this.pos) return this.path = null
+            }
+            let grid = new PF.Grid(game.map.width/100, game.map.width/100)
+            let finder = new PF.AStarFinder()
+            STrees.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Stones.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            if(this.pos.x) grid.setWalkableAt((this.pos.x - 50)/100, (this.pos.y - 50)/100, true)
+            let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
+            let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
+            let fx = Math.roundToDeca(this.pos.body.position.x - 50, 100)/100
+            let fy = Math.roundToDeca(this.pos.body.position.y - 50, 100)/100
+            if(x > game.map.width/100 - 1|| y > game.map.width/100 - 1 || fx > game.map.width/100 - 1|| fy > game.map.width/100 - 1 || 
+            x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
+            this.path = finder.findPath(x, y, fx, fy, grid)
+            setTimeout(() => {
+                if(Vector.magnitude(this.body.velocity) < 1) this.updatePath(this.pos)
+            }, 10000)
+            this.curr = 0
+        }
+        updateSpd() {
+            this.move.att = false
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || CarrotFarms.list.find(cfarm => Vector.getDistance(cfarm.body.position, this.body.position) < 700 + this.rad && !this.pos instanceof CarrotFarm)) this.updatePath()
+            if(!this.path || !this.path.length) return
+            this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
+            while(this.agro.find(player => player.health <= 0)){
+                this.agro.splice(this.agro.findIndex(element => element.health <= 0), 1)
+            }
+            var m = this.move
+            let path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            let n = path[this.curr]
+            if(!n || this.pos.health <= 0 || Vector.getDistance(this.pos.body.position, path[path.length - 1]) > 500) this.updatePath()
+            if(!this.path || !this.path.length) return
+            path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
+            n = path[this.curr]
+            if(CarrotFarms.list.find(cfarm => Vector.getDistance(this.hposfr, cfarm.body.position) < this.hrad + 70.7)) this.move.att = true
+            else this.move.att = false
+            if(!n) return
+            this.acc = Vector.create(0, 0)
+
+            if(this.body.position.x < n.x) this.acc.x += this.maxSpd/3500
+            if(this.body.position.x > n.x) this.acc.x -= this.maxSpd/3500
+            if(this.body.position.y < n.y) this.acc.y += this.maxSpd/3500
+            if(this.body.position.y > n.y) this.acc.y -= this.maxSpd/3500
+            if(Vector.getDistance(this.body.position, n) < 70.7 + this.rad) this.curr++
+            Body.applyForce(this.body, this.body.position, this.acc)
+        }
+        update() {
+            if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
+                this.maxSpd = 3
+                this.stamina -= this.maxStamina/5/60
+                this.needsSelfUpdate = true
+            }else if(this.stamina < this.maxStamina){
+                this.maxSpd = 2
+                if(Vector.magnitude(this.acc) <= 0) this.stamina += this.maxStamina/25/60
+                else this.stamina += this.maxStamina/100/60
+                this.needsSelfUpdate = true
+            }
+            this.health += this.health/50/60
+            if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
+            if(this.health > this.maxHealth) this.health = this.maxHealth
+            this.updateSpd();
+            this.setHands()
+            if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
+            this.targets = []
+            if (this.punch.reload.timer > 0) {
+                this.punch.reload.timer--
+            } 
+            if (this.move.att) {
+                    this.hit()
+            }
+        }
+        hit(){        
+            if (this.punch.ready) {
+                //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
+                this.punch.ready = false
+                this.punch.timeout = new Timeout(() => {
+                    this.punch.timeout = null
+                    this.punch.ready = true
+                    this.lhit =  false
+                    this.rhit = false
+                }, 1500/3)
+                let targs = []
+                CarrotFarms.list.forEach(cfarm => {
+                    if(Vector.getDistance(cfarm.body.position, this.hposfr) < 70.7 + this.hrad) targs.push(cfarm)
+                })
+                for (var i = 0; i < Players.list.length; i++) {
+                    var p = Players.list[i]
+                    if ((
+                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad || 
+                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad) && this.id != p.id) {
+                        this.targets.push(p)
+                    }
+                }
+               
+                if (this.next == 'l' && this.lhit == false && this.rhit == false) {
+                    this.lhit = true
+                    this.next = 'r'
+                } else if (this.next == 'r' && this.lhit == true) {
+                    this.lhit = false
+                } else if (this.next == 'r' && this.rhit == false) {
+                    this.rhit = true
+                    this.next = 'l'
+                } else if (this.next == 'l' && this.rhit == true) {
+                    this.rhit = false
+                }
+                this.punch.reload.timer = this.punch.reload.speed
+                this.targets.forEach( p => {
+                    p.health -= this.punch.damage
+                    if (p.health <= 0) {
                         this.score += p.score/2 + 2
                     }
+                })
+                targs.forEach(cfarm => {
+                    cfarm.health -= 2.5
                 })
             }
         }
@@ -2747,6 +3077,57 @@ module.exports = function (nsp, ns) {
             })
             return pack
         }
+    }
+    var CarrotFarms = {
+        list:[],
+        update:function(){
+            var pack = []
+            CarrotFarms.list.forEach(cfarm => {
+                if(cfarm.needsUpdate) pack.push(cfarm.getUpdatePack())
+                if(cfarm.health <= 0) {
+                    removePack.cfarm.push(cfarm.id)
+                    clearTimeout(cfarm.deathTimeout)
+                    CarrotFarms.list.splice(CarrotFarms.list.findIndex(function (element) {
+                        return element.id === cfarm.id
+                    }), 1);
+                    World.remove(engine.world, cfarm.body)
+                }
+            })
+            return pack
+        }
+    }
+    class CarrotFarm {
+        constructor(x, y){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 100
+            this.deathTimeout = setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.stone.push(this.id)
+                CarrotFarms.list.splice(CarrotFarms.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 400000)
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            CarrotFarms.list.push(this)
+            initPack.cfarm.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
+        
     }
     class Stone {
         constructor(x, y){
@@ -3225,7 +3606,8 @@ module.exports = function (nsp, ns) {
                         return element.id === demon.id
                     }), 1);
                     World.remove(engine.world, demon.body)
-                    /*let toDrop = demon.inventory.findAll(slot => slot !== 'empty') 
+                    let drops = [new Slot('diamond', 5, 'diamond'), new Slot('diamond', 5, 'diamond'), new Slot('diamond', 5, 'diamond'), new Slot('diamond', 5, 'diamond')]
+                    let toDrop = drops
                     toDrop.forEach((slot, i) => {
                         let a = 360/toDrop.length
                         let ang = a * i + 77
@@ -3246,10 +3628,48 @@ module.exports = function (nsp, ns) {
                         }
                         dropped.push(self)
                     })
-                    */
                 }
                 pack.push(demon.getUpdatePack())
             }
+            return pack;
+        }
+    }
+    var Rabbits = {
+        list: [],
+        update: () => {
+            var pack = [];
+            Rabbits.list.forEach(rabbit => {
+                if(rabbit.health <= 0){
+                    removePack.rabbit.push(rabbit.id)
+                    Rabbits.list.splice(Rabbits.list.findIndex(function (element) {
+                        return element.id === rabbit.id
+                    }), 1);
+                    World.remove(engine.world, rabbit.body)
+                    let drops = [new Slot('carrot', 5, 'carrot'), new Slot('carrot', 5, 'carrot'), new Slot('carrot', 5, 'carrot'), new Slot('carrot', 5, 'carrot')]
+                    let toDrop = drops
+                    toDrop.forEach((slot, i) => {
+                        let a = 360/toDrop.length
+                        let ang = a * i + 77
+                        let offset = Vector.create(0, rabbit.rad + 20)
+                        
+                        offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                        Vector.add(rabbit.body.position, offset, offset)
+                        let self = {
+                            item:slot,
+                            x:offset.x,
+                            y:offset.y, 
+                            timeout:new Timeout(() => {
+                                dropped.splice(dropped.findIndex(function (element) {
+                                    return element === self
+                                }), 1);
+                            }, 5000)
+                        }
+                        dropped.push(self)
+                    })
+                }
+                pack.push(rabbit.getUpdatePack())
+            })
             return pack;
         }
     }
@@ -3294,7 +3714,9 @@ module.exports = function (nsp, ns) {
         floor:[],
         demon:[],
         destroyer:[],
-        ctable:[]
+        ctable:[],
+        cfarm:[],
+        rabbit:[]
     }
     var removePack = {
         player: [],
@@ -3309,7 +3731,9 @@ module.exports = function (nsp, ns) {
         floor:[],
         demon:[],
         destroyer:[],
-        ctable:[]
+        ctable:[],
+        cfarm:[],
+        rabbit:[]
     } 
     let dropped = []
     var self = this
@@ -3322,7 +3746,9 @@ module.exports = function (nsp, ns) {
         if(Golds.list.length < 16) canAdd.push('gold')
         if(Diamonds.list.length < 10) canAdd.push('diamond')
         if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
-        if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0 && dayTimeout.percntDone < 1) canAdd.push('destroyer')
+        if(CarrotFarms.list.length < 12) canAdd.push('cfarm')
+        if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
+        if(Rabbits.list.length < 4 && timeOfDay == 'day') canAdd.push('rabbit')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
@@ -3357,11 +3783,17 @@ module.exports = function (nsp, ns) {
         Floors.list.forEach(floor => {
             if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
         })
+        CarrotFarms.list.forEach(cfarm => {
+            if(tempx == cfarm.body.position.x && tempy == cfarm.body.position.y) inWay = true
+        })
         Demons.list.forEach(demon => {
             if(Vector.getDistance({x:tempx, y:tempy}, demon.body.position) <= 150) inWay = true
         })
         Destroyers.list.forEach(des => {
             if(Vector.getDistance({x:tempx, y:tempy}, des.body.position) <= 150) inWay = true
+        })
+        Rabbits.list.forEach(rabbit => {
+            if(Vector.getDistance({x:tempx, y:tempy}, rabbit.body.position) <= 150) inWay = true
         })
         if(inWay) return
         if(willAdd == 'tree') new STree(tempx, tempy, 10)
@@ -3371,6 +3803,8 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
         if(willAdd == 'demon') new Demon(tempx, tempy)
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
@@ -3496,7 +3930,9 @@ module.exports = function (nsp, ns) {
                 floor:[],
                 demon:[],
                 destroyer:[],
-                ctable:[]
+                ctable:[],
+                cfarm:[],
+                rabbit:[]
               
             }
             Players.list.forEach(function (player) {
@@ -3511,6 +3947,8 @@ module.exports = function (nsp, ns) {
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
             CraftingTables.list.forEach( ctable => pack.ctable.push(ctable.getInitPack()))
+            CarrotFarms.list.forEach( cfarm => pack.cfarm.push(cfarm.getInitPack()))
+            Rabbits.list.forEach( rabbit => pack.rabbit.push(rabbit.getUpdatePack()))
             Demons.list.forEach(function (demon) {
                 pack.demon.push(demon.getUpdatePack())
             })
@@ -3527,10 +3965,12 @@ module.exports = function (nsp, ns) {
             
         });
     })
-        new Demon(50, 50)
+    //new Demon(150, 150)
+    new CarrotFarm(50, 50)
     setInterval(() => {
         Demons.list.forEach(demon => demon.update())
         Destroyers.list.forEach(des => des.update())
+        Rabbits.list.forEach(rabbit => rabbit.update())
     }, 1000/60)
     setInterval(function () {
         if (Players.list[0] === undefined) return
@@ -3549,10 +3989,12 @@ module.exports = function (nsp, ns) {
             wall:Walls.update(),
             door:Doors.update(),
             floor:Floors.update(),
+            cfarm:CarrotFarms.update(),
+            rabbit:Rabbits.update(),
             leaderboard: leaderboard.getUpdate(),
             dropped:dropped.map((item, i) => ({
                 slot:{
-                    type:item.item.id,
+                    type:item.item .id,
                     image:item.item.image
                 },
                 x:item.x,
@@ -3582,7 +4024,9 @@ module.exports = function (nsp, ns) {
                     floor:[],
                     demon:[],
                     destroyer:[],
-                    ctable:[]
+                    ctable:[],
+                    cfarm:[],
+                    rabbit:[]
                 }
             }
         }
@@ -3607,7 +4051,9 @@ module.exports = function (nsp, ns) {
                     floor:[],
                     demon:[],
                     destroyer:[],
-                    ctable:[]
+                    ctable:[],
+                    cfarm:[],
+                    rabbit:[]
                 }
             }
         }
