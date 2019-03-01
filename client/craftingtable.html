@@ -1,0 +1,71 @@
+<head>
+  <style>
+    body {
+        width:100%;
+        height:100%;
+        margin:0
+    }
+    #ctx {
+        width:100%;
+        height:100%
+        
+    }
+  </style>
+</head>
+<body>
+  <canvas id="ctx"></canvas>
+
+<script>
+    let ctx = document.getElementById('ctx').getContext('2d')
+    let canvas = document.getElementById('ctx')
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    let Img = {
+        
+    }
+    
+    let createImage = (src, extention) => {
+        Img[`${src}`] = new Image()
+        Img[`${src}`].src = `/client/img/${src}.${extention}`
+    }
+    createImage('stonesword', 'png')
+    
+    createImage('stoneaxe', 'png')
+  
+    createImage('stonepickaxe', 'png')
+  
+    createImage('stonehammer', 'png')
+    Img.stonehammer.onload = e => {
+        ctx.fillStyle = '#808080'
+        ctx.fillRect(0, 0 , 200, 200)
+        ctx.fillStyle = '#4E2D05'
+        ctx.fillRect(10, 10 , 180, 180)
+        ctx.fillStyle = '#8D5010'
+        ctx.fillRect(10, 100 - 8.5 , 180, 17)
+        ctx.fillRect(100 - 8.5, 10 , 17, 180)
+        ctx.save()
+        ctx.translate(10 + 35, 10 + 35)
+        ctx.rotate(45 * Math.PI / 180)
+        ctx.drawImage(Img.stonesword, -25, -35, 70, 70)
+        ctx.restore()
+        ctx.save()
+        ctx.translate(110 + 35, 10 + 35)
+        ctx.rotate(45 * Math.PI / 180)
+        ctx.drawImage(Img.stoneaxe, -30, -30, 70, 70)
+        ctx.restore()
+        ctx.save()
+        ctx.translate(10 + 35, 110 + 35)
+        ctx.rotate(45 * Math.PI / 180)
+        ctx.drawImage(Img.stonepickaxe, -30, -30, 70, 70)
+        ctx.restore()
+        ctx.save()
+        ctx.translate(110 + 35, 110 + 35)
+        ctx.rotate(45 * Math.PI / 180)
+        ctx.drawImage(Img.stonehammer, -30, -30, 70, 70)
+        ctx.restore()
+        //ctx.drawImage(Img['stonehammer'], 0, 0, 200, 200)
+    }
+    //createImage('ironsword', 'png')
+    //createImage('ironpickaxe', 'png')
+</script>
+</body>
