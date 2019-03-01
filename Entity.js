@@ -25,7 +25,7 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
-    let timeOfDay = 'night'
+    let timeOfDay = 'day'
     let dayTimeout
     let setDayTimeout = () => {
         dayTimeout = new Timeout(() => {
@@ -40,8 +40,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:1000,
-        height:1000
+        width:5000,
+        height:5000
     }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -500, this.map.width, 1000, {isStatic:true}),
@@ -1072,6 +1072,7 @@ module.exports = function (nsp, ns) {
                         let goldtargs = []
                         let diamondtargs = []
                         let walltargs = []
+                        let rtargs = []
                         this.axe.ready = false
                         this.hitting = true
                         this.axe.timeout = new Timeout(() => {
@@ -1097,6 +1098,12 @@ module.exports = function (nsp, ns) {
                             var d = Destroyers.list[i]
                             if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
                                 destargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                rtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1211,6 +1218,12 @@ module.exports = function (nsp, ns) {
                                     this.score += 600
                                 }
                             })
+                            rtargs.forEach( des => {
+                                des.health -= this.axe[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
+                                }
+                            })
                         }, 2500/3)
                     }
                     if(/Pickaxe/.test(this.mainHands) && this.pickaxe.ready && this.move.att){
@@ -1235,6 +1248,7 @@ module.exports = function (nsp, ns) {
                         let dtargs = []
                         let destargs = []
                         let walltargs = []
+                        let rtargs = []
                         this.pickaxe.ready = false
                         this.hitting = true
                         this.pickaxe.timeout = new Timeout(() => {
@@ -1266,6 +1280,12 @@ module.exports = function (nsp, ns) {
                             var d = Destroyers.list[i]
                             if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
                                 destargs.push(d)
+                            }
+                        }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(paxep, d.body.position) < d.rad + paxerad) {
+                                rtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1333,6 +1353,12 @@ module.exports = function (nsp, ns) {
                                 if(!des.agro.find(p => p == this)) des.agro.push(this)
                                 if (p.health <= 0) {
                                     this.score += 600
+                                }
+                            })
+                            rtargs.forEach( des => {
+                                des.health -= this.pickaxe[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
                                 }
                             })
                             self.needsSelfUpdate = true
@@ -1455,6 +1481,7 @@ module.exports = function (nsp, ns) {
                         let targs = []
                         let dtargs = []
                         let destargs = []
+                        let rtargs = []
                         this.sword.ready = false
                         this.hitting = true
                         this.sword.timeout = new Timeout(() => {
@@ -1482,6 +1509,12 @@ module.exports = function (nsp, ns) {
                                 destargs.push(d)
                             }
                         }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
+                                rtargs.push(d)
+                            }
+                        }
                         let self = this
                         new Timeout(() => {
                             targs.forEach( p => {
@@ -1502,6 +1535,12 @@ module.exports = function (nsp, ns) {
                                 if(!des.agro.find(p => p == this)) des.agro.push(this)
                                 if (d.health <= 0) {
                                     this.score += 600
+                                }
+                            })
+                            rtargs.forEach( des => {
+                                des.health -= this.sword[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
                                 }
                             })
                         }, 2500/3)
@@ -1528,6 +1567,7 @@ module.exports = function (nsp, ns) {
                         let dtargs = []
                         let destargs = []
                         let walltargs = []
+                        let rtargs = []
                         this.hammer.ready = false
                         this.hitting = true
                         this.hammer.timeout = new Timeout(() => {
@@ -1553,6 +1593,12 @@ module.exports = function (nsp, ns) {
                             var des = Destroyers.list[i]
                             if (Vector.getDistance(axep, d.body.position) < des.rad + axerad) {
                                 destargs.push(des)
+                            }
+                        }
+                        for (var i = 0; i < Rabbits.list.length; i++) {
+                            var d = Rabbits.list[i]
+                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
+                                rtargs.push(d)
                             }
                         }
                         this.game.STrees.list.forEach(tree => {
@@ -1645,6 +1691,12 @@ module.exports = function (nsp, ns) {
                                 if(!des.agro.find(p => p == this)) des.agro.push(this)
                                 if (des.health <= 0) {
                                     this.score += 600
+                                }
+                            })
+                            rtargs.forEach( des => {
+                                des.health -= this.hammer[u].damage
+                                if (d.health <= 0) {
+                                    this.score += 25
                                 }
                             })
                         }, 2500/3)
@@ -2381,10 +2433,10 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > -1)){
+                }else if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750)){
                     let possible = new Mapper()
                     Players.list.forEach((player, i)=> {
-                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > -1) possible.set(i, player)
+                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
                     })
                     let dis
                     let nearest
@@ -2568,7 +2620,7 @@ module.exports = function (nsp, ns) {
          */
         constructor(x, y) {
             super()
-            this.rad = 30
+            this.rad = 20
             this.id = Math.random()
             this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
             World.addBody(engine.world, this.body)
@@ -2616,8 +2668,8 @@ module.exports = function (nsp, ns) {
             this.lhit = false
             this.rhit = false
             this.maxSpd = 4;
-            this.health = 20;
-            this.maxHealth = 20;
+            this.health = 5;
+            this.maxHealth = 5;
             this.stamina = 20
             this.maxStamina = 20
             var self = this
@@ -2652,17 +2704,17 @@ module.exports = function (nsp, ns) {
             if(!pos){ 
                 this.pos = null
                 this.path = null
-                if(Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score >750)){
+                if(CarrotFarms.list.find(cfarm => Vector.getDistance(cfarm.body.position, this.body.position) < 700 + this.rad)){
                     let possible = new Mapper()
-                    Players.list.forEach((player, i)=> {
-                        if(Vector.getDistance(player.body.position, this.body.position) < 700 + this.rad && player.score > 750) possible.set(i, player)
+                    CarrotFarms.list.forEach((cfarm, i)=> {
+                        if(Vector.getDistance(cfarm.body.position, this.body.position) < 700 + this.rad) possible.set(i, cfarm)
                     })
                     let dis
                     let nearest
                     if(possible.size){
-                        possible.forEach((player, index) => {
-                            if(!nearest){nearest = index; dis = Vector.getDistance(player.body.position, this.body.position); return}
-                            if(Vector.getDistance(player.body.position, this.body.position) < dis){dis = Vector.getDistance(player.body.position, this.body.position); nearest = index}
+                        possible.forEach((cfarm, index) => {
+                            if(!nearest){nearest = index; dis = Vector.getDistance(cfarm.body.position, this.body.position); return}
+                            if(Vector.getDistance(cfarm.body.position, this.body.position) < dis){dis = Vector.getDistance(cfarm.body.position, this.body.position); nearest = index}
                         })
                     }    
                     this.pos = possible.get(nearest)
@@ -2702,7 +2754,7 @@ module.exports = function (nsp, ns) {
         }
         updateSpd() {
             this.move.att = false
-            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 600 + this.rad && player.score > 750 && !this.pos instanceof Player)) this.updatePath()
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || CarrotFarms.list.find(cfarm => Vector.getDistance(cfarm.body.position, this.body.position) < 700 + this.rad && !this.pos instanceof CarrotFarm)) this.updatePath()
             if(!this.path || !this.path.length) return
             this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
             while(this.agro.find(player => player.health <= 0)){
@@ -2715,7 +2767,7 @@ module.exports = function (nsp, ns) {
             if(!this.path || !this.path.length) return
             path = this.path.map(pos => ({x:100 * pos[0] + 50, y: 100 * pos[1] + 50}))
             n = path[this.curr]
-            if(Players.list.find(player => Vector.getDistance(this.hposfr, player.body.position) < this.hrad + player.rad)) this.move.att = true
+            if(CarrotFarms.list.find(cfarm => Vector.getDistance(this.hposfr, cfarm.body.position) < this.hrad + 70.7)) this.move.att = true
             else this.move.att = false
             if(!n) return
             this.acc = Vector.create(0, 0)
@@ -2738,7 +2790,7 @@ module.exports = function (nsp, ns) {
                 else this.stamina += this.maxStamina/100/60
                 this.needsSelfUpdate = true
             }
-            this.health += this.maxStamina/50/60
+            this.health += this.health/50/60
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
             if(this.health > this.maxHealth) this.health = this.maxHealth
             this.updateSpd();
@@ -2762,6 +2814,10 @@ module.exports = function (nsp, ns) {
                     this.lhit =  false
                     this.rhit = false
                 }, 1500/3)
+                let targs = []
+                CarrotFarms.list.forEach(cfarm => {
+                    if(Vector.getDistance(cfarm.body.position, this.hposfr) < 70.7 + this.hrad) targs.push(cfarm)
+                })
                 for (var i = 0; i < Players.list.length; i++) {
                     var p = Players.list[i]
                     if ((
@@ -2788,6 +2844,9 @@ module.exports = function (nsp, ns) {
                     if (p.health <= 0) {
                         this.score += p.score/2 + 2
                     }
+                })
+                targs.forEach(cfarm => {
+                    cfarm.health -= 2.5
                 })
             }
         }
@@ -3026,7 +3085,7 @@ module.exports = function (nsp, ns) {
             CarrotFarms.list.forEach(cfarm => {
                 if(cfarm.needsUpdate) pack.push(cfarm.getUpdatePack())
                 if(cfarm.health <= 0) {
-                    removePack.stone.push(cfarm.id)
+                    removePack.cfarm.push(cfarm.id)
                     clearTimeout(cfarm.deathTimeout)
                     CarrotFarms.list.splice(CarrotFarms.list.findIndex(function (element) {
                         return element.id === cfarm.id
@@ -3608,8 +3667,8 @@ module.exports = function (nsp, ns) {
                         }
                         dropped.push(self)
                     })
-                    pack.push(rabbit.getUpdatePack())
                 }
+                pack.push(rabbit.getUpdatePack())
             })
             return pack;
         }
@@ -3687,7 +3746,9 @@ module.exports = function (nsp, ns) {
         if(Golds.list.length < 16) canAdd.push('gold')
         if(Diamonds.list.length < 10) canAdd.push('diamond')
         if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
-        if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0 && dayTimeout.percntDone < 1) canAdd.push('destroyer')
+        if(CarrotFarms.list.length < 12) canAdd.push('cfarm')
+        if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
+        if(Rabbits.list.length < 4 && timeOfDay == 'day') canAdd.push('rabbit')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
@@ -3722,11 +3783,17 @@ module.exports = function (nsp, ns) {
         Floors.list.forEach(floor => {
             if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
         })
+        CarrotFarms.list.forEach(cfarm => {
+            if(tempx == cfarm.body.position.x && tempy == cfarm.body.position.y) inWay = true
+        })
         Demons.list.forEach(demon => {
             if(Vector.getDistance({x:tempx, y:tempy}, demon.body.position) <= 150) inWay = true
         })
         Destroyers.list.forEach(des => {
             if(Vector.getDistance({x:tempx, y:tempy}, des.body.position) <= 150) inWay = true
+        })
+        Rabbits.list.forEach(rabbit => {
+            if(Vector.getDistance({x:tempx, y:tempy}, rabbit.body.position) <= 150) inWay = true
         })
         if(inWay) return
         if(willAdd == 'tree') new STree(tempx, tempy, 10)
@@ -3736,6 +3803,8 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
         if(willAdd == 'demon') new Demon(tempx, tempy)
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
@@ -3861,7 +3930,9 @@ module.exports = function (nsp, ns) {
                 floor:[],
                 demon:[],
                 destroyer:[],
-                ctable:[]
+                ctable:[],
+                cfarm:[],
+                rabbit:[]
               
             }
             Players.list.forEach(function (player) {
@@ -3876,6 +3947,8 @@ module.exports = function (nsp, ns) {
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
             CraftingTables.list.forEach( ctable => pack.ctable.push(ctable.getInitPack()))
+            CarrotFarms.list.forEach( cfarm => pack.cfarm.push(cfarm.getInitPack()))
+            Rabbits.list.forEach( rabbit => pack.rabbit.push(rabbit.getUpdatePack()))
             Demons.list.forEach(function (demon) {
                 pack.demon.push(demon.getUpdatePack())
             })
@@ -3892,11 +3965,12 @@ module.exports = function (nsp, ns) {
             
         });
     })
-    new Demon(50, 50)
+    //new Demon(150, 150)
     new CarrotFarm(50, 50)
     setInterval(() => {
         Demons.list.forEach(demon => demon.update())
         Destroyers.list.forEach(des => des.update())
+        Rabbits.list.forEach(rabbit => rabbit.update())
     }, 1000/60)
     setInterval(function () {
         if (Players.list[0] === undefined) return
@@ -3920,7 +3994,7 @@ module.exports = function (nsp, ns) {
             leaderboard: leaderboard.getUpdate(),
             dropped:dropped.map((item, i) => ({
                 slot:{
-                    type:item.item.id,
+                    type:item.item .id,
                     image:item.item.image
                 },
                 x:item.x,
