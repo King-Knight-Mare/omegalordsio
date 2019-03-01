@@ -63,6 +63,7 @@ createImage('woodwall', 'png')
 createImage('stonewall', 'png')
 createImage('ironwall', 'png')
 createImage('wooddoor', 'png')
+createImage('stonedoor', 'png')
 createImage('woodfloor', 'png')
 createImage('stonefloor', 'png')
 createImage('craftingtable', 'png')
@@ -1512,6 +1513,20 @@ var init = function(name) {
                         ctx.rotate(Math.PI/ 180 * 45)
                         ctx.drawImage(Img[item.slot.image], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
+                    }
+                    if(item.slot.image == 'carrot'){
+                        ctx.save()
+                        ctx.translate(item.x + x, item.y + y)
+                        ctx.rotate(Math.PI/ 180 * 45)
+                        ctx.drawImage(Img[item.slot.image], -20, -20, 40, 40)
+                        ctx.restore()
+                    }
+                    if(/Wall|Door|Floor|Crafting Table/.test(item.slot.type)){
+                        ctx.save()
+                        ctx.translate(item.x + x, item.y + y)
+                        ctx.rotate(Math.PI/ 180 * 10)
+                        ctx.drawImage(Img[item.slot.image], 0 - 25, 0 - 25, 50 , 50 )
+                        ctx.restore()  
                     }
                     if(item.slot.type == 'wood'){
                         ctx.save()

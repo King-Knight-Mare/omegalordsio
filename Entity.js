@@ -246,13 +246,29 @@ module.exports = function (nsp, ns) {
                     'Wood Door', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
+                            {id:'wood', count:11},
                             {id:'stone', count:1},
                             {id:'iron', count:1},
                         ],
                         output:{
                             count:2,
                             image:'wooddoor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Stone Door', 
+                    {
+                        recipe:[
+                            {id:'wood', count:1},
+                            {id:'stone', count:11},
+                            {id:'iron', count:1},
+                        ],
+                        output:{
+                            count:2,
+                            image:'stonedoor',
                             stackSize:255,
                             equipable:true
                         }
@@ -3746,7 +3762,7 @@ module.exports = function (nsp, ns) {
         if(Golds.list.length < 16) canAdd.push('gold')
         if(Diamonds.list.length < 10) canAdd.push('diamond')
         if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
-        if(CarrotFarms.list.length < 12) canAdd.push('cfarm')
+        if(CarrotFarms.list.length < 8) canAdd.push('cfarm')
         if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
         if(Rabbits.list.length < 4 && timeOfDay == 'day') canAdd.push('rabbit')
         if(!canAdd.length) return
