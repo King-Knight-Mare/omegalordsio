@@ -235,7 +235,7 @@ module.exports = function (nsp, ns) {
                             {id:'stone', count:10},
                         ],
                         output:{
-                            count:2,
+                            count:1,
                             image:'craftingtable',
                             stackSize:255,
                             equipable:true
@@ -246,13 +246,29 @@ module.exports = function (nsp, ns) {
                     'Wood Door', 
                     {
                         recipe:[
-                            {id:'wood', count:10},
+                            {id:'wood', count:11},
                             {id:'stone', count:1},
                             {id:'iron', count:1},
                         ],
                         output:{
-                            count:2,
+                            count:1,
                             image:'wooddoor',
+                            stackSize:255,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Stone Door', 
+                    {
+                        recipe:[
+                            {id:'wood', count:1},
+                            {id:'stone', count:11},
+                            {id:'iron', count:1},
+                        ],
+                        output:{
+                            count:1,
+                            image:'stonedoor',
                             stackSize:255,
                             equipable:true
                         }
