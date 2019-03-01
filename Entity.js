@@ -235,7 +235,7 @@ module.exports = function (nsp, ns) {
                             {id:'stone', count:10},
                         ],
                         output:{
-                            count:1,
+                            count:2,
                             image:'craftingtable',
                             stackSize:255,
                             equipable:true
@@ -251,7 +251,7 @@ module.exports = function (nsp, ns) {
                             {id:'iron', count:1},
                         ],
                         output:{
-                            count:1,
+                            count:2,
                             image:'wooddoor',
                             stackSize:255,
                             equipable:true
@@ -267,7 +267,7 @@ module.exports = function (nsp, ns) {
                             {id:'iron', count:1},
                         ],
                         output:{
-                            count:1,
+                            count:2,
                             image:'stonedoor',
                             stackSize:255,
                             equipable:true
@@ -3762,7 +3762,7 @@ module.exports = function (nsp, ns) {
         if(Golds.list.length < 16) canAdd.push('gold')
         if(Diamonds.list.length < 10) canAdd.push('diamond')
         if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
-        if(CarrotFarms.list.length < 12) canAdd.push('cfarm')
+        if(CarrotFarms.list.length < 8) canAdd.push('cfarm')
         if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
         if(Rabbits.list.length < 4 && timeOfDay == 'day') canAdd.push('rabbit')
         if(!canAdd.length) return

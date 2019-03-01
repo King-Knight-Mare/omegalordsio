@@ -68,7 +68,6 @@ createImage('woodfloor', 'png')
 createImage('stonefloor', 'png')
 createImage('craftingtable', 'png')
 createImage('carrotfarm', 'png')
-createImage('carrot', 'png')
 
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
@@ -822,8 +821,8 @@ var init = function(name) {
             var hpBar = 80 * this.rad/25 * this.hp / this.maxHp
             var currx = (this.x + x)/(this.rad/25)
             var curry = (this.y + y)/(this.rad/25)
-            //if(currx < -this.rad/25 || currx > canvas.width) return
-            //if(curry < -this.rad/25 || curry > canvas.height) return
+            if(currx < -this.rad/25 || currx > canvas.width) return
+            if(curry < -this.rad/25 || curry > canvas.height) return
             ctx.save();
             
             //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
@@ -1329,6 +1328,7 @@ var init = function(name) {
         })
         pack.rabbit.forEach((initPack)=>{
             if(Rabbits.find(rabbit => rabbit.id == initPack.id)) return
+            console.log(initPack)
             new Rabbit(initPack)
         })
     }
@@ -1381,6 +1381,8 @@ var init = function(name) {
             CraftingTables.delete(id)
         })
         pack.cfarm.forEach((id)=>{
+            console.log(CarrotFarms)
+            console.log(id)
             CarrotFarms.delete(id)
         })
     }
@@ -1514,7 +1516,7 @@ var init = function(name) {
                     }
                     if(item.slot.image == 'carrot'){
                         ctx.save()
-                        ctx.translate()
+                        ctx.translate(item.x + x, item.y + y)
                         ctx.rotate(Math.PI/ 180 * 45)
                         ctx.drawImage(Img[item.slot.image], -20, -20, 40, 40)
                         ctx.restore()
@@ -1524,7 +1526,7 @@ var init = function(name) {
                         ctx.translate(item.x + x, item.y + y)
                         ctx.rotate(Math.PI/ 180 * 10)
                         ctx.drawImage(Img[item.slot.image], 0 - 25, 0 - 25, 50 , 50 )
-                        ctx.restore()
+                        ctx.restore()  
                     }
                     if(item.slot.type == 'wood'){
                         ctx.save()
@@ -1721,20 +1723,6 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(slot.image == 'carrot'){
-                        ctx.save()
-                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
-                        ctx.rotate(Math.PI/ 180 * 45)
-                        ctx.drawImage(Img[slot.image], -20, -20, 40, 40)
-                        ctx.restore()
-                        ctx.lineWidth = 1.5
-                        ctx.font = "15px Arial"
-                        ctx.strokeStyle = 'black'
-                        ctx.fillStyle = 'white'
-                        ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
-                        ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
-                        ctx.stroke()
-                    }
                     if(/Wall|Door|Floor|Crafting Table/.test(slot.type)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
@@ -1749,7 +1737,6 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    
                     if(slot.image == 'draw' && slot.type == 'wood'){
                         ctx.font = "15px Arial"
                         ctx.beginPath()
