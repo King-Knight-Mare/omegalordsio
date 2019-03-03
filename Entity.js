@@ -1022,8 +1022,9 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     if(!posd.size && !possible.size && !posctable.size) return
-                    if(!this.crafting && ((!dis && !disctable)|| (dis > disd && disctable > disd &&!this.doors[nearestd].opening))){
+                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd &&!this.doors[nearestd].opening))){
                         let door = this.doors[nearestd]
+                        if(console.log(dis))
                         if(door.ang == 'left' && !door.open){
                             Body.translate(door.body, Vector.create(-100, -100))
                         }
@@ -1043,7 +1044,7 @@ module.exports = function (nsp, ns) {
                         door.opening = true
                         door.needsUpdate = true
                         this.alusd = true
-                    }else if(!this.crafting && ((!disd && !disctable) || (disd > dis && disctable > dis))){
+                    }else if(!this.crafting && (((disd  == undefined && disctable  == undefined) && dis != undefined) || (disd > dis && disctable > dis))){
                         let res = this.inventory.addItemMax(dropped[nearest].item)
                         if(!res) dropped.splice(nearest, 1);
                         this.needsSelfUpdate = true
@@ -2636,7 +2637,7 @@ module.exports = function (nsp, ns) {
          */
         constructor(x, y) {
             super()
-            this.rad = 20
+            this.rad = 25
             this.id = Math.random()
             this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
             World.addBody(engine.world, this.body)
@@ -2683,7 +2684,7 @@ module.exports = function (nsp, ns) {
             this.next = 'l'
             this.lhit = false
             this.rhit = false
-            this.maxSpd = 4;
+            this.maxSpd = 2;
             this.health = 5;
             this.maxHealth = 5;
             this.stamina = 20
@@ -2764,7 +2765,7 @@ module.exports = function (nsp, ns) {
             x < 0 || y < 0 || fx < 0 || fy < 0) return this.path = null
             this.path = finder.findPath(x, y, fx, fy, grid)
             setTimeout(() => {
-                if(Vector.magnitude(this.body.velocity) < 1) this.updatePath(this.pos)
+                if(Vector.magnitude(this.body.velocity) < 0.06) this.updatePath(this.pos)
             }, 10000)
             this.curr = 0
         }
@@ -2834,14 +2835,6 @@ module.exports = function (nsp, ns) {
                 CarrotFarms.list.forEach(cfarm => {
                     if(Vector.getDistance(cfarm.body.position, this.hposfr) < 70.7 + this.hrad) targs.push(cfarm)
                 })
-                for (var i = 0; i < Players.list.length; i++) {
-                    var p = Players.list[i]
-                    if ((
-                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad || 
-                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad) && this.id != p.id) {
-                        this.targets.push(p)
-                    }
-                }
                
                 if (this.next == 'l' && this.lhit == false && this.rhit == false) {
                     this.lhit = true
@@ -2855,12 +2848,6 @@ module.exports = function (nsp, ns) {
                     this.rhit = false
                 }
                 this.punch.reload.timer = this.punch.reload.speed
-                this.targets.forEach( p => {
-                    p.health -= this.punch.damage
-                    if (p.health <= 0) {
-                        this.score += p.score/2 + 2
-                    }
-                })
                 targs.forEach(cfarm => {
                     cfarm.health -= 2.5
                 })
@@ -3120,7 +3107,7 @@ module.exports = function (nsp, ns) {
             this.health = 100
             this.deathTimeout = setTimeout(() => {
                 clearTimeout(this.growInterval)
-                removePack.stone.push(this.id)
+                removePack.cfarm.push(this.id)
                 CarrotFarms.list.splice(CarrotFarms.list.findIndex(element => element.id === this.id), 1);
                 World.remove(engine.world, this.body)
             }, 400000)

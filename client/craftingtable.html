@@ -35,7 +35,7 @@
     createImage('stonepickaxe', 'png')
   
     createImage('stonehammer', 'png')
-    Img.stonehammer.onload = e => {
+    setTimeout(() => {
         ctx.fillStyle = '#808080'
         ctx.fillRect(0, 0 , 200, 200)
         ctx.fillStyle = '#4E2D05'
@@ -64,7 +64,7 @@
         ctx.drawImage(Img.stonehammer, -30, -30, 70, 70)
         ctx.restore()
         //ctx.drawImage(Img['stonehammer'], 0, 0, 200, 200)
-    }
+    }, 500)
     //createImage('ironsword', 'png')
     //createImage('ironpickaxe', 'png')
 </script>
