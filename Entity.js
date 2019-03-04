@@ -15,10 +15,6 @@ const sleep = ms => {
 }
 
 global.games = []
-/** 
- * @param {SocketIO.Server} nsp
- * @param {String} ns
- */
 module.exports = function (nsp, ns) {
     this.engine = Engine.create(); 
     let engine = this.engine
@@ -43,6 +39,13 @@ module.exports = function (nsp, ns) {
         width:5000,
         height:5000
     }
+    let clans = []
+    class Clan {
+        constructor(owner){
+            this.owner = owner
+            this.leaderboard = new Leaderboard([owner])
+        }
+    }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -500, this.map.width, 1000, {isStatic:true}),
           bottom:Bodies.rectangle(this.map.width/2, this.map.height + 500, this.map.width, 1000, {isStatic:true}),
@@ -59,21 +62,10 @@ module.exports = function (nsp, ns) {
     this.ns = ns
     let game = this
     
-    class Entity {
-        /**
-         * 
-         * @param {String} id 
-         * @param {Number} x 
-         * @param {Number} y 
-         */
+    class mover {
         constructor(id, x, y) {
             this.position = Vector.create(x, y);
             this.id = id;
-        }
-    }
-    class mover extends Entity {
-        constructor(id, x, y) {
-            super(id, x, y)
             this.velocity = Vector.create(0, 0);
             this.acceleration = Vector.create(0, 0);
         }
@@ -584,12 +576,14 @@ module.exports = function (nsp, ns) {
         }
     }
     class Slot {
-        constructor(type, count, image, stackSize = 255, equipable = false){
+        constructor(type, count, image, stackSize = 255, equipable = false, edible = false, wearable = false){
             this.id = type
             this.count = count
             this.image = image
             this.stackSize = stackSize
             this.equipable = equipable
+            this.edible = edible
+            this.wearable = wearable
         }
     }
     class Inventory extends Mapper {
@@ -692,6 +686,8 @@ module.exports = function (nsp, ns) {
             this.socket = socket
             this.rad = 30
             this.crafting = false
+            this.clanning = false
+            this.clan = null
             this.msg = new Map()
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
@@ -892,7 +888,11 @@ module.exports = function (nsp, ns) {
                 ang: 0,
                 mdis:0
             }
-            
+            this.carrot = {
+                food:0.75,
+                timeout:null,
+                ready:true
+            }
             this.hrad = this.rad/25 * 7.5
             this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
             this.hposfl.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfl);
@@ -911,6 +911,8 @@ module.exports = function (nsp, ns) {
             this.maxHealth = 20;
             this.stamina = 20
             this.maxStamina = 20
+            this.food = 20
+            this.maxFood = 20
             var self = this
             this.bulletSpeed = 1;
             this.targets = []
@@ -932,9 +934,11 @@ module.exports = function (nsp, ns) {
                 x: this.body.position.x,
                 y: this.body.position.y,
                 health: 20,
+                food:20,
                 mainHand: 'hand',
                 id: this.id,
                 maxHp: this.maxHealth,
+                maxFood:this.maxFood,
                 angle: this.move.ang,
                 lhit: this.lhit,
                 rhit: this.rhit
@@ -967,7 +971,10 @@ module.exports = function (nsp, ns) {
                 else this.stamina += this.maxStamina/100/60
                 this.needsSelfUpdate = true
             }
-            this.health += this.maxStamina/50/60
+            if(this.food > 0 && this.stamina > 0) this.health += this.maxHealth/50/60
+            else this.health -= this.maxHealth/50/60
+            if(this.food > 0) this.food -= this.maxFood/150/60
+            else this.food = 0
             if(this.crafter.checkCraft(this.inventory)) this.needsUpdate = true
             if(this.crafting){
                 if(this.craftingctable.health <= 0) this.crafting = false
@@ -975,8 +982,6 @@ module.exports = function (nsp, ns) {
                 this.needsSelfUpdate = true
                 //if()
             }
-            if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
-            if(this.health > this.maxHealth) this.health = this.maxHealth
             this.updateSpd();
             if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
             this.targets = []
@@ -1022,9 +1027,10 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     if(!posd.size && !possible.size && !posctable.size) return
-                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd &&!this.doors[nearestd].opening))){
+                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd)) &&!this.doors[nearestd].opening){
                         let door = this.doors[nearestd]
-                        if(console.log(dis))
+                        console.log(door.opening)
+                        console.log(door.body.position)
                         if(door.ang == 'left' && !door.open){
                             Body.translate(door.body, Vector.create(-100, -100))
                         }
@@ -1040,7 +1046,8 @@ module.exports = function (nsp, ns) {
                         if(door.open){
                             Body.translate(door.body, {x:door.x - door.body.position.x, y:door.y - door.body.position.y})
                         }
-                        door.opentimeout = new Timeout(() => {door.open = !!!door.open; door.opening = false}, 1000)
+                        console.log(door.body.position)
+                        door.opentimeout = new Timeout(() => {door.open = !door.open; door.opening = false}, 1000)
                         door.opening = true
                         door.needsUpdate = true
                         this.alusd = true
@@ -1835,12 +1842,41 @@ module.exports = function (nsp, ns) {
                         this.alusd = true
                     }
                 }
+                if(this.mainHands == 'carrot' && this.carrot.ready && this.move.att){
+                    //this.food += this.carrot.food
+                    this.edi = 'carrot'
+                    this.carrot.ready = false
+                    this.eating = true
+                    this.carrot.timeout = new Timeout(() => {
+                        this.eating = false
+                        this.carrot.timeout = null
+                        this.carrot.ready = true
+                        this.edi = null
+                        let slot = this.inventory.get(this.mainHand)
+                        slot.count -= 1
+                        if(slot.count == 0){
+                            this.inventory.set(this.mainHand, 'empty')
+                            this.mainHand = '-1'
+                        }
+                        this.needsSelfUpdate = true
+                    }, 5000/3)
+                    let eatInterval = setInterval(() => {
+                        this.food += this.carrot.food/50
+                    }, 1000/60)
+                    setTimeout(() => {
+                        clearInterval(eatInterval)
+                    }, 2500/3)
+                }
             }
             if (this.move.att) {
                 if (this.inventory.get(this.mainHand) == undefined) {
                     this.hit()
                 }
             }
+            
+            if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
+            if(this.health > this.maxHealth) this.health = this.maxHealth
+            if(this.food > this.maxFood) this.food = this.maxFood
         }
         hit(){        
             if (this.punch.ready) {
@@ -1852,6 +1888,7 @@ module.exports = function (nsp, ns) {
                 let walltargs = []
                 let treetargs = []
                 let stonetargs = []
+                let cfarmtargs = []
                 this.punch.timeout = new Timeout(() => {
                     this.punch.timeout = null
                     this.punch.ready = true
@@ -1917,6 +1954,11 @@ module.exports = function (nsp, ns) {
                         walltargs.push(ctable)
                     }
                 })
+                CarrotFarms.list.forEach(cfarm => {
+                    if (Vector.getDistance(this.hposfr, cfarm.body.position) < this.hrad + 50) {
+                        cfarmtargs.push(cfarm)
+                    }
+                })
                 if (this.next == 'l' && this.lhit == false && this.rhit == false) {
                     this.lhit = true
                     this.next = 'r'
@@ -1943,9 +1985,10 @@ module.exports = function (nsp, ns) {
                             this.score += 300
                         }
                     })
-                    destargs.forEach( d => {
-                        d.health -= this.punch.damage
-                        if (d.health <= 0) {
+                    destargs.forEach( des => {
+                        des.health -= this.punch.damage
+                        if(!des.agro.find(p => p == this)) des.agro.push(this)
+                        if (des.health <= 0) {
                             this.score += 600
                         }
                     })
@@ -1973,6 +2016,30 @@ module.exports = function (nsp, ns) {
                         }
                         this.needsSelfUpdate = true;
                         tree.health -= 5
+                    })
+                    cfarmtargs.forEach(cfarm => {
+                        let rem = this.inventory.addItemMax(new Slot('carrot', 1, 'carrot', 25, false, true))
+                        this.score += 1
+                        if(rem){
+                            let ang = Math.getRandomNum(0, 360)
+                            let offset = Vector.create(0, 50 + 20)
+                            offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                            offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                            Vector.add(cfarm.body.position, offset, offset)
+                            let self = {
+                                item:rem,
+                                x:offset.x,
+                                y:offset.y, 
+                                timeout:new Timeout(() => {
+                                    dropped.splice(dropped.findIndex(function (element) {
+                                        return element === self
+                                    }), 1);
+                                }, 5000)
+                            }
+                            dropped.push(self)
+                        }
+                        this.needsSelfUpdate = true;
+                        cfarm.health -= 2
                     })
                     stonetargs.forEach(stone => {
                         let rem = this.inventory.addItemMax(new Slot('stone', 1, 'stone', 255, false));
@@ -2008,9 +2075,11 @@ module.exports = function (nsp, ns) {
                 x: this.body.position.x,
                 y: this.body.position.y,
                 health: this.health,
+                food:this.food,
                 mainHand: this.mainHands,
                 id: this.id,
                 maxHp: this.maxHealth,
+                maxFood: this.maxFood,
                 angle: this.move.ang,
                 lhit: this.lhit,
                 rhit: this.rhit,
@@ -2024,6 +2093,7 @@ module.exports = function (nsp, ns) {
             }
             if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
             if(this.hitting && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.tool].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.tool].timeout.percntDone, 1000)
+            if(this.eating && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.edi].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.edi].timeout.percntDone, 1000)
             return pack
         }
         getSelfUpdatePack() {
@@ -3648,7 +3718,7 @@ module.exports = function (nsp, ns) {
                         return element.id === rabbit.id
                     }), 1);
                     World.remove(engine.world, rabbit.body)
-                    let drops = [new Slot('carrot', 5, 'carrot'), new Slot('carrot', 5, 'carrot'), new Slot('carrot', 5, 'carrot'), new Slot('carrot', 5, 'carrot')]
+                    let drops = [new Slot('carrot', 5, 'carrot', 25, false, true), new Slot('carrot', 5, 'carrot', 25, false, true), new Slot('carrot', 5, 'carrot', 25, false, true), new Slot('carrot', 5, 'carrot', 25, false, true)]
                     let toDrop = drops
                     toDrop.forEach((slot, i) => {
                         let a = 360/toDrop.length
@@ -3829,9 +3899,9 @@ module.exports = function (nsp, ns) {
             let playa = Players.list.find(player => player.id == socket.id)
             if(!playa) return
             let slot = playa.inventory.get(slotnum)
-            if(playa.hitting || playa.punch.timeout) return
+            if(playa.hitting || playa.punch.timeout || playa.eating) return
             if(playa.mainHand == slotnum) return playa.mainHand = '-1'
-            if(!slot.equipable) return 
+            if(!slot.equipable && !slot.edible) return 
             playa.mainHand = slotnum
             playa.needsSelfUpdate = true
         })
@@ -4067,7 +4137,6 @@ module.exports = function (nsp, ns) {
     this.Golds = Golds
     this.Walls = Walls
     this.Diamonds = Diamonds
-    this.Entity = Entity;
     this.Bullet = Bullet;
     this.Bullets = Bullets;
     this.Player = Player;

@@ -321,6 +321,8 @@ var init = function(name) {
             this.y = initPack.y
             this.hp = initPack.health
             this.maxHp = initPack.maxHp
+            this.food = initPack.health
+            this.maxFood = initPack.maxFood
             this.mainHand = initPack.mainHand
             this.id = initPack.id
             this.angle = initPack.angle
@@ -350,7 +352,10 @@ var init = function(name) {
             if (this.id == socket.id) { 
                 ctx.fillStyle = 'blue';
                 var staminaBar = 80 * this.rad/25 * this.stamina / this.maxStamina
-                ctx.fillRect(currx - 40 * this.rad/25, curry - 2 * this.rad + 10/*((30 * this.rad)/25 + (-0.4 * this.rad) - 10)*//*10 * this.rad/25*/, staminaBar, 10　);
+                ctx.fillRect(currx - 40 * this.rad/25, curry - 2 * this.rad + 10, staminaBar, 10　);
+                ctx.fillStyle = 'orange'
+                var foodBar = 80 * this.rad/25 * this.food / this.maxFood
+                ctx.fillRect(currx - 40 * this.rad/25, curry - 50 * this.rad/25 - 10, foodBar, 10　);
             }
             ctx.textAlign = "center"
             ctx.font = '18px Zorque';
@@ -424,7 +429,6 @@ var init = function(name) {
                     ctx.restore()
                 }
                 if (!(this.lhit)) {
-                    ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                     ctx.beginPath()
                     ctx.fillStyle = 'black'
                     ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
@@ -514,6 +518,35 @@ var init = function(name) {
                     ctx.translate(32 - 7.5 + 5, 0)
                     ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
                     ctx.restore()
+                }
+                if(this.mainHand == 'carrot'){
+                    ctx.save();
+                    ctx.translate(32, 15);
+                    let r
+                    if(this.per) r = (Math.PI / 180) * (360 - (-Math.abs(-160 * this.per + 80) + 80))
+                    else r = 0
+                    if(r < 180) r += 180
+                    else r -= 180
+                    ctx.rotate(r)
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(0, 0, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(0, 0, 7.5 - 2, 0, 2 * Math.PI) 
+                    ctx.fill()
+                    ctx.drawImage(Img.carrot, 0 - 15, 0 - 15, 30, 30)
+                    ctx.restore()
+                    
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
                 }
                 //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
             }
@@ -644,6 +677,8 @@ var init = function(name) {
             this.y = initPack.y
             this.hp = initPack.health
             this.maxHp = initPack.maxHp
+            this.food = initPack.food
+            this.maxFood = initPack.maxFood
             this.mainHand = initPack.mainHand
             this.id = initPack.id
             this.angle = initPack.angle
@@ -1660,6 +1695,13 @@ var init = function(name) {
                         }
                     })
                 }
+                ctx.beginPath()
+                ctx.arc(290, 120, 50, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.fillStyle = 'grey'
+                ctx.beginPath()
+                ctx.arc(290, 120, 47, 0, 2 * Math.PI)
+                ctx.fill()
                 if(movement.chatting){
                     if(chatboxDestroyed){
                         chatbox = new CanvasInput({
