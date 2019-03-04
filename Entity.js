@@ -39,6 +39,13 @@ module.exports = function (nsp, ns) {
         width:5000,
         height:5000
     }
+    let clans = []
+    class Clan {
+        constructor(owner){
+            this.owner = owner
+            this.leaderboard = new Leaderboard([owner])
+        }
+    }
     let walls = {
         top:Bodies.rectangle(this.map.width/2, -500, this.map.width, 1000, {isStatic:true}),
           bottom:Bodies.rectangle(this.map.width/2, this.map.height + 500, this.map.width, 1000, {isStatic:true}),
@@ -55,21 +62,10 @@ module.exports = function (nsp, ns) {
     this.ns = ns
     let game = this
     
-    class Entity {
-        /**
-         * 
-         * @param {String} id 
-         * @param {Number} x 
-         * @param {Number} y 
-         */
+    class mover {
         constructor(id, x, y) {
             this.position = Vector.create(x, y);
             this.id = id;
-        }
-    }
-    class mover extends Entity {
-        constructor(id, x, y) {
-            super(id, x, y)
             this.velocity = Vector.create(0, 0);
             this.acceleration = Vector.create(0, 0);
         }
@@ -595,7 +591,7 @@ module.exports = function (nsp, ns) {
             super([
                 ['1', new Slot('stone', 5, 'stone')],
                 ['2', new Slot('wood', 5, 'draw')],
-                ['3', new Slot('carrot', 5, 'carrot', 25, false, true)],
+                ['3', 'empty'],
                 ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
@@ -690,6 +686,8 @@ module.exports = function (nsp, ns) {
             this.socket = socket
             this.rad = 30
             this.crafting = false
+            this.clanning = false
+            this.clan = null
             this.msg = new Map()
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
@@ -913,7 +911,7 @@ module.exports = function (nsp, ns) {
             this.maxHealth = 20;
             this.stamina = 20
             this.maxStamina = 20
-            this.food = 5
+            this.food = 20
             this.maxFood = 20
             var self = this
             this.bulletSpeed = 1;
@@ -1029,9 +1027,10 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     if(!posd.size && !possible.size && !posctable.size) return
-                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd &&!this.doors[nearestd].opening))){
+                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd)) &&!this.doors[nearestd].opening){
                         let door = this.doors[nearestd]
-                        if(console.log(dis))
+                        console.log(door.opening)
+                        console.log(door.body.position)
                         if(door.ang == 'left' && !door.open){
                             Body.translate(door.body, Vector.create(-100, -100))
                         }
@@ -1047,7 +1046,8 @@ module.exports = function (nsp, ns) {
                         if(door.open){
                             Body.translate(door.body, {x:door.x - door.body.position.x, y:door.y - door.body.position.y})
                         }
-                        door.opentimeout = new Timeout(() => {door.open = !!!door.open; door.opening = false}, 1000)
+                        console.log(door.body.position)
+                        door.opentimeout = new Timeout(() => {door.open = !door.open; door.opening = false}, 1000)
                         door.opening = true
                         door.needsUpdate = true
                         this.alusd = true
@@ -4137,7 +4137,6 @@ module.exports = function (nsp, ns) {
     this.Golds = Golds
     this.Walls = Walls
     this.Diamonds = Diamonds
-    this.Entity = Entity;
     this.Bullet = Bullet;
     this.Bullets = Bullets;
     this.Player = Player;

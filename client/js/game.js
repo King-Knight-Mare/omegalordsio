@@ -1695,6 +1695,13 @@ var init = function(name) {
                         }
                     })
                 }
+                ctx.beginPath()
+                ctx.arc(290, 120, 50, 0, 2 * Math.PI)
+                ctx.fill()
+                ctx.fillStyle = 'grey'
+                ctx.beginPath()
+                ctx.arc(290, 120, 47, 0, 2 * Math.PI)
+                ctx.fill()
                 if(movement.chatting){
                     if(chatboxDestroyed){
                         chatbox = new CanvasInput({
