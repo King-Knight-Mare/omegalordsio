@@ -4041,9 +4041,9 @@ module.exports = function (nsp, ns) {
     //new Demon(150, 150)
     new CarrotFarm(50, 50)
     setInterval(() => {
-        Demons.list.forEach(demon => demon.update())
-        Destroyers.list.forEach(des => des.update())
-        Rabbits.list.forEach(rabbit => rabbit.update())
+        Demons.list.forEach(d => {if(Players.list.find(player => Vector.getDistance(d.body.position, player.body.position) < 1500)) d.update()})
+        Destroyers.list.forEach(des => {if(Players.list.find(player => Vector.getDistance(des.body.position, player.body.position) < 1500)) des.update()})
+        Rabbits.list.forEach(rabbit => {if(Players.list.find(player => Vector.getDistance(rabbit.body.position, player.body.position) < 1500)) rabbit.update()})
     }, 1000/60)
     setInterval(function () {
         if (Players.list[0] === undefined) return
