@@ -889,7 +889,7 @@ module.exports = function (nsp, ns) {
                 mdis:0
             }
             this.carrot = {
-                food:0.75,
+                food:1.5,
                 timeout:null,
                 ready:true
             }
@@ -973,7 +973,7 @@ module.exports = function (nsp, ns) {
             }
             if(this.food > 0 && this.stamina > 0) this.health += this.maxHealth/50/60
             else this.health -= this.maxHealth/50/60
-            if(this.food > 0) this.food -= this.maxFood/150/60
+            if(this.food > 0) this.food -= this.maxFood/300/60
             else this.food = 0
             if(this.crafter.checkCraft(this.inventory)) this.needsUpdate = true
             if(this.crafting){
