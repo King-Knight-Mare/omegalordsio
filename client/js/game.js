@@ -110,6 +110,7 @@ document.getElementById('server').addEventListener('change', e => {
     socket = io('/' + select.value)
 })
 var init = function(name) {
+    let canJoin = true;
     var movement = {
         up: false,
         down: false,
@@ -121,7 +122,8 @@ var init = function(name) {
         grab:false,
         mousedis:0,
         prot:false,
-        chatting:false
+        chatting:false,
+        clanning:false
     }
     let pang = 'left'
     let chatString = ''
@@ -129,6 +131,7 @@ var init = function(name) {
 
     })
     socket.on('disconnect', () => {die()})
+    
     handlekeyDown = function(event) {
         if(event.keyCode == 13){ 
             movement.chatting = !movement.chatting
@@ -185,7 +188,7 @@ var init = function(name) {
                 break
         }
         
-        if(playa && playa.crafting){
+        if(playa && (playa.crafting || playa.clanning)){
             movement.up = false
             movement.down = false
             movement.left = false
@@ -231,7 +234,7 @@ var init = function(name) {
                 movement.prot = false
                 break;
         }
-        if(playa && playa.crafting){
+        if(playa && (playa.crafting || playa.clanning)){
             movement.up = false
             movement.down = false
             movement.left = false
@@ -253,8 +256,52 @@ var init = function(name) {
             }
         })
         if(found) return
+        if(Math.sqrt(Math.pow((e.clientX-290), 2)+ Math.pow((e.clientY-130), 2)) <= 50){
+            socket.emit('clan', true)
+        }
+        if(playa.clanning && playa.clans && !playa.clan){
+            if(e.clientX > 410 + (canvas.width - 820)/2 && e.clientX <  410 + (canvas.width - 820)/2 + (canvas.width - 820)/2 && e.clientY > 110 && e.clientY < 110 + 24 && clanbox.value().length){
+                ctx.fillRect(410 + (canvas.width - 820)/2 , 110, (canvas.width - 820)/2, 24)
+                socket.emit('createClan', clanbox.value().toUpperCase())
+            }
+            playa.clans.forEach((name, i) => {
+                let offSetX = ((i - Math.floor(i/2) * 2) * (canvas.width - 820)/2)
+                let offSetY = (Math.floor(i / 2) * 30)
+                if(e.clientX > 400 + (canvas.width - 820)/4 + offSetX && e.clientX < 400 + (canvas.width - 820)/4 + offSetX +  (canvas.width - 820)/4 + 2.5  &&
+                  e.clientY > 110 + 26 + offSetY && e.clientY < 110 + 26 + offSetY + 22){
+                    socket.emit('joinClan', name)
+                    ctx.textAlign = 'start'
+                    ctx.font = '12px Arial'
+                    //ctx.fillText(name, 410 + offSetX, 110 + 12 + 26 + offSetY)
+                    ctx.fillRect(400 + (canvas.width - 820)/4 + offSetX, 110 + 26 + offSetY, (canvas.width - 820)/4 + 2.5 , 22)
+                    
+                }
+            })
+        }
+        if(playa.clanning && playa.clan && e.clientX > 400 + canvas.width - 900 && e.clientX < 400 + canvas.width - 900 + 75 
+            && e.clientY >  canvas.height - 150 && e.clientY < canvas.height - 150 + 25){
+            ctx.fillRect(400 + canvas.width - 900, canvas.height - 150, 75, 25)
+            socket.emit('leaveClan', '')
+            console.log('leaving')
+        }
+        if(playa.owner && playa.clanning){
+            playa.clanMembers.forEach((player , i) => {
+                let offSetX = ((i - Math.floor(i/2) * 2) * (canvas.width - 1000)/2)
+                let offSetY = (Math.floor(i / 2) * 50)
+                if(e.clientX > 500 + (canvas.width - 1000)/2 - 75 + offSetX && e.clientX < 500 + (canvas.width - 1000)/2 - 75 + offSetX + 50 && e.clientY > 200 -13.5 + offSetY && e.clientY < 200 -13.5 + offSetY + 15){
+                    ctx.strokeStyle = 'black'
+                    ctx.fillStyle = 'crimson'
+                    ctx.lineWidth = 7.5
+                    ctx.beginPath()
+                    ctx.rect(500 + (canvas.width - 1000)/2 - 75 + offSetX, 200 -13.5 + offSetY, 50, 15)
+                    ctx.stroke()
+                    ctx.fillRect(500 + (canvas.width - 1000)/2 - 75 + offSetX, 200 -13.5 + offSetY, 50, 15)
+                    socket.emit('removeMember', player.id)
+                }
+                
+            })
+        }
         if(playa.crafting && playa.craftablesEx){
-            
             playa.craftablesEx.forEach((craft, i) => {
                 let offSetX = ((i - Math.floor(i/13) * 13) * 80)
                 let offSetY = (Math.floor(i / 13) * 80)
@@ -265,12 +312,32 @@ var init = function(name) {
                 }
             })
         }
+        if(playa.req && e.clientX > 810 && e.clientX < 810 + 50 && e.clientY > 50 && e.clientY < 50 + 30){
+            ctx.strokeStyle = 'black'
+            ctx.lineWidth = 7.5
+            ctx.rect(810, 50, 50, 30)
+            ctx.stroke()
+            ctx.fillStyle = '#006400'
+            ctx.fillRect(810, 50, 50, 30)
+            socket.emit('acceptReq')
+        }
+        if(playa.req && e.clientX > 810 + 70 && e.clientX < 810 + 50 + 70 && e.clientY > 50 && e.clientY < 50 + 30){
+            ctx.strokeStyle = 'black'
+            ctx.lineWidth = 7.5
+            ctx.rect(810 + 70, 50, 50, 30)
+            ctx.stroke()
+            ctx.fillStyle = 'firebrick'
+            ctx.fillRect(810 + 70, 50, 50, 30)
+            socket.emit('denyReq')
+        }
         else {
             playa.craftables.forEach((craft, i) => {
                 if(e.clientX > 90 + (i % 2 == 1 ? 80 : 0) && e.clientX < 90 + (i % 2 == 1 ? 80 : 0) + 60
                   && e.clientY > 90 + (Math.floor(i / 2) * 80) && e.clientY < 90 + (Math.floor(i / 2) * 80) + 60){
                     found = true
                    socket.emit('craft', craft)
+                    console.log(craft)
+                
                 }
             })
         }
@@ -304,6 +371,9 @@ var init = function(name) {
     let dropped = []
     let chatbox
     let chatboxDestroyed = true
+    
+    let clanbox
+    let clanboxDestroyed = true
     document.addEventListener('mousemove', handlemouseMove);
     window.moveinterval = setInterval(function() {
         socket.emit('movement', movement);
@@ -330,6 +400,7 @@ var init = function(name) {
             this.rhit = initPack.rhit
             this.rad = 28
             this.msg = []
+            this.clan = initPack.clan
             Players.push(this)
         }
         draw(x, y) {
@@ -357,14 +428,26 @@ var init = function(name) {
                 var foodBar = 80 * this.rad/25 * this.food / this.maxFood
                 ctx.fillRect(currx - 40 * this.rad/25, curry - 50 * this.rad/25 - 10, foodBar, 10　);
             }
-            ctx.textAlign = "center"
-            ctx.font = '18px Zorque';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 2;
-            ctx.beginPath()
-            ctx.strokeText(this.usr, currx, curry + 55 * this.rad/25);
-            ctx.fillStyle = 'white';
-            ctx.fillText(this.usr, currx, curry + 55 * this.rad/25);
+            
+            if(this.clan){ 
+                ctx.textAlign = "center"
+                ctx.font = '18px Zorque';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath()
+                ctx.strokeText(`[${this.clan}]${this.usr}`, currx, curry + 55 * this.rad/25); 
+                ctx.fillStyle = 'white';
+                ctx.fillText(`[${this.clan}]${this.usr}`, currx, curry + 55 * this.rad/25);
+            }else {
+                ctx.textAlign = "center"
+                ctx.font = '18px Zorque';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath()
+                ctx.strokeText(this.usr, currx, curry + 55 * this.rad/25); 
+                ctx.fillStyle = 'white';
+                ctx.fillText(this.usr, currx, curry + 55 * this.rad/25);
+            }
             this.msg.forEach((msgObj, i) => {
                 if(this.msg.length == 1 && i == 0){
                     ctx.globalAlpha = Math.abs(msgObj.per - 1)
@@ -688,6 +771,8 @@ var init = function(name) {
             this.punchper = initPack.punchper
             this.per = initPack.per
             this.msg = initPack.msg
+            this.clan = initPack.clan
+            this.owner = initPack.owner
         }
         processSelfInitPack(initPack) {
             this.stamina = initPack.stamina
@@ -697,6 +782,11 @@ var init = function(name) {
             this.craftables = initPack.craftables
             this.craftablesEx = initPack.craftablesEx
             this.posPlace = initPack.posPlace
+            this.clanning = initPack.clanning
+            this.clans = initPack.clans
+            this.clanMembers = initPack.clanMembers
+            this.req = initPack.req
+            //if(this.clans) console.log(this.clans)
         }
     }
     class Demon {
@@ -1467,7 +1557,7 @@ var init = function(name) {
                     var toUpdate = Rabbits.find(function(element) {
                         return element.id === pack.id
                     })
-                    //console.log(pack)
+                  
                     toUpdate.processInitpack(pack)
                 })
                 pack.tree.forEach(pack => {
@@ -1613,6 +1703,93 @@ var init = function(name) {
                     rabbit.draw(x, y)
                 })
                 ctx.restore();
+                
+                if(playa.clanning){
+                    ctx.fillStyle = 'black'
+                    ctx.lineWidth = 2
+                    ctx.beginPath()
+                    ctx.globalAlpha = 0.5
+
+                    ctx.rect(400, 100, canvas.width - 800, canvas.height - 200)
+
+                    ctx.fill()
+                    if(playa.clan){
+                        
+                        ctx.beginPath()
+                        ctx.rect(500, 125, canvas.width - 1000, 50)
+                        ctx.strokeStyle = 'grey'
+                        ctx.fillStyle = 'white'
+                        ctx.textAlign = 'center'
+                        ctx.stroke()
+                        ctx.font = '40px Arial'
+                        ctx.strokeText(playa.clan, 500 + (canvas.width - 1000)/2, 125 + 40)
+                        ctx.fillText(playa.clan, 500 + (canvas.width - 1000)/2, 125 + 40)
+                        ctx.fillStyle = 'red'
+                        ctx.globalAlpha = 0.75
+                        ctx.fillRect(400 + canvas.width - 900, canvas.height - 150, 75, 25)
+                        'MMMMMMMMMMMMMMMM'
+                        
+                        playa.clanMembers.forEach((player, i) => {
+                            let offSetX = ((i - Math.floor(i/2) * 2) * (canvas.width - 1000)/2)
+                            let offSetY = (Math.floor(i / 2) * 50)
+                            ctx.fillStyle = 'white'
+                            ctx.font = '13.5px Arial'
+                            ctx.textAlign = 'start'
+                            ctx.fillText(player.usr, 500 + offSetX, 200 + offSetY)
+                            if(playa.owner && playa.id != player.id){
+                                ctx.strokeStyle = 'grey'
+                                ctx.fillStyle = 'red'
+                                ctx.lineWidth = 7.5
+                                ctx.beginPath()
+                                ctx.rect(500 + (canvas.width - 1000)/2 - 75 + offSetX, 200 -13.5 + offSetY, 50, 15)
+                                ctx.stroke()
+                                ctx.fillRect(500 + (canvas.width - 1000)/2 - 75 + offSetX, 200 -13.5 + offSetY, 50, 15)
+                            }
+                        })
+                    } else {
+                        if(clanboxDestroyed){
+                            clanbox = new CanvasInput({
+                                canvas:canvas,
+                                x:410,
+                                y:110,
+                                width:(canvas.width - 820)/2 - 10,
+                                height:22,
+                                fontSize: 14,
+                                borderWidth: 1,
+                                padding:0,
+                                borderColor: 'none',
+                                boxShadow: 'none',
+                                innerShadow: 'none',
+                                placeHolder: 'Enter clan name',
+                                maxlength: 5
+                            })
+                            clanboxDestroyed = false
+                            clanbox.focus()
+                        }
+                        clanbox.render()
+                        ctx.fillStyle = 'red'
+                        ctx.fillRect(410 + (canvas.width - 820)/2 , 110, (canvas.width - 820)/2, 24)
+                        playa.clans.forEach((name, i) => {
+                            let offSetX = ((i - Math.floor(i/2) * 2) * (canvas.width - 820)/2)
+                            let offSetY = (Math.floor(i / 2) * 30)
+                            ctx.textAlign = 'start'
+                            ctx.font = '12px Arial'
+                            ctx.fillText(name, 410 + offSetX, 110 + 12 + 26 + offSetY)
+                            ctx.fillRect(400 + (canvas.width - 820)/4 +offSetX, 110 + 26 + offSetY, (canvas.width - 820)/4 + 2.5 , 22)
+
+                        })
+                        //ctx.rect(400, 100, canvas.width - 800, canvas.height - 200)
+
+                        //ctx.fill()
+                    }
+                    ctx.globalAlpha = 1
+                }else if(clanbox && !clanboxDestroyed){
+                    clanbox.destroy()
+                    clanboxDestroyed = true
+                }
+                ctx.fillStyle = 'black'
+                ctx.strokeStyle = 'black'
+                
                 if(playa.crafting && playa.craftablesEx){
                     ctx.fillStyle = 'black'
                     ctx.lineWidth = 2
@@ -1657,11 +1834,11 @@ var init = function(name) {
                     ctx.globalAlpha = 1
                 } else {
                     playa.craftables.forEach((craft, i) => {
+                        
                         if(/Axe|Pickaxe|Sword|Hammer/.test(craft)){
                             let img = craft.toLowerCase().replace(/\s/, '')
                             ctx.globalAlpha = 0.875
                             ctx.lineWidth = 2
-                            ctx.fillStyle = 'black'
                             ctx.beginPath()
                             ctx.rect(90 + (i % 2 == 1 ? 80 : 0), 90 + (Math.floor(i / 2) * 80), 60, 60)
                             ctx.stroke()
@@ -1702,6 +1879,23 @@ var init = function(name) {
                 ctx.beginPath()
                 ctx.arc(290, 120, 47, 0, 2 * Math.PI)
                 ctx.fill()
+                if(playa.req){
+                    ctx.font = '20px Arial'
+                    ctx.textAlign = 'end'
+                    ctx.fillStyle = 'black'
+                    ctx.fillText(playa.req.usr, 800, 50 + 20)
+                    ctx.beginPath()
+                    ctx.strokeStyle = 'grey'
+                    ctx.lineWidth = 7.5
+                    ctx.rect(810, 50, 50, 30)
+                    ctx.rect(810 + 70, 50, 50, 30)
+                    ctx.stroke()
+                    ctx.fillStyle = 'green'
+                    ctx.fillRect(810, 50, 50, 30)
+                    ctx.fillStyle = 'red'
+                    ctx.fillRect(810 + 70, 50, 50, 30)
+                }
+                
                 if(movement.chatting){
                     if(chatboxDestroyed){
                         chatbox = new CanvasInput({
@@ -1730,6 +1924,7 @@ var init = function(name) {
                     ctx.lineWidth = 1.5
                     ctx.font = "20px Arial"
                     ctx.fillStyle = '#696969'
+                    ctx.textAlign = 'start'
                     ctx.globalAlpha = 0.75
                     ctx.rect((canvas.width)/10 + (canvas.width)/10 * i - 45, canvas.height - 100 - 45, 90, 90)
                     ctx.fillRect((canvas.width)/10 + (canvas.width)/10 * i  - 45, canvas.height - 100 - 45, 90, 90)
@@ -1891,6 +2086,7 @@ var init = function(name) {
                 ctx.fillStyle = '#FDB813'
                 ctx.arc(canvas.width - 100, canvas.height - 200, 10, 0, 2 * Math.PI)
                 ctx.fill()
+                ctx.lineCap = 'butt'
             }
         }
     }
@@ -1901,7 +2097,7 @@ var die = function() {
     loaded = false
     document.removeEventListener("keydown", handlekeyDown)
     document.removeEventListener("keyup", handlekeyUp)
-    document.removeEventListener("mousemove", handlemouseDown)
+    document.removeEventListener("mousedown", handlemouseDown)
     document.removeEventListener("mouseup", handlemouseUp)
     document.removeEventListener("mousemove", handlemouseMove)
     clearInterval(moveinterval)
