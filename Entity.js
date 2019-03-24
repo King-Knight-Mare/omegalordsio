@@ -21,7 +21,7 @@ module.exports = function (nsp, ns) {
     let sunlight = 1
     let sunpertree = 1
     engine.world.gravity.y = 0
-    let timeOfDay = 'day'
+    let timeOfDay = 'night'
     let dayTimeout
     let setDayTimeout = () => {
         dayTimeout = new Timeout(() => {
@@ -36,14 +36,50 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:5000,
-        height:5000
+        width:1000,
+        height:1000
     }
-    let clans = []
+    let clans = new Map()
     class Clan {
-        constructor(owner){
+        constructor(name, owner){
             this.owner = owner
+            this.name = name
             this.leaderboard = new Leaderboard([owner])
+            this.members = [owner]
+            this.joinReqs = []
+            clans.set(this.name, this)
+        }
+        addMember(member){
+            if(!member) return
+            this.leaderboard.addPlayer(member)
+            this.members.push(member)
+            this.members.forEach(mem => mem.needsUpdate = true)
+            member.clan = this
+        }
+        removeMember(member){
+            if(!member) return
+            if(this.owner == member){
+                clans.delete(this.name)
+                this.members.forEach(mem => {
+                    mem.clan = null
+                    mem.needsSelfUpdate = true
+                })
+            }
+            this.leaderboard.removePlayer(member.id)
+            this.members.splice(this.members.findIndex(player => player.id == member.id), 1)
+            member.clan = null
+            member.needsSelfUpdate = null
+        }
+        acceptReq(){
+            let req = this.joinReqs[0]
+            if(!req || this.members.length >= 9) return
+            this.addMember(req.member)
+            this.joinReqs = this.joinReqs.filter(request => request.member.id !=  req.member.id)
+        }
+        denyReq(){
+            if(!req) return
+            let req = this.joinReqs[0]
+            this.joinReqs = this.joinReqs.filter(request => request.member.id !=  req.member.id)
         }
     }
     let walls = {
@@ -589,9 +625,9 @@ module.exports = function (nsp, ns) {
     class Inventory extends Mapper {
         constructor(){
             super([
-                ['1', new Slot('stone', 5, 'stone')],
-                ['2', new Slot('wood', 5, 'draw')],
-                ['3', 'empty'],
+                ['1', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
+                ['2', new Slot('Wood Floor', 255, 'woodfloor', 255, true)],
+                ['3', new Slot('Wood Door', 255, 'wooddoor', 255, true)],
                 ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
@@ -688,6 +724,7 @@ module.exports = function (nsp, ns) {
             this.crafting = false
             this.clanning = false
             this.clan = null
+            this.clans = null
             this.msg = new Map()
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
@@ -982,6 +1019,14 @@ module.exports = function (nsp, ns) {
                 this.needsSelfUpdate = true
                 //if()
             }
+            if(this.clan && this.clan.owner == this && this.clan.joinReqs[0]) this.needsSelfUpdate = true
+            if(this.crafting && this.craftingctable.health <= 0) this.crafting = false
+            if(this.clanning){
+                this.crafting = false
+                this.needsSelfUpdate = true
+                this.clans = Array.from(clans, ([clanName, clan]) => clanName)
+                //if()
+            }
             this.updateSpd();
             if(Vector.magnitude(this.body.velocity) > this.maxSpd) Vector.mult(Vector.normalise(this.body.velocity), {x:this.maxSpd, y:this.maxSpd}, this.body.velocity)            
             this.targets = []
@@ -1004,8 +1049,13 @@ module.exports = function (nsp, ns) {
                     }
                     let posd = new Mapper()
                     this.doors.forEach((door, i)=> {
-                        if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad) posd.set(i, door)
+                        if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad) posd.set(Math.random(), door)
                     })
+                    if(this.clan){
+                        this.clan.members.forEach(member => member.doors.forEach(door => {
+                            if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad && !this.doors.find(d => d == door)) posd.set(Math.random(), door)
+                        }))
+                    }
                     let disd
                     let nearestd
                     if(posd.size){
@@ -1027,8 +1077,8 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     if(!posd.size && !possible.size && !posctable.size) return
-                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd)) &&!this.doors[nearestd].opening){
-                        let door = this.doors[nearestd]
+                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd)) &&!posd.get(nearestd).opening){
+                        let door = posd.get(nearestd)
                         console.log(door.opening)
                         console.log(door.body.position)
                         if(door.ang == 'left' && !door.open){
@@ -1454,7 +1504,7 @@ module.exports = function (nsp, ns) {
                                             dropped.splice(dropped.findIndex(function (element) {
                                                 return element === self
                                             }), 1);
-                                        }, 5000)
+                                        }, 20000)
                                     }
                                     dropped.push(self)
                                 }
@@ -1757,7 +1807,8 @@ module.exports = function (nsp, ns) {
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return this.canPlace = false
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return this.canPlace = false
                         if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return this.canPlace = false
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor) 
+                                            && !(this.clan && this.clan.members.find(member => member.floors.find(f => f == floor))))) return this.canPlace = false
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1782,7 +1833,8 @@ module.exports = function (nsp, ns) {
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return this.canPlace = false
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return this.canPlace = false
                         if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return this.canPlace = false
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor)
+                                           && !(this.clan && this.clan.members.find(member => member.floors.find(f => f == floor))))) return this.canPlace = false
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1807,7 +1859,8 @@ module.exports = function (nsp, ns) {
                         if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return this.canPlace = false
                         if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return this.canPlace = false
                         if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor))) return  this.canPlace = false
+                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor)
+                                           && !(this.clan && this.clan.members.find(member => member.floors.find(f => f == floor))))) return  this.canPlace = false
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
@@ -1827,9 +1880,12 @@ module.exports = function (nsp, ns) {
                         if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return this.canPlace = false
                         if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return this.canPlace = false
                         if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y && !this.walls.find(w => w == wall))) return this.canPlace = false
-                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y && !this.doors.find(d => d == door))) return this.canPlace = false
-                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y && !this.ctables.find(d => d == ctable))) return this.canPlace = false
+                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y && !this.walls.find(w => w == wall)
+                                          && !(this.clan && this.clan.members.find(member => member.walls.find(w => w == wall))))) return this.canPlace = false
+                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y && !this.doors.find(d => d == door)
+                                          && !(this.clan && this.clan.members.find(member => member.doors.find(d => d == door))))) return this.canPlace = false
+                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y && !this.ctables.find(c => c == ctable)
+                                                   && !(this.clan && this.clan.members.find(member => member.ctables.find(c => c == ctable))))) return this.canPlace = false
                         if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y)) return this.canPlace = false
                         if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
@@ -2089,24 +2145,35 @@ module.exports = function (nsp, ns) {
                         msg:value.msg,
                         per:value.timeout.percntDone
                     }
-                })
+                }),
             }
             if(this.punch.timeout) pack.punchper = Math.roundToDeci(this.punch.timeout.percntDone, 1000) > 0.95 ? 1 : Math.roundToDeci(this.punch.timeout.percntDone, 1000)
             if(this.hitting && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.tool].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.tool].timeout.percntDone, 1000)
             if(this.eating && this.mainHands != 'hand') pack.per = Math.roundToDeci(this[this.edi].timeout.percntDone, 1000) > 0.97 ? 1 : Math.roundToDeci(this[this.edi].timeout.percntDone, 1000)
+            if(this.clan){ 
+                pack.clan = this.clan.name
+                pack.owner = this.clan.owner == this
+            }
             return pack
         }
         getSelfUpdatePack() {
             //console.log(this.crafting)
-            return {
+            let pack=  {
                 inventory:this.inventory.listItems(),
                 stamina:this.stamina,
                 maxStamina:this.maxStamina,
                 craftables:this.crafter.checkCraft(this.inventory),
                 crafting:this.crafting,
                 posPlace:this.posPlace,
-                craftablesEx:this.craftablesEx
+                craftablesEx:this.craftablesEx,
+                clanning:this.clanning,
+                clans:this.clans,
             }
+            if(this.clan){
+                pack.clanMembers = this.clan.members.map(player => ({ usr: player.usr, id: player.id }))
+                if(this.clan.owner == this && this.clan.joinReqs[0]) pack.req = {id:this.clan.joinReqs[0].member.id, usr: this.clan.joinReqs[0].member.usr}
+            }
+            return pack
         }
         setHands(){
             this.hrad = this.rad/25 * 7.5
@@ -3578,6 +3645,7 @@ module.exports = function (nsp, ns) {
                     player.doors.forEach(door => door.health = 0)
                     player.floors.forEach(floor => floor.health = 0)
                     player.ctables.forEach(ctable => ctable.health = 0)
+                    if(player.clan) player.clan.removeMember(player)
                     let toDrop = player.inventory.findAll(slot => slot !== 'empty') 
                     toDrop.forEach((slot, i) => {
                         let a = 360/toDrop.length
@@ -3697,7 +3765,7 @@ module.exports = function (nsp, ns) {
                                 dropped.splice(dropped.findIndex(function (element) {
                                     return element === self
                                 }), 1);
-                            }, 5000)
+                            }, 20000)
                         }
                         dropped.push(self)
                     })
@@ -3874,14 +3942,53 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'iron') new Iron(tempx, tempy, 10)
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        if(willAdd == 'demon') new Demon(tempx, tempy)
+        //if(willAdd == 'demon') new Demon(tempx, tempy)
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
-        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        //if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
         if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
         socket.on('log', log => console.log(log))
+        socket.on('clan', () => {
+            console.log('clanning')
+            let playa = Players.list.find(player =>  player.id == socket.id)
+            if(!playa) return
+            playa.clanning = !playa.clanning
+            console.log(playa.clanning)
+            playa.needsSelfUpdate = true
+        })
+        socket.on('createClan', name => {
+            console.log('halp')
+            if(clans.get(name)) return
+            if(clans.size >= 6) return
+            console.log(name, clans, clans.get(name))
+            Players.list.find(player => player.id == socket.id).clan = new Clan(name, Players.list.find(player => player.id == socket.id))
+            Players.list.find(player => player.id == socket.id).needsSelfUpdate = true
+        })
+        socket.on('joinClan', name => {
+            let clan  = clans.get(name)
+            clan.joinReqs.push({member:Players.list.find(player => player.id == socket.id)})
+            //clan.addMember(Players.list.find(player => player.id == socket.id))
+        })
+        socket.on('leaveClan', () => {
+            console.log('leaving', socket.id)
+            let playa = Players.list.find(player => player.id == socket.id)
+            let clan = playa.clan
+            clan.removeMember(playa)
+        })
+        socket.on('acceptReq', () => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(playa == playa.clan.owner) playa.clan.acceptReq()
+        })
+        socket.on('denyReq', () => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(playa == playa.clan.owner) playa.clan.denyReq()
+        })
+        socket.on('removeMember', id => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(playa == playa.clan.owner) playa.clan.removeMember(Players.list.find(player => player.id == id))
+        })
         socket.on('craft', item => {
             let playa = Players.list.find(player => player.id == socket.id)
             playa.crafter.craftItem(item, playa.inventory)
@@ -3929,6 +4036,7 @@ module.exports = function (nsp, ns) {
             let playa = Players.list.find(player => player.id == socket.id)
             if(!playa) return
             if(msg.startsWith('c:')){
+                
                 msg = msg.substring(msg.indexOf(':')+1)
                 if(msg == 'giveAdmin(knightmare)'){
                     playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))

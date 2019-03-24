@@ -7,7 +7,257 @@
  *
  *  MIT License
  */
+let inputs = []
+class CanvasIcnput {
+    constructor(o){
+        o = o ? o : {};
+        this._canvas =  o.canvas || null;
+        this._ctx = self._canvas ? self._canvas.getContext('2d') : null
+        this._x = o.x || 0
+        this._y = o.x || 0
+        this._extraX = o.extraX || 0;
+        this._extraY = o.extraY || 0;
+        this._fontSize = o.fontSize || 14;
+        this._fontFamily = o.fontFamily || 'Arial';
+        this._fontColor = o.fontColor || '#000';
+        this._placeHolderColor = o.placeHolderColor || '#bfbebd';
+        this._fontWeight = o.fontWeight || 'normal';
+        this._fontStyle = o.fontStyle || 'normal';
+        this._fontShadowColor = o.fontShadowColor || '';
+        this._fontShadowBlur = o.fontShadowBlur || 0;
+        this._fontShadowOffsetX = o.fontShadowOffsetX || 0;
+        this._fontShadowOffsetY = o.fontShadowOffsetY || 0;
+        this._readonly = o.readonly || false;
+        this._maxlength = o.maxlength || null;
+        this._width = o.width || 150;
+        this._height = o.height || this._fontSize;
+        this._padding = o.padding >= 0 ? o.padding : 5;
+        this._borderWidth = o.borderWidth >= 0 ? o.borderWidth : 1;
+        this._borderColor = o.borderColor || '#959595';
+        this._borderRadius = o.borderRadius >= 0 ? o.borderRadius : 3;
+        this._backgroundImage = o.backgroundImage || '';
+        this._boxShadow = o.boxShadow || '1px 1px 0px rgba(255, 255, 255, 1)';
+        this._innerShadow = o.innerShadow || '0px 0px 4px rgba(0, 0, 0, 0.4)';
+        this._selectionColor = o.selectionColor || 'rgba(179, 212, 253, 0.8)';
+        this._placeHolder = o.placeHolder || '';
+        this._value = (o.value || this._placeHolder) + '';
+        this._onsubmit = o.onsubmit || function() {};
+        this._onkeydown = o.onkeydown || function() {};
+        this._onkeyup = o.onkeyup || function() {};
+        this._onfocus = o.onfocus || function() {};
+        this._onblur = o.onblur || function() {};
+        this._cursor = false;
+        this._cursorPos = 0;
+        this._hasFocus = false;
+        this._selection = [0, 0];
+        this._wasOver = false;
 
+        // parse box shadow
+        this.boxShadow(this._boxShadow, true);
+
+        // calculate the full width and height with padding, borders and shadows
+        this._calcWH();
+
+        // setup the off-DOM canvas
+        this._renderCanvas = document.createElement('canvas');
+        this._renderCanvas.setAttribute('width', this.outerW);
+        this._renderCanvas.setAttribute('height', this.outerH);
+        this._renderCtx = this._renderCanvas.getContext('2d');
+
+        // setup another off-DOM canvas for inner-shadows
+        this._shadowCanvas = document.createElement('canvas');
+        this._shadowCanvas.setAttribute('width', this._width + this._padding * 2);
+        this._shadowCanvas.setAttribute('height', this._height + this._padding * 2);
+        this._shadowCtx = this._shadowCanvas.getContext('2d');
+
+        // setup the background color
+        if (typeof o.backgroundGradient !== 'undefined') {
+            this._backgroundColor = this._renderCtx.createLinearGradient(
+                0,
+                0,
+                0,
+                this.outerH
+            );
+            this._backgroundColor.addColorStop(0, o.backgroundGradient[0]);
+            this._backgroundColor.addColorStop(1, o.backgroundGradient[1]);
+        } else {
+            this._backgroundColor = o.backgroundColor || '#fff';
+        }
+
+        // setup main canvas events
+        if (this._canvas) {
+          this._canvas.addEventListener('mousemove', function(e) {
+            e = e || window.event;
+            this.mousemove(e, this);
+          }, false);
+
+          this._canvas.addEventListener('mousedown', function(e) {
+            e = e || window.event;
+            this.mousedown(e, this);
+          }, false);
+
+          this._canvas.addEventListener('mouseup', function(e) {
+            e = e || window.event;
+            this.mouseup(e, this);
+          }, false);
+        }
+
+        // setup a global mouseup to blur the input outside of the canvas
+        var autoBlur = function(e) {
+          e = e || window.event;
+
+          if (this._hasFocus && !this._mouseDown) {
+            this.blur();
+          }
+        };
+        window.addEventListener('mouseup', autoBlur, true);
+        window.addEventListener('touchend', autoBlur, true);
+
+        // create the hidden input element
+        this._hiddenInput = document.createElement('input');
+        this._hiddenInput.type = 'text';
+        this._hiddenInput.style.position = 'absolute';
+        this._hiddenInput.style.opacity = 0;
+        this._hiddenInput.style.pointerEvents = 'none';
+        this._hiddenInput.style.zIndex = 0;
+        // hide native blue text cursor on iOS
+        this._hiddenInput.style.transform = 'scale(0)';
+
+        this._updateHiddenInput();
+        if (this._maxlength) {
+          this._hiddenInput.maxLength = this._maxlength;
+        }
+        document.body.appendChild(this._hiddenInput);
+        this._hiddenInput.value = this._value;
+
+        // setup the keydown listener
+        this._hiddenInput.addEventListener('keydown', function(e) {
+            e = e || window.event;
+
+            if (this._hasFocus) {
+                // hack to fix touch event bug in iOS Safari
+                window.focus();
+                this._hiddenInput.focus();
+
+                // continue with the keydown event
+                this.keydown(e, this);
+            }
+        });
+
+        // setup the keyup listener
+        this._hiddenInput.addEventListener('keyup', function(e) {
+            e = e || window.event;
+
+            // update the canvas input state information from the hidden input
+            this._value = this._hiddenInput.value;
+            this._cursorPos = this._hiddenInput.selectionStart;
+            // update selection to hidden input's selection in case user did keyboard-based selection
+            this._selection = [this._hiddenInput.selectionStart, this._hiddenInput.selectionEnd];
+            //this.render();
+
+            if (this._hasFocus) {
+                this._onkeyup(e, this);
+            }
+        });
+
+        // add this to the buffer
+        inputs.push(this);
+        this._inputsIndex = inputs.length - 1;
+
+        // draw the text box
+        //this.render();
+    }
+    /**
+     * Get/set the main canvas.
+     * @param  {Object} data Canvas reference.
+     * @return {Mixed} CanvasInput or current canvas.
+     */
+    set canvas(canvas){
+        if(typeof canvas == 'number'){
+            this._canvas = canvas;
+            this._ctx = this._canvas.getContext('2d');
+        }else throw new Error('No canvas specified')                     
+    }
+    get canvas(){
+        return this._canvas
+    }
+    /**
+     * Get/set the x-position.
+     * @param  {Number} data The pixel position along the x-coordinate.
+     * @return {Mixed} CanvasInput or current x-value.
+     */
+    set x(x){
+        if(typeof x == 'number'){this._x = x;this._updateHiddenInput()}
+        else throw new Error('Invalid x-coordinate specified')  
+    }
+    get x(){
+        return this._x
+    }
+    set y(y){
+        if(typeof y == 'number'){this._y = y;this._updateHiddenInput()}
+        else throw new Error('Invalid y-coordinate specified')  
+    }
+    get y(){
+        return this._y
+    }
+    set extraX(x){
+        if(typeof x == 'number'){this._extraX = x;this._updateHiddenInput()}
+        else throw new Error('Invalid extra x-Coordinate specified')  
+    }
+    get extraX(){
+        return this._x
+    }
+    set extraY(y){
+        if(typeof y == 'number'){this._extraY = y;this._updateHiddenInput()}
+        else throw new Error('Invalid extra y-coordinate specified')  
+    }
+    get extraY(){
+        return this._extraY
+    }
+    set fontSize(size){
+        if(typeof size == 'number'){this._fontSize = size;this._updateHiddenInput()}
+        else throw new Error('Invalid font size Specified')  
+    }
+    get fontSize(){
+        return this._fontSize
+    }
+    set fontFamily(family){
+        if(typeof family == 'string'){this._fontFamily = family;this._updateHiddenInput()}
+        else throw new Error('Invalid font family Specified')  
+    }
+    get fontFamily(){
+        return this._fontFamily
+    }
+    set fontColor(color){
+        if(typeof color == 'string'){this._fontColor = color;this._updateHiddenInput()}
+        else throw new Error('Invalid font color Specified')  
+    }
+    get fontColor(){
+        return this._fontColor
+    }
+    set placeHolderColor(color){
+        if(typeof color == 'string'){this._placeHolderColor = color;this._updateHiddenInput()}
+        else throw new Error('Invalid placeholder color Specified')  
+    }
+    get placeHolderColor(){
+        return this._placeHolderColor
+    }
+    set placeHolderColor(color){
+        if(typeof color == 'string'){this._placeHolderColor = color;this._updateHiddenInput()}
+        else throw new Error('Invalid placeholder color Specified')  
+    }
+    get placeHolderColor(){
+        return this._placeHolderColor
+    }
+    set fontWeight(color){
+        if(typeof color == 'string'){this._placeHolderColor = color;this._updateHiddenInput()}
+        else throw new Error('Invalid placeholder color Specified')  
+    }
+    get placeHolderColor(){
+        return this._placeHolderColor
+    }
+    
+}
 (function() {
   // create a buffer that stores all inputs so that tabbing
   // between them is made possible.
@@ -162,7 +412,7 @@
       self._cursorPos = self._hiddenInput.selectionStart;
       // update selection to hidden input's selection in case user did keyboard-based selection
       self._selection = [self._hiddenInput.selectionStart, self._hiddenInput.selectionEnd];
-      self.render();
+      //self.render();
 
       if (self._hasFocus) {
         self._onkeyup(e, self);
@@ -172,9 +422,6 @@
     // add this to the buffer
     inputs.push(self);
     self._inputsIndex = inputs.length - 1;
-
-    // draw the text box
-    self.render();
   };
 
   // setup the prototype
@@ -191,7 +438,7 @@
         self._canvas = data;
         self._ctx = self._canvas.getContext('2d');
 
-        return self.render();
+        //return self.render();
       } else {
         return self._canvas;
       }
@@ -209,7 +456,7 @@
         self._x = data;
         self._updateHiddenInput();
 
-        return self.render();
+        //return self.render();
       } else {
         return self._x;
       }
@@ -227,7 +474,7 @@
         self._y = data;
         self._updateHiddenInput();
 
-        return self.render();
+        //return self.render();
       } else {
         return self._y;
       }
@@ -245,7 +492,7 @@
         self._extraX = data;
         self._updateHiddenInput();
 
-        return self.render();
+        //return self.render();
       } else {
         return self._extraX;
       }
@@ -263,7 +510,7 @@
         self._extraY = data;
         self._updateHiddenInput();
 
-        return self.render();
+        //return self.render();
       } else {
         return self._extraY;
       }
@@ -280,7 +527,7 @@
       if (typeof data !== 'undefined') {
         self._fontSize = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._fontSize;
       }
@@ -297,7 +544,7 @@
       if (typeof data !== 'undefined') {
         self._fontFamily = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._fontFamily;
       }
@@ -314,7 +561,7 @@
       if (typeof data !== 'undefined') {
         self._fontColor = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._fontColor;
       }
@@ -331,7 +578,7 @@
       if (typeof data !== 'undefined') {
         self._placeHolderColor = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._placeHolderColor;
       }
@@ -348,7 +595,7 @@
       if (typeof data !== 'undefined') {
         self._fontWeight = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._fontWeight;
       }
@@ -365,7 +612,7 @@
       if (typeof data !== 'undefined') {
         self._fontStyle = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._fontStyle;
       }
@@ -382,7 +629,7 @@
       if (typeof data !== 'undefined') {
         self._fontShadowColor = data;
 
-        return self.render();
+        //return self.render();
       } else {
         return self._fontShadowColor;
       }
@@ -399,7 +646,7 @@
       if (typeof data !== 'undefined') {
         self._fontShadowBlur = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._fontShadowBlur;
       }
@@ -416,7 +663,7 @@
       if (typeof data !== 'undefined') {
         self._fontShadowOffsetX = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._fontShadowOffsetX;
       }
@@ -433,7 +680,7 @@
       if (typeof data !== 'undefined') {
         self._fontShadowOffsetY = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._fontShadowOffsetY;
       }
@@ -453,7 +700,7 @@
         self._updateCanvasWH();
         self._updateHiddenInput();
 
-        return self.render();
+       //return self.render();
       } else {
         return self._width;
       }
@@ -473,7 +720,7 @@
         self._updateCanvasWH();
         self._updateHiddenInput();
 
-        return self.render();
+       //return self.render();
       } else {
         return self._height;
       }
@@ -492,7 +739,7 @@
         self._calcWH();
         self._updateCanvasWH();
 
-        return self.render();
+       //return self.render();
       } else {
         return self._padding;
       }
@@ -511,7 +758,7 @@
         self._calcWH();
         self._updateCanvasWH();
 
-        return self.render();
+       //return self.render();
       } else {
         return self._borderWidth;
       }
@@ -528,7 +775,7 @@
       if (typeof data !== 'undefined') {
         self._borderColor = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._borderColor;
       }
@@ -545,7 +792,7 @@
       if (typeof data !== 'undefined') {
         self._borderRadius = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._borderRadius;
       }
@@ -562,7 +809,7 @@
       if (typeof data !== 'undefined') {
         self._backgroundColor = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._backgroundColor;
       }
@@ -586,7 +833,7 @@
         self._backgroundColor.addColorStop(0, data[0]);
         self._backgroundColor.addColorStop(1, data[1]);
 
-        return self.render();
+       //return self.render();
       } else {
         return self._backgroundColor;
       }
@@ -635,7 +882,7 @@
         if (!doReturn) {
           self._updateCanvasWH();
 
-          return self.render();
+         //return self.render();
         }
       } else {
         return self._boxShadow;
@@ -653,7 +900,7 @@
       if (typeof data !== 'undefined') {
         self._innerShadow = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._innerShadow;
       }
@@ -670,7 +917,7 @@
       if (typeof data !== 'undefined') {
         self._selectionColor = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._selectionColor;
       }
@@ -687,7 +934,7 @@
       if (typeof data !== 'undefined') {
         self._placeHolder = data;
 
-        return self.render();
+       //return self.render();
       } else {
         return self._placeHolder;
       }
@@ -708,7 +955,7 @@
         // update the cursor position
         self._cursorPos = self._clipText().length;
 
-        self.render();
+        //self.render();
 
         return self;
       } else {
@@ -816,7 +1063,6 @@
         }
         self._cursorInterval = setInterval(function() {
           self._cursor = !self._cursor;
-          self.render();
         }, 500);
       }
 
@@ -826,7 +1072,7 @@
       self._hiddenInput.selectionStart = hasSelection ? self._selection[0] : self._cursorPos;
       self._hiddenInput.selectionEnd = hasSelection ? self._selection[1] : self._cursorPos;
 
-      return self.render();
+     //return self.render();
     },
 
     /**
@@ -835,24 +1081,22 @@
      * @return {CanvasInput}
      */
     blur: function(_this) {
-      var self = _this || this;
+        var self = _this || this;
 
-      self._onblur(self);
+        self._onblur(self);
 
-      if (self._cursorInterval) {
-        clearInterval(self._cursorInterval);
-      }
-      self._hasFocus = false;
-      self._cursor = false;
-      self._selection = [0, 0];
-      self._hiddenInput.blur();
+        if (self._cursorInterval) {
+          clearInterval(self._cursorInterval);
+        }
+        self._hasFocus = false;
+        self._cursor = false;
+        self._selection = [0, 0];
+        self._hiddenInput.blur();
 
-      // fill the place holder
-      if (self._value === '') {
-        self._value = self._placeHolder;
-      }
-
-      return self.render();
+        // fill the place holder
+        if (self._value === '') {
+          self._value = self._placeHolder;
+        }
     },
 
     /**
@@ -879,26 +1123,25 @@
       if (keyCode === 65 && (e.ctrlKey || e.metaKey)) {
         self.selectText();
         e.preventDefault();
-        return self.render();
+       //return self.render();
       }
 
       // block keys that shouldn't be processed
       if (keyCode === 17 || e.metaKey || e.ctrlKey) {
         return self;
       }
-
       if (keyCode === 13) { // enter key
-        e.preventDefault();
-        self._onsubmit(e, self);
+          e.preventDefault();
+          self._onsubmit(e, self);
       } else if (keyCode === 9) { // tab key
-        e.preventDefault();
-        if (inputs.length > 1) {
-          var next = (inputs[self._inputsIndex + 1]) ? self._inputsIndex + 1 : 0;
-          self.blur();
-          setTimeout(function() {
-            inputs[next].focus();
-          }, 10);
-        }
+          e.preventDefault();
+          if (inputs.length > 1) {
+              var next = (inputs[self._inputsIndex + 1]) ? self._inputsIndex + 1 : 0;
+              self.blur();
+              setTimeout(function() {
+                  inputs[next].focus();
+              }, 10);
+          }
       }
 
       // update the canvas input state information from the hidden input
@@ -906,7 +1149,7 @@
       self._cursorPos = self._hiddenInput.selectionStart;
       self._selection = [0, 0];
 
-      return self.render();
+     //return self.render();
     },
 
     /**
@@ -950,7 +1193,7 @@
         y = mouse.y,
         isOver = self._overInput(x, y);
 
-      if (isOver && self._canvas) {
+      if (isOver && self._canvas && !self.isDestroyed) {
         self._canvas.style.cursor = 'text';
         self._wasOver = true;
       } else if (self._wasOver && self._canvas) {
@@ -967,13 +1210,13 @@
           self._selectionUpdated = true;
           self._endSelection = true;
           delete self._selectionStart;
-          self.render();
+          //self.render();
           return;
         }
 
         if (self._selection[0] !== start || self._selection[1] !== end) {
           self._selection = [start, end];
-          self.render();
+          //self.render();
         }
       }
     },
@@ -1013,7 +1256,7 @@
       if (self._hasFocus && self._selectionStart >= 0 && self._overInput(x, y) && isSelection) {
         self._selectionUpdated = true;
         delete self._selectionStart;
-        self.render();
+        //self.render();
       } else {
         delete self._selectionStart;
       }
@@ -1035,7 +1278,7 @@
         self._selection = [range[0], range[1]];
         self._hiddenInput.selectionStart = range[0];
         self._hiddenInput.selectionEnd = range[1];
-        self.render();
+        //self.render();
       }, 1);
 
       return self;
@@ -1055,6 +1298,7 @@
      * @return {CanvasInput}
      */
     render: function() {
+      
       var self = this,
         ctx = self._renderCtx,
         w = self.outerW,
@@ -1089,7 +1333,9 @@
       }
 
       // draw the text box background
+      
       self._drawTextBox(function() {
+        
         // make sure all shadows are reset
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
@@ -1107,7 +1353,6 @@
           ctx.fillStyle = self._selectionColor;
           ctx.fillRect(paddingBorder + selectOffset, paddingBorder, selectWidth, self._height);
         }
-
         // draw the cursor
         if (self._cursor) {
           var cursorOffset = self._textWidth(text.substring(0, self._cursorPos));
@@ -1182,9 +1427,9 @@
           self._ctx.clearRect(self._x, self._y, ctx.canvas.width, ctx.canvas.height);
           self._ctx.drawImage(self._renderCanvas, self._x, self._y);
         }
-
+        /*
         return self;
-
+          */        
       });
     },
 
@@ -1212,6 +1457,7 @@
       self._renderCanvas = null;
       self._shadowCanvas = null;
       self._renderCtx = null;
+      self.isDestroyed = true
     },
 
     /**
