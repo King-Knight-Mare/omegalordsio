@@ -13,7 +13,20 @@ const {astar, Graph} = require('./astar.js')
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+function RectCircleColliding(cx, cy, cr, rx, ry, rw, rh){
+    var distX = Math.abs(cx - rx);
+    var distY = Math.abs(cy - ry);
+    console.log(cx - rx - rw/2)
+    if (distX > (rw/2 + cr)) { return false; }
+    if (distY > (rh/2 + cr)) { return false; }
+    console.log(distX, distY)
+    if (distX <= (rw/2)) { return true; }
+    if (distY <= (rh/2)) { return true; }
 
+    var dx=cx-rw/2;
+    var dy=cy-rh/2;
+    return (dx*dx+dy*dy<=(cr*cr));
+}
 global.games = []
 module.exports = function (nsp, ns) {
     this.engine = Engine.create(); 
@@ -36,10 +49,11 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:1000,
-        height:1000
+        width:5000,
+        height:5000
     }
     let clans = new Map()
+    let Entities = []
     class Clan {
         constructor(name, owner){
             this.owner = owner
@@ -77,8 +91,8 @@ module.exports = function (nsp, ns) {
             this.joinReqs = this.joinReqs.filter(request => request.member.id !=  req.member.id)
         }
         denyReq(){
-            if(!req) return
             let req = this.joinReqs[0]
+            if(!req) return
             this.joinReqs = this.joinReqs.filter(request => request.member.id !=  req.member.id)
         }
     }
@@ -622,13 +636,99 @@ module.exports = function (nsp, ns) {
             this.wearable = wearable
         }
     }
-    class Inventory extends Mapper {
+    class Storage extends Mapper {
+        constructor(base, length){
+            if(!base){
+                base = []
+                for(let i = 1;i < length + 1; i++){
+                    base.push([i.toString(), 'empty'])
+                }
+                super(base)
+            }else {
+                super(base)
+            }
+        }
+        listItems(){
+            let itemArray = []
+            this.forEach((item) => {
+                if(item == 'empty') return itemArray.push(' ')
+                else return itemArray.push({type:item.id, image:item.image,count:item.count})
+            })
+            return itemArray
+        }
+        addItem(toAdd){
+            let found = false;
+            let posSlots =  this.findAll(item => item.id == toAdd.id)
+            posSlots.forEach(item => {
+                if(found) return
+                if(item.id == toAdd.id){
+                    if(item.count >= item.stackSize){ 
+                        found = false
+                    } else {
+                        if(item.count + toAdd.count > item.stackSize && 
+                            this.find(item => {
+                                if(item == 'empty') return true; 
+                                if(item.id == toAdd.id && item.count != item.stackSize) return true;
+                                return false;
+                            })
+                        ){
+                            toAdd.count -= (item.stackSize - item.count)
+                            item.count = item.stackSize
+                            found = true
+                            this.addItem(toAdd)
+                            return
+                        }else if(item.count + toAdd.count > item.stackSize){
+                            item.count = item.stackSize
+                            found = true
+                            return
+                        }
+                        item.count += toAdd.count;
+                        found = true
+                    }
+                }
+            })
+            if(found) return
+            if(this.find(item => item == 'empty') ) return this.set(this.findKey(item => item == 'empty'), toAdd)
+        }
+        addItemMax(toAdd){
+            let found = false;
+            let posSlots =  this.findAll(item => item.id == toAdd.id)
+            let ret = true
+            if(!ret) return
+            while(this.find(item => {
+                if(item == 'empty') return true; 
+                if(item.id == toAdd.id && item.count !== item.stackSize) return true;
+                return false;
+            }) && toAdd.count && ret){
+                let i = this.find(item => {
+                    if(item == 'empty') return true; 
+                    if(item.id == toAdd.id && item.count !== item.stackSize) return true;
+                    return false;
+                })
+                if(i == 'empty'){ 
+                    ret = false
+                    this.set(this.findKey(item => item == 'empty'), toAdd)
+                    return 
+
+                }
+                if(toAdd.count + i.count > i.stackSize){
+                    toAdd.count -= (i.stackSize - i.count)
+                    i.count = i.stackSize
+                }else {
+                    i.count += toAdd.count
+                    ret = false
+                }
+            }
+            if(ret) return toAdd
+        }
+    }
+    class Inventory extends Storage {
         constructor(){
             super([
                 ['1', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
                 ['2', new Slot('Wood Floor', 255, 'woodfloor', 255, true)],
                 ['3', new Slot('Wood Door', 255, 'wooddoor', 255, true)],
-                ['4', 'empty'],
+                ['4', new Slot('wood', 255, 'draw')],
                 ['5', 'empty'],
                 ['6', 'empty'],
                 ['7', 'empty'],
@@ -729,70 +829,19 @@ module.exports = function (nsp, ns) {
             let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             let inWay = false
-
-            Players.list.forEach(player => {
-                if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
-            })
-
-            STrees.list.forEach(tree => {
-                if(tempx == tree.body.position.x && tempy == tree.body.position.y) inWay = true
-            })
-            Stones.list.forEach(stone => {
-                if(tempx == stone.body.position.x && tempy == stone.body.position.y) inWay = true
-            })
-            Irons.list.forEach(iron => {
-                if(tempx == iron.body.position.x && tempy == iron.body.position.y) inWay = true
-            })
-            Golds.list.forEach(gold => {
-                if(tempx == gold.body.position.x && tempy == gold.body.position.y) inWay = true
-            })
-            Diamonds.list.forEach(diamond => {
-                if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
-            })
-            Walls.list.forEach(wall => {
-                if(tempx == wall.body.position.x && tempy == wall.body.position.y) inWay = true
-            })
-            Doors.list.forEach(door => {
-                if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
-            })
-            Floors.list.forEach(floor => {
-                if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
+            Entities.forEach(e => {
+                if((e.body.position.x == tempx && e.body.position.y == tempy ) || (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)) inWay = true
             })
             while(inWay){
                 tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
                 tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
                 inWay = false
-
-                Players.list.forEach(player => {
-                    if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
-                })
-
-                STrees.list.forEach(tree => {
-                    if(tempx == tree.body.position.x && tempy == tree.body.position.y) inWay = true
-                })
-                Stones.list.forEach(stone => {
-                    if(tempx == stone.body.position.x && tempy == stone.body.position.y) inWay = true
-                })
-                Irons.list.forEach(iron => {
-                    if(tempx == iron.body.position.x && tempy == iron.body.position.y) inWay = true
-                })
-                Golds.list.forEach(gold => {
-                    if(tempx == gold.body.position.x && tempy == gold.body.position.y) inWay = true
-                })
-                Diamonds.list.forEach(diamond => {
-                    if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
-                })
-                Walls.list.forEach(wall => {
-                    if(tempx == wall.body.position.x && tempy == wall.body.position.y) inWay = true
-                })
-                Doors.list.forEach(door => {
-                    if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
-                })
-                Floors.list.forEach(floor => {
-                    if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
+                Entities.forEach(e => {
+                    if((e.body.position.x == tempx && e.body.position.y == tempy ) || (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)) inWay = true
                 })
             }
             this.body = Bodies.circle(tempx, tempy, this.rad, {frictionAir:0.02, restitution:0.15})
+            Entities.push(this)
             World.addBody(this.game.engine.world, this.body)
             //new Guns.types['pistol'](getRandomNum(25, 2090), getRandomNum(25,1463))
             this.inventory = new Inventory()
@@ -806,6 +855,7 @@ module.exports = function (nsp, ns) {
             this.doors = []
             this.floors = []
             this.ctables = []
+            this.structures = []
             this.pang = 'left'
             this.punch = {
                 speed: 3,
@@ -1019,6 +1069,12 @@ module.exports = function (nsp, ns) {
                 this.needsSelfUpdate = true
                 //if()
             }
+            if(this.chesting){
+                if(this.chest.health <= 0) this.crafting = false
+                this.chestables = this.chest.storage.listItems()
+                this.needsSelfUpdate = true
+                //if()
+            }
             if(this.clan && this.clan.owner == this && this.clan.joinReqs[0]) this.needsSelfUpdate = true
             if(this.crafting && this.craftingctable.health <= 0) this.crafting = false
             if(this.clanning){
@@ -1034,7 +1090,7 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if((dropped.length || this.doors.length || CraftingTables.list.length) && !this.alusd){
+                if((dropped.length || this.structures.find(s => s instanceof Door) || CraftingTables.list.length ||Chests.list.length || (this.clan) && this.clan.members.find(member => member.structures.find(s => s instanceof Door))) && !this.alusd){
                     let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
@@ -1048,13 +1104,15 @@ module.exports = function (nsp, ns) {
                         })
                     }
                     let posd = new Mapper()
-                    this.doors.forEach((door, i)=> {
-                        if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad) posd.set(Math.random(), door)
+                    this.structures.forEach((s, i)=> {
+                        if(s instanceof Door && Vector.getDistance(s, this.body.position) < 70.7 + this.rad) posd.set(Math.random(), s)
                     })
                     if(this.clan){
-                        this.clan.members.forEach(member => member.doors.forEach(door => {
-                            if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad && !this.doors.find(d => d == door)) posd.set(Math.random(), door)
-                        }))
+                        this.clan.members.forEach(member => { 
+                            member.doors.forEach(door => {
+                                if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad && member != this) posd.set(Math.random(), door)
+                            })
+                        })
                     }
                     let disd
                     let nearestd
@@ -1076,11 +1134,22 @@ module.exports = function (nsp, ns) {
                             if(Vector.getDistance(ctable, this.body.position) < disctable){disctable = Vector.getDistance(ctable, this.body.position); nearestctable = index}
                         })
                     }
-                    if(!posd.size && !possible.size && !posctable.size) return
-                    if(!this.crafting && (((dis == undefined && disctable == undefined) && disd != undefined)|| (dis > disd && disctable > disd)) &&!posd.get(nearestd).opening){
+                    let poschest = new Mapper()
+                    Chests.list.forEach((ctable, i)=> {
+                        if(Vector.getDistance(ctable, this.hposfr) < 70.7 + this.hrad) poschest.set(i, ctable)
+                    })
+                    let dischest
+                    let nearestchest
+                    if(poschest.size){
+                        poschest.forEach((chest, index) => {
+                            if(!nearestchest){nearestchest = index; dischest = Vector.getDistance(chest, this.body.position); return}
+                            if(Vector.getDistance(chest, this.body.position) < dischest){dischest = Vector.getDistance(chest, this.body.position); nearestchest = index}
+                        })
+                    }
+                    if(!posd.size && !possible.size && !posctable.size && !poschest.size) return
+                    //console.log(poschest)
+                    if(!this.crafting && (((dis == undefined && disctable == undefined && dischest == undefined) && disd != undefined) || (disd > dis && disd > disctable && disd > dischest)) && !posd.get(nearestd).opening){
                         let door = posd.get(nearestd)
-                        console.log(door.opening)
-                        console.log(door.body.position)
                         if(door.ang == 'left' && !door.open){
                             Body.translate(door.body, Vector.create(-100, -100))
                         }
@@ -1096,17 +1165,22 @@ module.exports = function (nsp, ns) {
                         if(door.open){
                             Body.translate(door.body, {x:door.x - door.body.position.x, y:door.y - door.body.position.y})
                         }
-                        console.log(door.body.position)
                         door.opentimeout = new Timeout(() => {door.open = !door.open; door.opening = false}, 1000)
                         door.opening = true
                         door.needsUpdate = true
                         this.alusd = true
-                    }else if(!this.crafting && (((disd  == undefined && disctable  == undefined) && dis != undefined) || (disd > dis && disctable > dis))){
+                    }else if(!this.crafting && (((disd  == undefined && disctable  == undefined && dischest == undefined) && dis != undefined) || (dis > disctable && dis > disd && dis > dischest))){
                         let res = this.inventory.addItemMax(dropped[nearest].item)
                         if(!res) dropped.splice(nearest, 1);
                         this.needsSelfUpdate = true
                         this.alusd = true
-                    }else if((!disd && !dis) || (dis > disctable && dis > disctable) || this.crafting){
+                    }else if(!this.crafting && (((disd  == undefined && disctable  == undefined && dis == undefined) && dischest != undefined) || (dischest > dis && dischest > disd && dischest > disctable))){
+                        this.chest = poschest.get(nearestchest)
+                        console.log('wtf')
+                        this.chesting = !this.chesting
+                        this.needsSelfUpdate = true
+                        this.alusd = true
+                    }else if((!disd && !dis && !dischest) || (dis > disctable && dis > disctable) || this.crafting){
                         this.craftingctable = posctable.get(nearestctable)
                         this.crafting = !this.crafting
                         this.needsSelfUpdate = true
@@ -1796,105 +1870,125 @@ module.exports = function (nsp, ns) {
                     if(/Wall/.test(this.mainHands) && this.move.att && !this.alusd){
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
-                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return this.canPlace = false
-                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return this.canPlace = false
-                        if(Destroyers.list.find(des => Vector.getDistance(des.body.position, mvect) < 70.7106781187 + des.rad)) return this.canPlace = false
-                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return this.canPlace = false
-                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor) 
-                                            && !(this.clan && this.clan.members.find(member => member.floors.find(f => f == floor))))) return this.canPlace = false
-                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return this.canPlace = false
+                        if(Entities.find(e => 
+                              (
+                                  (e.body.position.x == mvect.x && e.body.position.y == mvect.y) || 
+                                  (
+                                        (e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit) &&
+                                        RectCircleColliding(e.body.position.x, e.body.position.y, e.rad, mvect.x, mvect.y, 100, 100)
+                                  )
+                              ) && !(
+                                  this.structures.find(s => e == s && e instanceof Floor) || 
+                                  (this.clan && this.clan.members.find(member => member.structures.find(s => e == s && s instanceof Floor)))
+                              ) || (mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height)
+                        ))return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        if(/Wood/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'wood'))
-                        if(/Stone/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'stone'))
-                        if(/Iron/.test(this.mainHands)) this.walls.push(new Wall(mvect.x, mvect.y, 'iron'))
+                        if(/Wood/.test(this.mainHands)) this.structures.push(new Wall(mvect.x, mvect.y, 'wood'))
+                        if(/Stone/.test(this.mainHands)) this.structures.push(new Wall(mvect.x, mvect.y, 'stone'))
+                        if(/Iron/.test(this.mainHands)) this.structures.push(new Wall(mvect.x, mvect.y, 'iron'))
                         this.alusd = true
                     }
                     if(/Door/.test(this.mainHands) && this.move.att && !this.alusd){
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
-                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return this.canPlace = false
-                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return this.canPlace = false
-                        if(Destroyers.list.find(des => Vector.getDistance(des.body.position, mvect) < 70.7106781187 + des.rad)) return this.canPlace = false
-                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return this.canPlace = false
-                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor)
-                                           && !(this.clan && this.clan.members.find(member => member.floors.find(f => f == floor))))) return this.canPlace = false
-                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return this.canPlace = false
+                        if(Entities.find(e => 
+                              (
+                                  (e.body.position.x == mvect.x && e.body.position.y == mvect.y) || 
+                                  (
+                                        (e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit) &&
+                                        RectCircleColliding(e.body.position.x, e.body.position.y, e.rad, mvect.x, mvect.y, 100, 100)
+                                  )
+                              ) && !(
+                                  this.structures.find(s => e == s && e instanceof Floor) || 
+                                  (this.clan && this.clan.members.find(member => member.structures.find(s => e == s && s instanceof Floor)))
+                              ) || (mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height)
+                        ))return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        if(/Wood/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'wood', this.pang))
-                        if(/Stone/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'stone', this.pang))
-                        if(/Iron/.test(this.mainHands)) this.doors.push(new Door(mvect.x, mvect.y, 'iron', this.pang))
+                        if(/Wood/.test(this.mainHands)) this.structures.push(new Door(mvect.x, mvect.y, 'wood', this.pang))
+                        if(/Stone/.test(this.mainHands)) this.structures.push(new Door(mvect.x, mvect.y, 'stone', this.pang))
+                        if(/Iron/.test(this.mainHands)) this.structures.push(new Door(mvect.x, mvect.y, 'iron', this.pang))
                         this.alusd = true
                     }
                     if(/Crafting Table/.test(this.mainHands) && this.move.att && !this.alusd){
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
-                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad)) return this.canPlace = false
-                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return this.canPlace = false
-                        if(Destroyers.list.find(des => Vector.getDistance(des.body.position, mvect) < 70.7106781187 + des.rad)) return this.canPlace = false
-                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y)) return this.canPlace = false
-                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y && !this.floors.find(f => f == floor)
-                                           && !(this.clan && this.clan.members.find(member => member.floors.find(f => f == floor))))) return  this.canPlace = false
-                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return
+                        if(Entities.find(e => 
+                              (
+                                  (e.body.position.x == mvect.x && e.body.position.y == mvect.y) || 
+                                  (
+                                        (e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit) &&
+                                        RectCircleColliding(e.body.position.x, e.body.position.y, e.rad, mvect.x, mvect.y, 100, 100)
+                                  )
+                              ) && !(
+                                  this.structures.find(s => e == s && e instanceof Floor) || 
+                                  (this.clan && this.clan.members.find(member => member.structures.find(s => e == s && s instanceof Floor)))
+                              ) || (mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height)
+                        ))return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        this.ctables.push(new CraftingTable(mvect.x, mvect.y))
+                        this.structures.push(new CraftingTable(mvect.x, mvect.y))
                         this.alusd = true
                     }
                     if(/Floor/.test(this.mainHands) && this.move.att && !this.alusd){
                         mvect.y = Math.floor(mvect.y/100) * 100 + 50
                         mvect.x = Math.floor(mvect.x/100) * 100 + 50
-                        if(Players.list.find(player => Vector.getDistance(player.body.position, mvect) < 70.7106781187 + player.rad && player != this)) return this.canPlace = false
-                        if(Demons.list.find(demon => Vector.getDistance(demon.body.position, mvect) < 70.7106781187 + demon.rad)) return this.canPlace = false
-                        if(Destroyers.list.find(des => Vector.getDistance(des.body.position, mvect) < 70.7106781187 + des.rad)) return this.canPlace = false
-                        if(STrees.list.find(tree => tree.body.position.x == mvect.x && tree.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Stones.list.find(stone => stone.body.position.x == mvect.x && stone.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Irons.list.find(iron => iron.body.position.x == mvect.x && iron.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Golds.list.find(gold => gold.body.position.x == mvect.x && gold.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Diamonds.list.find(diamond => diamond.body.position.x == mvect.x && diamond.body.position.y == mvect.y)) return this.canPlace = false
-                        if(Walls.list.find(wall => wall.body.position.x == mvect.x && wall.body.position.y == mvect.y && !this.walls.find(w => w == wall)
-                                          && !(this.clan && this.clan.members.find(member => member.walls.find(w => w == wall))))) return this.canPlace = false
-                        if(Doors.list.find(door => door.body.position.x == mvect.x && door.body.position.y == mvect.y && !this.doors.find(d => d == door)
-                                          && !(this.clan && this.clan.members.find(member => member.doors.find(d => d == door))))) return this.canPlace = false
-                        if(CraftingTables.list.find(ctable => ctable.body.position.x == mvect.x && ctable.body.position.y == mvect.y && !this.ctables.find(c => c == ctable)
-                                                   && !(this.clan && this.clan.members.find(member => member.ctables.find(c => c == ctable))))) return this.canPlace = false
-                        if(Floors.list.find(floor => floor.body.position.x == mvect.x && floor.body.position.y == mvect.y)) return this.canPlace = false
-                        if(mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height ) return this.canPlace = false
+                        
+                        if(Entities.find(e =>  
+                              e.id != this.id &&
+                              (
+                                  (e.body.position.x == mvect.x && e.body.position.y == mvect.y) || 
+                                  (
+                                        (e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit) &&
+                                        RectCircleColliding(e.body.position.x, e.body.position.y, e.rad, mvect.x, mvect.y, 100, 100)
+                                  )
+                              ) && !(
+                                  this.structures.find(s => e == s && (e instanceof Wall || e instanceof Door || e instanceof CraftingTable)) || 
+                                  (
+                                      this.clan && 
+                                      this.clan.members.find(member => member.structures.find(s => e == s && (e instanceof Wall || e instanceof Door || e instanceof CraftingTable))))
+                              ) || (mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height)
+                        ))return this.canPlace = false
                         let slot = this.inventory.get(this.mainHand)
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        if(/Wood/.test(this.mainHands)) this.floors.push(new Floor(mvect.x, mvect.y, 'wood'))
-                        if(/Stone/.test(this.mainHands)) this.floors.push(new Floor(mvect.x, mvect.y, 'stone'))
-                        if(/Iron/.test(this.mainHands)) this.floors.push(new Floor(mvect.x, mvect.y, 'iron'))
+                        if(/Wood/.test(this.mainHands)) this.structures.push(new Floor(mvect.x, mvect.y, 'wood'))
+                        if(/Stone/.test(this.mainHands)) this.structures.push(new Floor(mvect.x, mvect.y, 'stone'))
+                        if(/Iron/.test(this.mainHands)) this.structures.push(new Floor(mvect.x, mvect.y, 'iron'))
+                        this.alusd = true
+                    }
+                    if(/Chest/.test(this.mainHands) && this.move.att && !this.alusd){
+                        mvect.y = Math.floor(mvect.y/100) * 100 + 50
+                        mvect.x = Math.floor(mvect.x/100) * 100 + 50
+                        
+                        if(Entities.find(e =>  
+                              e.id != this.id &&
+                              (
+                                  (e.body.position.x == mvect.x && e.body.position.y == mvect.y) || 
+                                  (
+                                        (e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit) &&
+                                        RectCircleColliding(e.body.position.x, e.body.position.y, e.rad, mvect.x, mvect.y, 95, 50)
+                                  )
+                              ) && !(
+                                  this.structures.find(s => e == s && (e instanceof Wall || e instanceof Door || e instanceof CraftingTable)) || 
+                                  (
+                                      this.clan && 
+                                      this.clan.members.find(member => member.structures.find(s => e == s && (e instanceof Wall || e instanceof Door || e instanceof CraftingTable))))
+                              ) || (mvect.x < 50 || mvect.y < 50 || mvect.x > game.map.width || mvect.y > game.map.height)
+                        ))return this.canPlace = false
+                        let slot = this.inventory.get(this.mainHand)
+                        slot.count -= 1
+                        if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
+                        this.needsSelfUpdate = true
+                        this.structures.push(new Chest(mvect.x, mvect.y))
                         this.alusd = true
                     }
                 }
@@ -2166,7 +2260,9 @@ module.exports = function (nsp, ns) {
                 crafting:this.crafting,
                 posPlace:this.posPlace,
                 craftablesEx:this.craftablesEx,
+                chestables:this.chestables,
                 clanning:this.clanning,
+                chesting:this.chesting,
                 clans:this.clans,
             }
             if(this.clan){
@@ -2198,6 +2294,7 @@ module.exports = function (nsp, ns) {
             this.rad = 50
             this.id = Math.random()
             this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.bullets = [];
             this.agro = []
@@ -2490,6 +2587,7 @@ module.exports = function (nsp, ns) {
             this.rad = 30
             this.id = Math.random()
             this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.bullets = [];
             this.agro = []
@@ -2777,6 +2875,7 @@ module.exports = function (nsp, ns) {
             this.rad = 25
             this.id = Math.random()
             this.body = Bodies.circle(x, y, this.rad, {frictionAir:0.02, restitution:0.15})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.bullets = [];
             this.agro = []
@@ -3095,6 +3194,7 @@ module.exports = function (nsp, ns) {
                     STrees.list.splice(STrees.list.findIndex(function (element) {
                         return element.id === tree.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === tree.id), 1);
                     World.remove(engine.world, tree.body)
                 }
             })
@@ -3118,6 +3218,7 @@ module.exports = function (nsp, ns) {
                 World.remove(engine.world, this.body)
             }, 300000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.toplayer = 8
             this.baselen = baselen
@@ -3157,6 +3258,7 @@ module.exports = function (nsp, ns) {
                     Stones.list.splice(Stones.list.findIndex(function (element) {
                         return element.id === stone.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === stone.id), 1);
                     World.remove(engine.world, stone.body)
                 }
             })
@@ -3175,6 +3277,7 @@ module.exports = function (nsp, ns) {
                     Irons.list.splice(Irons.list.findIndex(function (element) {
                         return element.id === iron.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === iron.id), 1);
                     World.remove(engine.world, iron.body)
                 }
             })
@@ -3194,6 +3297,7 @@ module.exports = function (nsp, ns) {
                     Golds.list.splice(Golds.list.findIndex(function (element) {
                         return element.id === gold.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === gold.id), 1);
                     World.remove(engine.world, gold.body)
                 }
             })
@@ -3212,6 +3316,7 @@ module.exports = function (nsp, ns) {
                     Diamonds.list.splice(Diamonds.list.findIndex(function (element) {
                         return element.id === diamond.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === diamond.id), 1);
                     World.remove(engine.world, diamond.body)
                 }
             })
@@ -3230,6 +3335,7 @@ module.exports = function (nsp, ns) {
                     CarrotFarms.list.splice(CarrotFarms.list.findIndex(function (element) {
                         return element.id === cfarm.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === cfarm.id), 1);
                     World.remove(engine.world, cfarm.body)
                 }
             })
@@ -3249,6 +3355,7 @@ module.exports = function (nsp, ns) {
                 World.remove(engine.world, this.body)
             }, 400000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
             //grow(this)
@@ -3282,6 +3389,7 @@ module.exports = function (nsp, ns) {
                 World.remove(engine.world, this.body)
             }, 400000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
             //grow(this)
@@ -3312,6 +3420,7 @@ module.exports = function (nsp, ns) {
                     Walls.list.splice(Walls.list.findIndex(function (element) {
                         return element.id === wall.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === wall.id), 1);
                     World.remove(engine.world, wall.body)
                 }
             })
@@ -3328,6 +3437,7 @@ module.exports = function (nsp, ns) {
                     Floors.list.splice(Floors.list.findIndex(function (element) {
                         return element.id === floor.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === floor.id), 1);
                 }
             })
             return pack
@@ -3344,6 +3454,7 @@ module.exports = function (nsp, ns) {
                     Doors.list.splice(Doors.list.findIndex(function (element) {
                         return element.id === door.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === door.id), 1);
                     World.remove(engine.world, door.body)
                 }
             })
@@ -3361,6 +3472,25 @@ module.exports = function (nsp, ns) {
                     CraftingTables.list.splice(CraftingTables.list.findIndex(function (element) {
                         return element.id === ctable.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === ctable.id), 1);
+                    World.remove(engine.world, ctable.body)
+                }
+            })
+            return pack
+        }
+    }
+    var Chests = {
+        list:[],
+        update:function(){
+            var pack = []
+            Chests.list.forEach(ctable => {
+                if(ctable.health <= 0) {
+                    console.log('broken')
+                    removePack.ctable.push(ctable.id)
+                    Chests.list.splice(Chests.list.findIndex(function (element) {
+                        return element.id === ctable.id
+                    }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === ctable.id), 1);
                     World.remove(engine.world, ctable.body)
                 }
             })
@@ -3380,6 +3510,7 @@ module.exports = function (nsp, ns) {
                 World.remove(engine.world, this.body)
             }, 600000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
             //grow(this)
@@ -3413,6 +3544,7 @@ module.exports = function (nsp, ns) {
                 World.remove(engine.world, this.body)
             }, 800000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
             //grow(this)
@@ -3445,6 +3577,7 @@ module.exports = function (nsp, ns) {
                 World.remove(engine.world, this.body)
             }, 1000000)
             this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
             //grow(this)
@@ -3476,6 +3609,7 @@ module.exports = function (nsp, ns) {
             if(material == 'stone') this.health = 225
             if(material == 'iron') this.health = 375
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
+            Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
             //grow(this)
@@ -3509,6 +3643,7 @@ module.exports = function (nsp, ns) {
             if(material == 'stone') this.health = 150
             if(material == 'iron') this.health = 275
             this.body = Bodies.rectangle(this.x, this.y, 100, 100, {isStatic:true})
+            Entities.push(this)
             this.needsUpdate = false
             //grow(this)
             var pack = {
@@ -3579,6 +3714,34 @@ module.exports = function (nsp, ns) {
             return pack
         }
     }
+    class Chest {
+        constructor(x, y){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 50
+            this.body = Bodies.rectangle(this.x, this.y, 95, 50, {isStatic:true})
+            Entities.push(this)
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            this.storage = new Storage(null, 9)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            Chests.list.push(this)
+            initPack.chest.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
+        
+    }
     var Players = {
         list: [],
         onConnect: function (id, socket, nm) {
@@ -3639,6 +3802,8 @@ module.exports = function (nsp, ns) {
                     Players.list.splice(Players.list.findIndex(function (element) {
                         return element.id === player.id
                     }), 1);
+                  
+                    Entities.splice(Entities.findIndex(e => e.id === player.id), 1);
                     World.remove(engine.world, player.body)
                     leaderboard.removePlayer(player.id)
                     player.walls.forEach(wall => wall.health = 0)
@@ -3699,6 +3864,7 @@ module.exports = function (nsp, ns) {
                     Demons.list.splice(Demons.list.findIndex(function (element) {
                         return element.id === demon.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === demon.id), 1);
                     World.remove(engine.world, demon.body)
                     /*let toDrop = demon.inventory.findAll(slot => slot !== 'empty') 
                     toDrop.forEach((slot, i) => {
@@ -3746,6 +3912,7 @@ module.exports = function (nsp, ns) {
                     Destroyers.list.splice(Destroyers.list.findIndex(function (element) {
                         return element.id === demon.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === demon.id), 1);
                     World.remove(engine.world, demon.body)
                     let drops = [new Slot('diamond', 5, 'diamond'), new Slot('diamond', 5, 'diamond'), new Slot('diamond', 5, 'diamond'), new Slot('diamond', 5, 'diamond')]
                     let toDrop = drops
@@ -3785,6 +3952,7 @@ module.exports = function (nsp, ns) {
                     Rabbits.list.splice(Rabbits.list.findIndex(function (element) {
                         return element.id === rabbit.id
                     }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === rabbit.id), 1);
                     World.remove(engine.world, rabbit.body)
                     let drops = [new Slot('carrot', 5, 'carrot', 25, false, true), new Slot('carrot', 5, 'carrot', 25, false, true), new Slot('carrot', 5, 'carrot', 25, false, true), new Slot('carrot', 5, 'carrot', 25, false, true)]
                     let toDrop = drops
@@ -3857,7 +4025,8 @@ module.exports = function (nsp, ns) {
         destroyer:[],
         ctable:[],
         cfarm:[],
-        rabbit:[]
+        rabbit:[],
+        chest:[]
     }
     var removePack = {
         player: [],
@@ -3874,7 +4043,8 @@ module.exports = function (nsp, ns) {
         destroyer:[],
         ctable:[],
         cfarm:[],
-        rabbit:[]
+        rabbit:[],
+        chest:[]
     } 
     let dropped = []
     var self = this
@@ -3942,9 +4112,9 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'iron') new Iron(tempx, tempy, 10)
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
         if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        //if(willAdd == 'demon') new Demon(tempx, tempy)
+        if(willAdd == 'demon') new Demon(tempx, tempy)
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
-        //if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
         if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
@@ -3979,7 +4149,10 @@ module.exports = function (nsp, ns) {
         })
         socket.on('acceptReq', () => {
             let playa = Players.list.find(player => player.id == socket.id)
-            if(playa == playa.clan.owner) playa.clan.acceptReq()
+            if(playa == playa.clan.owner){
+                playa.clan.acceptReq() 
+                playa.socket.emit('selfUpdate', playa.getSelfUpdatePack())
+            }
         })
         socket.on('denyReq', () => {
             let playa = Players.list.find(player => player.id == socket.id)
@@ -4006,11 +4179,15 @@ module.exports = function (nsp, ns) {
             let playa = Players.list.find(player => player.id == socket.id)
             if(!playa) return
             let slot = playa.inventory.get(slotnum)
-            if(playa.hitting || playa.punch.timeout || playa.eating) return
+            if(playa.chesting){
+                let res = playa.chest.storage.addItemMax(playa.inventory.get(slotnum))
+                if(res) playa.inventory.set(slotnum, res)
+                else playa.inventory.set(slotnum, 'empty')
+                return
+            }
             if(playa.mainHand == slotnum) return playa.mainHand = '-1'
-            if(!slot.equipable && !slot.edible) return 
-            playa.mainHand = slotnum
-            playa.needsSelfUpdate = true
+            if(slot.equipable || slot.edible) return playa.mainHand = slotnum
+            
         })
         socket.on('rc', slotnum => {
             slotnum = slotnum.toString()
@@ -4031,6 +4208,37 @@ module.exports = function (nsp, ns) {
             playa.inventory.set(slotnum, 'empty')
             if(playa.mainHand == slotnum)playa.mainHand = '-1'
             playa.needsSelfUpdate = true
+        })
+        socket.on('lcChest', slotnum => {
+            slotnum = slotnum.toString()
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(!playa) return
+            let slot = playa.inventory.get(slotnum)
+            if(playa.hitting || playa.punch.timeout || playa.eating || slot == ' ') return
+            if(playa.chesting){
+                let res = playa.inventory.addItemMax(playa.chest.storage.get(slotnum))
+                if(res) playa.chest.storage.set(slotnum, res)
+                else playa.chest.storage.set(slotnum, 'empty')
+                return
+            }
+        })
+        socket.on('rcChest', slotnum => {
+            slotnum = slotnum.toString()
+            let playa = Players.list.find(player => player.id == socket.id)
+            let slot = playa.chest.storage.get(slotnum)
+            if(slot == 'empty') return
+            let self = {
+                item:slot,
+                x:playa.chest.body.position.x + Math.random() * 100,
+                y:playa.chest.body.position.y + Math.random() * 100,
+                timeout:new Timeout(() => {
+                    dropped.splice(dropped.findIndex(function (element) {
+                        return element === self
+                    }), 1);
+                }, 20000)
+            }
+            dropped.push(self)
+            playa.chest.storage.set(slotnum, 'empty')
         })
         socket.on('chat', msg => {
             let playa = Players.list.find(player => player.id == socket.id)
@@ -4113,7 +4321,8 @@ module.exports = function (nsp, ns) {
                 destroyer:[],
                 ctable:[],
                 cfarm:[],
-                rabbit:[]
+                rabbit:[],
+                chest:[]
               
             }
             Players.list.forEach(function (player) {
@@ -4128,6 +4337,7 @@ module.exports = function (nsp, ns) {
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
             CraftingTables.list.forEach( ctable => pack.ctable.push(ctable.getInitPack()))
+            Chests.list.forEach( chest => pack.chest.push(chest.getInitPack()))
             CarrotFarms.list.forEach( cfarm => pack.cfarm.push(cfarm.getInitPack()))
             Rabbits.list.forEach( rabbit => pack.rabbit.push(rabbit.getUpdatePack()))
             Demons.list.forEach(function (demon) {
@@ -4148,6 +4358,8 @@ module.exports = function (nsp, ns) {
     })
     //new Demon(150, 150)
     new CarrotFarm(50, 50)
+    //let c = new Chest(150, 150)
+    //c.storage.set('7', new Slot('Stone Sword', 1, 'stonesword', 1, true))
     setInterval(() => {
         Demons.list.forEach(d => {if(Players.list.find(player => Vector.getDistance(d.body.position, player.body.position) < 1500)) d.update()})
         Destroyers.list.forEach(des => {if(Players.list.find(player => Vector.getDistance(des.body.position, player.body.position) < 1500)) des.update()})
@@ -4207,7 +4419,8 @@ module.exports = function (nsp, ns) {
                     destroyer:[],
                     ctable:[],
                     cfarm:[],
-                    rabbit:[]
+                    rabbit:[],
+                    chest:[]
                 }
             }
         }
@@ -4234,7 +4447,8 @@ module.exports = function (nsp, ns) {
                     destroyer:[],
                     ctable:[],
                     cfarm:[],
-                    rabbit:[]
+                    rabbit:[],
+                    chest:[]
                 }
             }
         }
