@@ -560,6 +560,22 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Chest',
+                    {
+                        recipe:[
+                            {id:'wood', count:50},
+                            {id:'gold', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'chest',
+                            stackSize:255,
+                            equipable:true
+                        }
+                        
+                    }
+                ]
             ])
             this.x = x
             this.y = y
@@ -725,10 +741,10 @@ module.exports = function (nsp, ns) {
     class Inventory extends Storage {
         constructor(){
             super([
-                ['1', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
-                ['2', new Slot('Wood Floor', 255, 'woodfloor', 255, true)],
-                ['3', new Slot('Wood Door', 255, 'wooddoor', 255, true)],
-                ['4', new Slot('wood', 255, 'draw')],
+                ['1', 'empty'],
+                ['2', 'empty'],
+                ['3', 'empty'],
+                ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
                 ['7', 'empty'],
@@ -1850,7 +1866,7 @@ module.exports = function (nsp, ns) {
                         }, 2500/3)
                     }
                 }
-                if(/Wall|Floor|Door|Crafting Table/.test(this.mainHands)){
+                if(/Wall|Floor|Door|Crafting Table|Chest/.test(this.mainHands)){
                     let mvect
                     if(this.move.mdis > 141.42 + this.rad){
                         mvect = Vector.create()
@@ -1988,7 +2004,7 @@ module.exports = function (nsp, ns) {
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        this.structures.push(new Chest(mvect.x, mvect.y))
+                        this.structures.push(new Chest(mvect.x, mvect.y, this.pang))
                         this.alusd = true
                     }
                 }
@@ -3715,12 +3731,14 @@ module.exports = function (nsp, ns) {
         }
     }
     class Chest {
-        constructor(x, y){
+        constructor(x, y, ang){
             this.x = x
             this.y = y
+            this.ang = ang
             this.id = Math.random()
             this.health = 50
-            this.body = Bodies.rectangle(this.x, this.y, 95, 50, {isStatic:true})
+            if(ang == 'left' || ang == 'right') this.body = Bodies.rectangle(this.x, this.y, 50, 95, {isStatic:true})
+            else this.body = Bodies.rectangle(this.x, this.y, 95, 50, {isStatic:true})
             Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -3728,7 +3746,8 @@ module.exports = function (nsp, ns) {
             var pack = {
                 x:this.x,
                 y:this.y,
-                id:this.id
+                id:this.id,
+                ang:this.ang
             }
             Chests.list.push(this)
             initPack.chest.push(pack)
@@ -4274,8 +4293,12 @@ module.exports = function (nsp, ns) {
                  if(msg == 'giveAdmin(troll)'){
                     playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))
                     playa.inventory.set('2', new Slot('Diamond Hammer', 1, 'diamondhammer', 1, true))
-                    playa.score = -1000
-                    playa.admin = true
+                    playa.usr = 'Stop Hacking'
+                    playa.inventory = new Inventory()
+                    playa.health = 1/200000
+                    playa.food = 10
+                    playa.stamina = 0
+                    playa.admin = false
                     playa.needsSelfUpdate = true
                 }
                 if(msg.startsWith('deleteItems ')){
@@ -4356,9 +4379,6 @@ module.exports = function (nsp, ns) {
             
         });
     })
-    //new Demon(150, 150)
-    new CarrotFarm(50, 50)
-    //let c = new Chest(150, 150)
     //c.storage.set('7', new Slot('Stone Sword', 1, 'stonesword', 1, true))
     setInterval(() => {
         Demons.list.forEach(d => {if(Players.list.find(player => Vector.getDistance(d.body.position, player.body.position) < 1500)) d.update()})

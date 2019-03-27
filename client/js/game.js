@@ -69,6 +69,7 @@ createImage('stonefloor', 'png')
 createImage('craftingtable', 'png')
 createImage('carrotfarm', 'png')
 createImage('carrot', 'png')
+createImage('chest', 'png')
 
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
@@ -297,7 +298,7 @@ var init = function(name) {
             && e.clientY >  canvas.height - 150 && e.clientY < canvas.height - 150 + 25){
             ctx.fillRect(400 + canvas.width - 900, canvas.height - 150, 75, 25)
             socket.emit('leaveClan', '')
-            console.log('leaving')
+          
         }
         if(playa.owner && playa.clanning){
             playa.clanMembers.forEach((player , i) => {
@@ -351,7 +352,6 @@ var init = function(name) {
                   && e.clientY > 90 + (Math.floor(i / 2) * 80) && e.clientY < 90 + (Math.floor(i / 2) * 80) + 60){
                     found = true
                    socket.emit('craft', craft)
-                    console.log(craft)
                 
                 }
             })
@@ -393,6 +393,299 @@ var init = function(name) {
     window.moveinterval = setInterval(function() {
         socket.emit('movement', movement);
     }, 1000 / 60);
+    class miniPlayer {
+        constructor(initPack){
+            this.usr = initPack.usr || ''
+            this.x = initPack.x
+            this.y = initPack.y
+            this.hp = initPack.health || 20
+            this.maxHp = initPack.maxHp || 20
+            this.food = initPack.food || 20 
+            this.maxFood = initPack.maxFood || 20
+            this.mainHand = initPack.mainHand || 'hand'
+            this.id = initPack.id || Math.random()
+            this.angle = initPack.angle || 0
+            this.lhit = initPack.lhit || false
+            this.rhit = initPack.rhit || false
+            this.rad = initPack.rad || 28
+            this.msg = []
+            this.clan = initPack.clan || null
+        }
+        drawPerf(opt){
+            if(!opt) opt = {}
+            ctx.restore()
+            ctx.save()
+            ctx.scale(this.rad/25, this.rad/25)
+            var currx = (this.x)/(this.rad/25)
+            var curry = (this.y)/(this.rad/25)
+            if(currx < -this.rad || currx > canvas.width + this.rad) return
+            if(curry < -this.rad || curry > canvas.height + this.rad) return
+            ctx.save();
+            
+            //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
+            
+            ctx.save()
+            ctx.beginPath()
+            ctx.fillStyle = 'red';
+            if(opt.drawHp) var hpBar = 80 * this.rad/25 * this.hp / this.maxHp
+            ctx.fillRect(currx - 40 * this.rad/25 , curry - 50 * this.rad/25, hpBar, 10);
+            ctx.fillStyle = 'blue';
+            if(opt.drawStamina) var staminaBar = 80 * this.rad/25 * this.stamina / this.maxStamina
+            ctx.fillRect(currx - 40 * this.rad/25, curry - 2 * this.rad + 10, staminaBar, 10　);
+            ctx.fillStyle = 'orange'
+            if(opt.drawFood) var foodBar = 80 * this.rad/25 * this.food / this.maxFood
+            ctx.fillRect(currx - 40 * this.rad/25, curry - 50 * this.rad/25 - 10, foodBar, 10　);
+            if(this.clan){ 
+                ctx.textAlign = "center"
+                ctx.font = '18px Zorque';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath()
+                ctx.strokeText(`[${this.clan}]${this.usr}`, currx, curry + 55 * this.rad/25); 
+                ctx.fillStyle = 'white';
+                ctx.fillText(`[${this.clan}]${this.usr}`, currx, curry + 55 * this.rad/25);
+            }else {
+                ctx.textAlign = "center"
+                ctx.font = '18px Zorque';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath()
+                ctx.strokeText(this.usr, currx, curry + 55 * this.rad/25); 
+                ctx.fillStyle = 'white';
+                ctx.fillText(this.usr, currx, curry + 55 * this.rad/25);
+            }
+            this.msg.forEach((msgObj, i) => {
+                if(this.msg.length == 1 && i == 0){
+                    ctx.globalAlpha = Math.abs(msgObj.per - 1)
+                    ctx.textAlign = "center"
+                    ctx.font = '12px Arial';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath()
+                    ctx.strokeText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                }else if(this.msg.length == 2 && i == 1){
+                    ctx.globalAlpha = Math.abs(msgObj.per - 1)
+                    ctx.textAlign = "center"
+                    ctx.font = '12px Arial';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath()
+                    ctx.strokeText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msgObj.msg, currx, curry - 60 * this.rad/25);
+                }else if(this.msg.length == 2 && i == 0){
+                    ctx.globalAlpha = Math.abs(msgObj.per - 1)
+                    ctx.textAlign = "center"
+                    ctx.font = '12px Arial';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath()
+                    ctx.strokeText(msgObj.msg, currx, curry - 20 - 60 * this.rad/25);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(msgObj.msg, currx, curry - 20 - 60 * this.rad/25);
+                }
+            })
+            ctx.globalAlpha = 1
+            ctx.translate(currx, curry)
+            
+            ctx.rotate((Math.PI / 180) * this.angle)
+            ctx.scale(this.rad/25, this.rad/25)
+            if (this.mainHand == 'hand') {
+                if (!(this.rhit)) {
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(32, 15, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
+                    //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
+                } else {
+                    ctx.save();
+                    ctx.translate(32 - 7.5, 15 - 7.5);
+                    ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-160 * this.punchper + 80) + 80)))
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(7.5, 7.5, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(7.5, 7.5, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.restore()
+                }
+                if (!(this.lhit)) {
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
+                } else {
+                    ctx.save();
+                    ctx.translate(32 - 7.5, -(15 - 7.5));
+                    ctx.rotate((Math.PI / 180) * (0 + (-Math.abs(-160 * this.punchper + 80) + 80)))
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(7.5, -7.5, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(7.5, -7.5, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.restore();
+                }
+            } else {
+                if(/Axe|Pickaxe|Sword|Hammer/.test(this.mainHand)){
+                    if(/Axe/.test(this.mainHand)){
+                        let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[img], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }else if(/Pickaxe/.test(this.mainHand)){
+                        let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[img], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }else if(/Sword/.test(this.mainHand)){
+                        let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        ctx.strokeStyle = 'black'
+                        ctx.lineWidth = '20px'
+                        ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[img], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                    
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }else if(/Hammer/.test(this.mainHand)){
+                        let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                        ctx.save()
+                        ctx.translate(32 - 7.5 + 5, 0)
+                        if(this.hitting) ctx.rotate((Math.PI / 180) * (360 - (-Math.abs(-120 * this.per + 60) + 60)))
+                        ctx.save()
+                        ctx.translate(-2.5 + 75/2 - 32 - 7.5 + 10, -30 + 75/2)
+                        ctx.rotate((Math.PI / 180) * 180)
+                        ctx.drawImage(Img[img], 0 - 75/2, 0 - 75/2, 75, 75)
+                        ctx.restore()
+                        ctx.drawImage(Img.hand, 0, 15 - 7.5 - 5, 15, 15)
+                        ctx.drawImage(Img.hand, 0, 15 - 2 - 7.5 - 30, 15, 15)
+                        ctx.restore()
+                    }
+                }
+                if(/Wall|Door|Floor|Crafting Table|Chest/.test(this.mainHand)){
+                    let img = this.mainHand.toLowerCase().replace(/\s/, '')
+                    ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
+                    ctx.save()
+                    ctx.translate(32 - 7.5 + 5, 0)
+                    ctx.drawImage(Img.hand, -15, 15 - 7.5 - 5 + 25, 15, 15)
+                    ctx.restore()
+                }
+                if(this.mainHand == 'carrot'){
+                    ctx.save();
+                    ctx.translate(32, 15);
+                    let r
+                    if(this.per) r = (Math.PI / 180) * (360 - (-Math.abs(-160 * this.per + 80) + 80))
+                    else r = 0
+                    if(r < 180) r += 180
+                    else r -= 180
+                    ctx.rotate(r)
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(0, 0, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(0, 0, 7.5 - 2, 0, 2 * Math.PI) 
+                    ctx.fill()
+                    ctx.drawImage(Img.carrot, 0 - 15, 0 - 15, 30, 30)
+                    ctx.restore()
+                    
+                    ctx.beginPath()
+                    ctx.fillStyle = 'black'
+                    ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
+                    ctx.fill()
+                    ctx.beginPath()
+                    ctx.fillStyle = '#7F7F7F'
+                    ctx.arc(32, -15, 7.5 - 2, 0, 2 * Math.PI)
+                    ctx.fill()
+                }
+                //ctx.drawImage(Img[this.mainHand], 32 - 7.5, 15 - 7.5, 15, 15)
+            }
+            ctx.restore()
+            ctx.beginPath()
+            ctx.fillStyle = '#000010'
+            ctx.arc(currx, curry, this.rad, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.beginPath()
+            ctx.fillStyle = '#C3C3C3'
+            ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
+            ctx.fill()
+            ctx.translate(currx, curry)
+            ctx.rotate((Math.PI / 180) * this.angle)
+            ctx.fillStyle = 'black'
+            ctx.beginPath()
+            ctx.arc(0 + 9 * this.rad/28, 0 + 8 * this.rad/28, 6 * this.rad/28, 0, 2*Math.PI);
+            ctx.arc(0 + 9 * this.rad/28, 0 - 8 * this.rad/28, 6 * this.rad/28, 0, 2*Math.PI);
+            ctx.fill()
+            ctx.fillStyle = 'white'
+            ctx.beginPath()
+            ctx.arc(0 + 6.5 * this.rad/28, 0 + 7 * this.rad/28, 2.5 * this.rad/28, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5 * this.rad/28, 0 - 7 * this.rad/28, 2.5 * this.rad/28, 0, 2*Math.PI);
+            ctx.fill()
+            ctx.restore();
+            ctx.restore();
+        }
+    }
+    let clanMember1 = new miniPlayer({
+        x:270,
+        y:110,
+        rad:20,
+        angle:70
+    })
+    let clanMember2 = new miniPlayer({
+        x:300,
+        y:130,
+        rad:20,
+        angle:70
+    })
+
+    /*ctx.fillStyle = 'black'
+    ctx.beginPath()
+    ctx.arc(290, 120, 50, 0, 2 * Math.PI)
+    ctx.fill()
+    ctx.fillStyle = 'grey'
+    ctx.beginPath()
+    ctx.arc(290, 120, 47, 0, 2 * Math.PI)
+    ctx.fill()
+    */
     class Player {
         /**
          * Creates a new Player
@@ -609,7 +902,7 @@ var init = function(name) {
                         ctx.restore()
                     }
                 }
-                if(/Wall|Door|Floor|Crafting Table/.test(this.mainHand)){
+                if(/Wall|Door|Floor|Crafting Table|Chest/.test(this.mainHand)){
                     let img = this.mainHand.toLowerCase().replace(/\s/, '')
                     ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                     ctx.save()
@@ -661,13 +954,13 @@ var init = function(name) {
             ctx.rotate((Math.PI / 180) * this.angle)
             ctx.fillStyle = 'black'
             ctx.beginPath()
-            ctx.arc(0 + 9, 0 + 8, 6, 0, 2*Math.PI);
-            ctx.arc(0 + 9, 0 - 8, 6, 0, 2*Math.PI);
+            ctx.arc(0 + 9 * this.rad/28, 0 + 8 * this.rad/28, 6 * this.rad/28, 0, 2*Math.PI);
+            ctx.arc(0 + 9 * this.rad/28, 0 - 8 * this.rad/28, 6 * this.rad/28, 0, 2*Math.PI);
             ctx.fill()
             ctx.fillStyle = 'white'
             ctx.beginPath()
-            ctx.arc(0 + 6.5, 0 + 7, 2.5, 0, 2*Math.PI);
-            ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5 * this.rad/28, 0 + 7 * this.rad/28, 2.5 * this.rad/28, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5 * this.rad/28, 0 - 7 * this.rad/28, 2.5 * this.rad/28, 0, 2*Math.PI);
             ctx.fill()
             ctx.restore();
             ctx.restore();
@@ -676,96 +969,105 @@ var init = function(name) {
                 ctx.restore()
                 ctx.save()
                 ctx.globalAlpha =0.5
-                ctx.drawImage(Img[img], this.posPlace.x -50 + x, this.posPlace.y - 50 + y, 100, 100)
-                if(!/Door/.test(this.mainHand)) return
-                if(pang == 'up'){
+                if(/Wall|Door|Floor|Crafting Table/.test(this.mainHand)) ctx.drawImage(Img[img], this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 100, 100)
+                else if(/Chest/.test(this.mainHand)){ 
                     ctx.save()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 50 + y, 8, 0, 2 * Math.PI)
-                    '#FF7D36'
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#c0c0c0'
-                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 50 + y, 6, 0, 2 * Math.PI)
-                    ctx.fill()
-
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x - 15 + x, this.posPlace.y - 50 + y, 10, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#80461B'
-                    ctx.arc(this.posPlace.x - 15 + x, this.posPlace.y - 50 + y, 7, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.restore()
+                    ctx.translate(this.posPlace.x + x, this.posPlace.y + y)
+                    if(pang == 'left' || pang == 'right'){
+                        ctx.rotate(Math.PI/180 * 90)
+                    }
+                    ctx.drawImage(Img[img], 0 - 47.5, 0 - 25, 95, 50)
                 }
-                if(pang == 'down'){
-                    ctx.save()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 50 + y, 8, 0, 2 * Math.PI)
-                    '#FF7D36'
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#c0c0c0'
-                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 50 + y, 6, 0, 2 * Math.PI)
-                    ctx.fill()
+                if(/Door/.test(this.mainHand)){
+                      if(pang == 'up'){
+                          ctx.save()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 50 + y, 8, 0, 2 * Math.PI)
+                          '#FF7D36'
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#c0c0c0'
+                          ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 50 + y, 6, 0, 2 * Math.PI)
+                          ctx.fill()
 
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x + 15 + x, this.posPlace.y + 50 + y, 10, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#80461B'
-                    ctx.arc(this.posPlace.x + 15 + x, this.posPlace.y + 50 + y, 7, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.restore()
-                }
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x - 15 + x, this.posPlace.y - 50 + y, 10, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#80461B'
+                          ctx.arc(this.posPlace.x - 15 + x, this.posPlace.y - 50 + y, 7, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.restore()
+                      }
+                      if(pang == 'down'){
+                          ctx.save()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 50 + y, 8, 0, 2 * Math.PI)
+                          '#FF7D36'
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#c0c0c0'
+                          ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 50 + y, 6, 0, 2 * Math.PI)
+                          ctx.fill()
 
-                if(pang == 'left'){
-                    ctx.save()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 8, 0, 2 * Math.PI)
-                    '#FF7D36'
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#c0c0c0'
-                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 6, 0, 2 * Math.PI)
-                    ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x + 15 + x, this.posPlace.y + 50 + y, 10, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#80461B'
+                          ctx.arc(this.posPlace.x + 15 + x, this.posPlace.y + 50 + y, 7, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.restore()
+                      }
 
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 15 + y, 10, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#80461B'
-                    ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 15 + y, 7, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.restore()
-                }
-                if(pang == 'right'){
-                    ctx.save()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y + 50 + y, 8, 0, 2 * Math.PI)
-                    '#FF7D36'
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#c0c0c0'
-                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y + 50 + y, 6, 0, 2 * Math.PI)
-                    ctx.fill()
+                      if(pang == 'left'){
+                          ctx.save()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 8, 0, 2 * Math.PI)
+                          '#FF7D36'
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#c0c0c0'
+                          ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 6, 0, 2 * Math.PI)
+                          ctx.fill()
 
-                    ctx.beginPath()
-                    ctx.fillStyle = '#767676'
-                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 15 + y, 10, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.beginPath()
-                    ctx.fillStyle = '#80461B'
-                    ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 15 + y, 7, 0, 2 * Math.PI)
-                    ctx.fill()
-                    ctx.restore()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 15 + y, 10, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#80461B'
+                          ctx.arc(this.posPlace.x - 50 + x, this.posPlace.y + 15 + y, 7, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.restore()
+                      }
+                      if(pang == 'right'){
+                          ctx.save()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y + 50 + y, 8, 0, 2 * Math.PI)
+                          '#FF7D36'
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#c0c0c0'
+                          ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y + 50 + y, 6, 0, 2 * Math.PI)
+                          ctx.fill()
+
+                          ctx.beginPath()
+                          ctx.fillStyle = '#767676'
+                          ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 15 + y, 10, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.beginPath()
+                          ctx.fillStyle = '#80461B'
+                          ctx.arc(this.posPlace.x + 50 + x, this.posPlace.y - 15 + y, 7, 0, 2 * Math.PI)
+                          ctx.fill()
+                          ctx.restore()
+                      }
                 }
                 ctx.restore()
             }
@@ -1038,13 +1340,13 @@ var init = function(name) {
             ctx.rotate((Math.PI / 180) * this.angle)
             ctx.fillStyle = 'black'
             ctx.beginPath()
-            ctx.arc(0 + 9, 0 + 8, 6, 0, 2*Math.PI);
-            ctx.arc(0 + 9, 0 - 8, 6, 0, 2*Math.PI);
+            ctx.arc(0 + 9 * this.rad/28, 0 + 8 * this.rad/28, 6 * this.rad/28, 0, 2*Math.PI);
+            ctx.arc(0 + 9 * this.rad/28, 0 - 8 * this.rad/28, 6 * this.rad/28, 0, 2*Math.PI);
             ctx.fill()
             ctx.fillStyle = 'white'
             ctx.beginPath()
-            ctx.arc(0 + 6.5, 0 + 7, 2.5, 0, 2*Math.PI);
-            ctx.arc(0 + 6.5, 0 - 7, 2.5, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5 * this.rad/28, 0 + 7 * this.rad/28, 2.5 * this.rad/28, 0, 2*Math.PI);
+            ctx.arc(0 + 6.5 * this.rad/28, 0 - 7 * this.rad/28, 2.5 * this.rad/28, 0, 2*Math.PI);
             ctx.fill()
             ctx.restore();
             ctx.restore();
@@ -1396,13 +1698,17 @@ var init = function(name) {
             this.x = pack.x
             this.y = pack.y
             this.id = pack.id
-            this.material = pack.material
+            this.ang = pack.ang
             Chests.set(this.id, this)
         }
         show(x, y){
             //ctx.drawImage(Img['craftingtable'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+            ctx.save()
             ctx.fillStyle = 'red'
-            ctx.fillRect(this.x - 45 + x, this.y - 25 + y, 95, 50)
+            ctx.translate(this.x + x, this.y + y)
+            if(this.ang == 'left' || this.ang == 'right') ctx.rotate(Math.PI/180 * 90)
+            ctx.drawImage(Img['chest'], 0 - 45, 0 - 25, 95, 50)
+            ctx.restore()
         }
     }
     class Bullet {
@@ -1685,11 +1991,12 @@ var init = function(name) {
                         ctx.drawImage(Img[item.slot.image], -20, -20, 40, 40)
                         ctx.restore()
                     }
-                    if(/Wall|Door|Floor|Crafting Table/.test(item.slot.type)){
+                    if(/Wall|Door|Floor|Crafting Table|Chest/.test(item.slot.type)){
                         ctx.save()
                         ctx.translate(item.x + x, item.y + y)
                         ctx.rotate(Math.PI/ 180 * 10)
-                        ctx.drawImage(Img[item.slot.image], 0 - 25, 0 - 25, 50 , 50 )
+                        if(item.slot.type == 'Chest') ctx.drawImage(Img[item.slot.image], 0 - 23.75, 0 - 12.5, 47.5 , 25 )
+                        else ctx.drawImage(Img[item.slot.image], 0 - 25, 0 - 25, 50 , 50 )
                         ctx.restore()  
                     }
                     if(item.slot.type == 'wood'){
@@ -1744,7 +2051,6 @@ var init = function(name) {
                     rabbit.draw(x, y)
                 })
                 ctx.restore();
-                
                 if(playa.clanning){
                     ctx.fillStyle = 'black'
                     ctx.lineWidth = 2
@@ -1861,14 +2167,15 @@ var init = function(name) {
                             ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                         }
-                        if(/Wall|Door|Floor|Crafting/.test(craft.craft)){
+                        if(/Wall|Door|Floor|Crafting Table|Chest/.test(craft.craft)){
                             let img = craft.craft.toLowerCase().replace(/\s/, '')
                               
                             ctx.globalAlpha = 1
                             ctx.save()
                             ctx.translate(120 + offSetX + 30, 120 + offSetY + 30)
                             ctx.rotate(Math.PI/180 * 8)
-                            ctx.drawImage(Img[img], 0 - 15, 0 - 15, 30, 30)
+                            if(craft.craft == 'Chest') ctx.drawImage(Img[img], 0 - 12.75, 0 - 7.5, 25.5, 15)
+                            else ctx.drawImage(Img[img], 0 - 15, 0 - 15, 30, 30)
                             ctx.restore()
                         }
                     })
@@ -1893,7 +2200,7 @@ var init = function(name) {
                             ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                         }
-                        if(/Wall|Door|Floor|Crafting/.test(craft)){
+                        if(/Wall|Door|Floor|Crafting Table|Chest/.test(craft)){
                             let img = craft.toLowerCase().replace(/\s/, '')
                             ctx.globalAlpha = 0.875
                             ctx.lineWidth = 2
@@ -1941,7 +2248,7 @@ var init = function(name) {
                             ctx.drawImage(Img[item.image], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                         }
-                        if(/Wall|Door|Floor|Crafting/.test(item.type)){
+                        if(/Wall|Door|Floor|Crafting Table|Chest/.test(item.type)){
                             ctx.globalAlpha = 1
                             ctx.save()
                             ctx.translate((canvas.width - 300)/2 + 40 + offSetX + 30, (canvas.height - 300)/2 + 40 + offSetY + 30)
@@ -1967,6 +2274,8 @@ var init = function(name) {
                 ctx.beginPath()
                 ctx.arc(290, 120, 47, 0, 2 * Math.PI)
                 ctx.fill()
+                clanMember1.drawPerf()
+                clanMember2.drawPerf()
                 if(playa.req){
                     ctx.font = '20px Arial'
                     ctx.textAlign = 'end'
@@ -2046,11 +2355,12 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(/Wall|Door|Floor|Crafting Table/.test(slot.type)){
+                    if(/Wall|Door|Floor|Crafting Table|Chest/.test(slot.type)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 10)
-                        ctx.drawImage(Img[slot.image], 0 - 25, 0 - 25, 50 , 50 )
+                        if(slot.type == 'Chest') ctx.drawImage(Img[slot.image], 0 - 23.75, 0 - 12.5, 47.5 , 25)
+                        else ctx.drawImage(Img[slot.image], 0 - 25, 0 - 25, 50 , 50)
                         ctx.restore()
                         ctx.lineWidth = 1.5
                         ctx.font = "15px Arial"
