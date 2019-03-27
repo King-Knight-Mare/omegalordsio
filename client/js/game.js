@@ -188,7 +188,7 @@ var init = function(name) {
                 break
         }
         
-        if(playa && (playa.crafting || playa.clanning)){
+        if(playa && (playa.crafting || playa.clanning || playa.chesting)){
             movement.up = false
             movement.down = false
             movement.left = false
@@ -234,7 +234,7 @@ var init = function(name) {
                 movement.prot = false
                 break;
         }
-        if(playa && (playa.crafting || playa.clanning)){
+        if(playa && (playa.crafting || playa.clanning || playa.chesting)){
             movement.up = false
             movement.down = false
             movement.left = false
@@ -255,6 +255,21 @@ var init = function(name) {
                 else if(e.button == 2) socket.emit('rc', i + 1)
             }
         })
+        if(playa.chesting){
+            playa.chestables.forEach((item, i) => {
+                ctx.lineWidth = 2
+                let offSetX = ((i - Math.floor(i/3) * 3) * 80)
+                let offSetY = (Math.floor(i / 3) * 80)
+                if(
+                    e.clientX > (canvas.width - 300)/2 + 40 + offSetX && e.clientX < (canvas.width - 300)/2 + 40 + offSetX + 60 &&
+                    e.clientY > (canvas.height - 300)/2 + 40 + offSetY && e.clientY < (canvas.height - 300)/2 + 40 + offSetY + 60
+                ){
+                    if(e.button == 0) socket.emit('lcChest', i + 1)
+                    else if(e.button == 2) socket.emit('rcChest', i + 1)
+                }
+                
+            })
+        }
         if(found) return
         if(Math.sqrt(Math.pow((e.clientX-290), 2)+ Math.pow((e.clientY-130), 2)) <= 50){
             socket.emit('clan', true)
@@ -656,7 +671,7 @@ var init = function(name) {
             ctx.fill()
             ctx.restore();
             ctx.restore();
-            if(this.posPlace && /Wall|Door|Floor|Crafting Table/.test(this.mainHand)){
+            if(this.posPlace && /Wall|Door|Floor|Crafting Table|Chest/.test(this.mainHand)){
                 let img = this.mainHand.toLowerCase().replace(/\s/, '')
                 ctx.restore()
                 ctx.save()
@@ -779,8 +794,10 @@ var init = function(name) {
             this.maxStamina = initPack.maxStamina
             this.inventory = initPack.inventory
             this.crafting = initPack.crafting
+            this.chesting = initPack.chesting
             this.craftables = initPack.craftables
             this.craftablesEx = initPack.craftablesEx
+            this.chestables = initPack.chestables
             this.posPlace = initPack.posPlace
             this.clanning = initPack.clanning
             this.clans = initPack.clans
@@ -1373,6 +1390,21 @@ var init = function(name) {
             ctx.drawImage(Img['craftingtable'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    let Chests = new Map()
+    class Chest {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            this.material = pack.material
+            Chests.set(this.id, this)
+        }
+        show(x, y){
+            //ctx.drawImage(Img['craftingtable'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+            ctx.fillStyle = 'red'
+            ctx.fillRect(this.x - 45 + x, this.y - 25 + y, 95, 50)
+        }
+    }
     class Bullet {
         /**
          * 
@@ -1441,6 +1473,9 @@ var init = function(name) {
         pack.ctable.forEach((initPack)=>{
             new CraftingTable(initPack)
         })
+        pack.chest.forEach((initPack)=>{
+            new Chest(initPack)
+        })
         pack.demon.forEach((initPack)=>{
             if(Demons.find(demon => demon.id == initPack.id)) return
             new Demon(initPack)
@@ -1504,6 +1539,9 @@ var init = function(name) {
         })
         pack.ctable.forEach((id) => {
             CraftingTables.delete(id)
+        })
+        pack.chest.forEach((id) => {
+            Chests.delete(id)
         })
         pack.cfarm.forEach((id)=>{
             CarrotFarms.delete(id)
@@ -1596,6 +1634,9 @@ var init = function(name) {
                 })
                 CraftingTables.forEach((ctable) => {
                     ctable.show(x, y)
+                })
+                Chests.forEach((chest) => {
+                    chest.show(x, y)
                 })
                 CarrotFarms.forEach((ctable) => {
                     ctable.show(x, y)
@@ -1872,6 +1913,53 @@ var init = function(name) {
                         }
                     })
                 }
+                if(playa.chesting && playa.chestables){
+                    ctx.fillStyle = 'black'
+                    ctx.lineWidth = 2
+                    ctx.beginPath()
+                    ctx.globalAlpha = 0.5
+                    
+                    ctx.rect((canvas.width - 300)/2, (canvas.height - 300)/2, 300, 300)
+                    ctx.fill()
+                    playa.chestables.forEach((item, i) => {
+                        ctx.lineWidth = 2
+                        let offSetX = ((i - Math.floor(i/3) * 3) * 80)
+                        let offSetY = (Math.floor(i / 3) * 80)
+                        ctx.beginPath()
+                        ctx.globalAlpha = 0.875
+                        ctx.rect((canvas.width - 300)/2 + 40 + offSetX, (canvas.height - 300)/2 + 40 + offSetY, 60, 60)
+                        ctx.stroke()
+                        ctx.fillStyle = 'grey'
+                        ctx.globalAlpha = 0.5
+                        ctx.beginPath()
+                        ctx.fillRect((canvas.width - 300)/2 + 40 + offSetX, (canvas.height - 300)/2 + 40 + offSetY, 60, 60)
+                        if(/Axe|Pickaxe|Sword|Hammer/.test(item.type)){
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate((canvas.width - 300)/2 + 40 + offSetX + 27.5, (canvas.height - 300)/2 + 40 + offSetY + 27.5 + 5)
+                            ctx.rotate(Math.PI/180 * 45)
+                            ctx.drawImage(Img[item.image], 0 - 27.5, 0 - 27.5, 55, 55)
+                            ctx.restore()
+                        }
+                        if(/Wall|Door|Floor|Crafting/.test(item.type)){
+                            ctx.globalAlpha = 1
+                            ctx.save()
+                            ctx.translate((canvas.width - 300)/2 + 40 + offSetX + 30, (canvas.height - 300)/2 + 40 + offSetY + 30)
+                            ctx.rotate(Math.PI/180 * 8)
+                            ctx.drawImage(Img[item.image], 0 - 15, 0 - 15, 30, 30)
+                            ctx.restore()
+                            ctx.lineWidth = 3/4
+                            ctx.font = "11.25 Arial"
+                            ctx.strokeStyle = 'black'
+                            ctx.fillStyle = 'white'
+                            ctx.strokeText(item.count, (canvas.width - 300)/2 + 40 + offSetX + 27.5 + 10, (canvas.height - 300)/2 + 40 + offSetY + 60 - 6)
+                            ctx.fillText(item.count, (canvas.width - 300)/2 + 40 + offSetX + 27.5 + 10, (canvas.height - 300)/2 + 40 + offSetY + 60 - 6)
+                            ctx.stroke()
+                        }
+                    })
+                    ctx.globalAlpha = 1
+                }
+                ctx.fillStyle = 'black'
                 ctx.beginPath()
                 ctx.arc(290, 120, 50, 0, 2 * Math.PI)
                 ctx.fill()
