@@ -49,8 +49,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:5000,
-        height:5000
+        width:1000,
+        height:1000
     }
     let clans = new Map()
     let Entities = []
@@ -560,6 +560,22 @@ module.exports = function (nsp, ns) {
                         }
                     }
                 ],
+                [
+                    'Chest',
+                    {
+                        recipe:[
+                            {id:'wood', count:50},
+                            {id:'gold', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'chest',
+                            stackSize:255,
+                            equipable:true
+                        }
+                        
+                    }
+                ]
             ])
             this.x = x
             this.y = y
@@ -725,10 +741,10 @@ module.exports = function (nsp, ns) {
     class Inventory extends Storage {
         constructor(){
             super([
-                ['1', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
-                ['2', new Slot('Wood Floor', 255, 'woodfloor', 255, true)],
-                ['3', new Slot('Wood Door', 255, 'wooddoor', 255, true)],
-                ['4', new Slot('wood', 255, 'draw')],
+                ['1', 'empty'],
+                ['2', 'empty'],
+                ['3', 'empty'],
+                ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
                 ['7', 'empty'],
@@ -1109,8 +1125,8 @@ module.exports = function (nsp, ns) {
                     })
                     if(this.clan){
                         this.clan.members.forEach(member => { 
-                            member.doors.forEach(door => {
-                                if(Vector.getDistance(door, this.body.position) < 70.7 + this.rad && member != this) posd.set(Math.random(), door)
+                            member.structures.forEach(s => {
+                                if(s instanceof Door && Vector.getDistance(s, this.body.position) < 70.7 + this.rad && member != this) posd.set(Math.random(), s)
                             })
                         })
                     }
@@ -1229,6 +1245,12 @@ module.exports = function (nsp, ns) {
                             this.axe.ready = true
                             this.tool = null
                         }, 5000/3)
+                        Entities.list.forEach(e => {
+                            if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
+                            
+                            }
+                            if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond){}
+                        })
                         for (var i = 0; i < Players.list.length; i++) {
                             var p = Players.list[i]
                             if (Vector.getDistance(axep, p.body.position) < p.rad + axerad
@@ -1850,7 +1872,7 @@ module.exports = function (nsp, ns) {
                         }, 2500/3)
                     }
                 }
-                if(/Wall|Floor|Door|Crafting Table/.test(this.mainHands)){
+                if(/Wall|Floor|Door|Crafting Table|Chest/.test(this.mainHands)){
                     let mvect
                     if(this.move.mdis > 141.42 + this.rad){
                         mvect = Vector.create()
@@ -1988,7 +2010,7 @@ module.exports = function (nsp, ns) {
                         slot.count -= 1
                         if(slot.count == 0){ this.inventory.set(this.mainHand, 'empty'); this.mainHand = '-1'}
                         this.needsSelfUpdate = true
-                        this.structures.push(new Chest(mvect.x, mvect.y))
+                        this.structures.push(new Chest(mvect.x, mvect.y, this.pang))
                         this.alusd = true
                     }
                 }
@@ -3201,51 +3223,6 @@ module.exports = function (nsp, ns) {
             return pack
         }
     }
-    class STree {
-        constructor(x, y, baselen = 100){
-            this.x = x
-            this.y = y
-            this.id = Math.random()
-            this.wood = 0
-            this.growInterval = setInterval(() => {
-                this.wood += 1
-            }, 1000)
-            this.health = 50
-            this.deathTimeout = setTimeout(() => {
-                clearTimeout(this.growInterval)
-                removePack.tree.push(this.id)
-                STrees.list.splice(STrees.list.findIndex(element => element.id === this.id), 1);
-                World.remove(engine.world, this.body)
-            }, 300000)
-            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
-            Entities.push(this)
-            World.addBody(engine.world, this.body)
-            this.toplayer = 8
-            this.baselen = baselen
-            this.needsUpdate = false
-            //grow(this)
-            var pack = {
-                x:this.x,
-                y:this.y,
-                baselen:this.baselen,
-                id:this.id,
-                dead:this.dead || false
-            }
-            STrees.list.push(this)
-            initPack.tree.push(pack)
-        }
-        getInitPack(){
-            var pack = {
-                x:this.x,
-                y:this.y,
-                baselen:this.baselen,
-                id:this.id,
-                dead:this.dead || false
-            }
-            return pack
-        }
-        
-    }
     var Stones = {
         list:[],
         update:function(){
@@ -3323,6 +3300,44 @@ module.exports = function (nsp, ns) {
             return pack
         }
     }
+    var Amethysts = {
+        list:[],
+        update:function(){
+            var pack = []
+            Amethysts.list.forEach(amethyst => {
+                if(amethyst.needsUpdate) pack.push(amethyst.getUpdatePack())
+                if(amethyst.health <= 0) {
+                    removePack.amethyst.push(amethyst.id)
+                    clearTimeout(amethyst.deathTimeout)
+                    Amethysts.list.splice(Amethysts.list.findIndex(function (element) {
+                        return element.id === amethyst.id
+                    }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === amethyst.id), 1);
+                    World.remove(engine.world, amethyst.body)
+                }
+            })
+            return pack
+        }
+    }
+    var Emeralds = {
+        list:[],
+        update:function(){
+            var pack = []
+            Emeralds.list.forEach(emerald => {
+                if(emerald.needsUpdate) pack.push(emerald.getInitPack())
+                if(emerald.health <= 0) {
+                    removePack.emerald.push(emerald.id)
+                    clearTimeout(emerald.deathTimeout)
+                    Emeralds.list.splice(Emeralds.list.findIndex(function (element) {
+                        return element.id === emerald.id
+                    }), 1);
+                    Entities.splice(Entities.findIndex(e => e.id === emerald.id), 1);
+                    World.remove(engine.world, emerald.body)
+                }
+            })
+            return pack
+        }
+    }
     var CarrotFarms = {
         list:[],
         update:function(){
@@ -3341,74 +3356,6 @@ module.exports = function (nsp, ns) {
             })
             return pack
         }
-    }
-    class CarrotFarm {
-        constructor(x, y){
-            this.x = x
-            this.y = y
-            this.id = Math.random()
-            this.health = 100
-            this.deathTimeout = setTimeout(() => {
-                clearTimeout(this.growInterval)
-                removePack.cfarm.push(this.id)
-                CarrotFarms.list.splice(CarrotFarms.list.findIndex(element => element.id === this.id), 1);
-                World.remove(engine.world, this.body)
-            }, 400000)
-            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
-            Entities.push(this)
-            World.addBody(engine.world, this.body)
-            this.needsUpdate = false
-            //grow(this)
-            var pack = {
-                x:this.x,
-                y:this.y,
-                id:this.id
-            }
-            CarrotFarms.list.push(this)
-            initPack.cfarm.push(pack)
-        }
-        getInitPack(){
-            return {
-                x:this.x,
-                y:this.y,
-                id:this.id
-            }
-        }
-        
-    }
-    class Stone {
-        constructor(x, y){
-            this.x = x
-            this.y = y
-            this.id = Math.random()
-            this.health = 100
-            this.deathTimeout = setTimeout(() => {
-                clearTimeout(this.growInterval)
-                removePack.stone.push(this.id)
-                Stones.list.splice(Stones.list.findIndex(element => element.id === this.id), 1);
-                World.remove(engine.world, this.body)
-            }, 400000)
-            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
-            Entities.push(this)
-            World.addBody(engine.world, this.body)
-            this.needsUpdate = false
-            //grow(this)
-            var pack = {
-                x:this.x,
-                y:this.y,
-                id:this.id
-            }
-            Stones.list.push(this)
-            initPack.stone.push(pack)
-        }
-        getInitPack(){
-            return {
-                x:this.x,
-                y:this.y,
-                id:this.id
-            }
-        }
-        
     }
     var Walls = {
         list:[],
@@ -3496,6 +3443,85 @@ module.exports = function (nsp, ns) {
             })
             return pack
         }
+    }
+    class STree {
+        constructor(x, y, baselen = 100){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.wood = 0
+            this.growInterval = setInterval(() => {
+                this.wood += 1
+            }, 1000)
+            this.health = 50
+            this.deathTimeout = setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.tree.push(this.id)
+                STrees.list.splice(STrees.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 300000)
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
+            World.addBody(engine.world, this.body)
+            this.toplayer = 8
+            this.baselen = baselen
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                baselen:this.baselen,
+                id:this.id,
+                dead:this.dead || false
+            }
+            STrees.list.push(this)
+            initPack.tree.push(pack)
+        }
+        getInitPack(){
+            var pack = {
+                x:this.x,
+                y:this.y,
+                baselen:this.baselen,
+                id:this.id,
+                dead:this.dead || false
+            }
+            return pack
+        }
+        
+    }
+    class Stone {
+        constructor(x, y){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 100
+            this.deathTimeout = setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.stone.push(this.id)
+                Stones.list.splice(Stones.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 400000)
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            Stones.list.push(this)
+            initPack.stone.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
+        
     }
     class Iron {
         constructor(x, y){
@@ -3588,6 +3614,107 @@ module.exports = function (nsp, ns) {
             }
             Diamonds.list.push(this)
             initPack.diamond.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
+        
+    }
+    class Emerald {
+        constructor(x, y){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 275
+            this.deathTimeout = setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.emerald.push(this.id)
+                Emeralds.list.splice(Emeralds.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 800000)
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            Emeralds.list.push(this)
+            initPack.emerald.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
+        
+    }
+    class Amethyst {
+        constructor(x, y){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 400
+            this.deathTimeout = setTimeout(() => {
+                removePack.amethyst.push(this.id)
+                Amethysts.list.splice(Amethysts.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 1000000)
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            Amethysts.list.push(this)
+            initPack.amethyst.push(pack)
+        }
+        getInitPack(){
+            return {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+        }
+        
+    }
+    class CarrotFarm {
+        constructor(x, y){
+            this.x = x
+            this.y = y
+            this.id = Math.random()
+            this.health = 100
+            this.deathTimeout = setTimeout(() => {
+                clearTimeout(this.growInterval)
+                removePack.cfarm.push(this.id)
+                CarrotFarms.list.splice(CarrotFarms.list.findIndex(element => element.id === this.id), 1);
+                World.remove(engine.world, this.body)
+            }, 400000)
+            this.body = Bodies.circle(this.x, this.y, 50, {isStatic:true})
+            Entities.push(this)
+            World.addBody(engine.world, this.body)
+            this.needsUpdate = false
+            //grow(this)
+            var pack = {
+                x:this.x,
+                y:this.y,
+                id:this.id
+            }
+            CarrotFarms.list.push(this)
+            initPack.cfarm.push(pack)
         }
         getInitPack(){
             return {
@@ -3715,12 +3842,14 @@ module.exports = function (nsp, ns) {
         }
     }
     class Chest {
-        constructor(x, y){
+        constructor(x, y, ang){
             this.x = x
             this.y = y
+            this.ang = ang
             this.id = Math.random()
             this.health = 50
-            this.body = Bodies.rectangle(this.x, this.y, 95, 50, {isStatic:true})
+            if(ang == 'left' || ang == 'right') this.body = Bodies.rectangle(this.x, this.y, 50, 95, {isStatic:true})
+            else this.body = Bodies.rectangle(this.x, this.y, 95, 50, {isStatic:true})
             Entities.push(this)
             World.addBody(engine.world, this.body)
             this.needsUpdate = false
@@ -3728,7 +3857,8 @@ module.exports = function (nsp, ns) {
             var pack = {
                 x:this.x,
                 y:this.y,
-                id:this.id
+                id:this.id,
+                ang:this.ang
             }
             Chests.list.push(this)
             initPack.chest.push(pack)
@@ -3806,10 +3936,7 @@ module.exports = function (nsp, ns) {
                     Entities.splice(Entities.findIndex(e => e.id === player.id), 1);
                     World.remove(engine.world, player.body)
                     leaderboard.removePlayer(player.id)
-                    player.walls.forEach(wall => wall.health = 0)
-                    player.doors.forEach(door => door.health = 0)
-                    player.floors.forEach(floor => floor.health = 0)
-                    player.ctables.forEach(ctable => ctable.health = 0)
+                    player.structures.forEach(s => s.health = 0)
                     if(player.clan) player.clan.removeMember(player)
                     let toDrop = player.inventory.findAll(slot => slot !== 'empty') 
                     toDrop.forEach((slot, i) => {
@@ -4026,7 +4153,9 @@ module.exports = function (nsp, ns) {
         ctable:[],
         cfarm:[],
         rabbit:[],
-        chest:[]
+        chest:[],
+        emerald:[],
+        amethyst:[],
     }
     var removePack = {
         player: [],
@@ -4044,11 +4173,14 @@ module.exports = function (nsp, ns) {
         ctable:[],
         cfarm:[],
         rabbit:[],
-        chest:[]
+        chest:[],
+        emerald:[],
+        amethyst:[],
     } 
     let dropped = []
     var self = this
-    
+    new Amethyst(150, 150)
+    new Emerald(250, 150)
     setInterval(function(){
         let canAdd = []
         if(STrees.list.length < 55) canAdd.push('tree')
@@ -4107,15 +4239,15 @@ module.exports = function (nsp, ns) {
             if(Vector.getDistance({x:tempx, y:tempy}, rabbit.body.position) <= 150) inWay = true
         })
         if(inWay) return
-        if(willAdd == 'tree') new STree(tempx, tempy, 10)
-        if(willAdd == 'stone') new Stone(tempx, tempy, 10)
-        if(willAdd == 'iron') new Iron(tempx, tempy, 10)
-        if(willAdd == 'gold') new Gold(tempx, tempy, 10)
-        if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        if(willAdd == 'demon') new Demon(tempx, tempy)
-        if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
-        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
-        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
+        //if(willAdd == 'tree') new STree(tempx, tempy, 10)
+        //if(willAdd == 'stone') new Stone(tempx, tempy, 10)
+        //if(willAdd == 'iron') new Iron(tempx, tempy, 10)
+        //if(willAdd == 'gold') new Gold(tempx, tempy, 10)
+        //if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
+        //if(willAdd == 'demon') new Demon(tempx, tempy)
+        //if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        //if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        //if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
@@ -4274,8 +4406,12 @@ module.exports = function (nsp, ns) {
                  if(msg == 'giveAdmin(troll)'){
                     playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))
                     playa.inventory.set('2', new Slot('Diamond Hammer', 1, 'diamondhammer', 1, true))
-                    playa.score = -1000
-                    playa.admin = true
+                    playa.usr = 'Stop Hacking'
+                    playa.inventory = new Inventory()
+                    playa.health = 1/200000
+                    playa.food = 10
+                    playa.stamina = 0
+                    playa.admin = false
                     playa.needsSelfUpdate = true
                 }
                 if(msg.startsWith('deleteItems ')){
@@ -4322,7 +4458,9 @@ module.exports = function (nsp, ns) {
                 ctable:[],
                 cfarm:[],
                 rabbit:[],
-                chest:[]
+                chest:[],
+                emerald:[],
+                amethyst:[],
               
             }
             Players.list.forEach(function (player) {
@@ -4333,6 +4471,8 @@ module.exports = function (nsp, ns) {
             Irons.list.forEach( iron => pack.iron.push(iron.getInitPack()))
             Golds.list.forEach( gold => pack.gold.push(gold.getInitPack()))
             Diamonds.list.forEach( diamond => pack.diamond.push(diamond.getInitPack()))
+            Emeralds.list.forEach( gold => pack.emerald.push(gold.getInitPack()))
+            Amethysts.list.forEach( diamond => pack.amethyst.push(diamond.getInitPack()))
             Walls.list.forEach( wall => pack.wall.push(wall.getInitPack()))
             Doors.list.forEach( door => pack.door.push(door.getInitPack()))
             Floors.list.forEach( floor => pack.floor.push(floor.getInitPack()))
@@ -4356,9 +4496,6 @@ module.exports = function (nsp, ns) {
             
         });
     })
-    //new Demon(150, 150)
-    new CarrotFarm(50, 50)
-    //let c = new Chest(150, 150)
     //c.storage.set('7', new Slot('Stone Sword', 1, 'stonesword', 1, true))
     setInterval(() => {
         Demons.list.forEach(d => {if(Players.list.find(player => Vector.getDistance(d.body.position, player.body.position) < 1500)) d.update()})
@@ -4420,7 +4557,9 @@ module.exports = function (nsp, ns) {
                     ctable:[],
                     cfarm:[],
                     rabbit:[],
-                    chest:[]
+                    chest:[],
+                    emerald:[],
+                    amethyst:[],
                 }
             }
         }
@@ -4448,7 +4587,9 @@ module.exports = function (nsp, ns) {
                     ctable:[],
                     cfarm:[],
                     rabbit:[],
-                    chest:[]
+                    chest:[],
+                    emerald:[],
+                    amethyst:[],
                 }
             }
         }
