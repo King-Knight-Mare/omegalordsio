@@ -1512,6 +1512,30 @@ var init = function(name) {
             ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
+    var Emeralds = new Map()
+    class Emerald {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Emeralds.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['gold'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
+    var Amethysts = new Map()
+    class Amethyst {
+        constructor(pack){
+            this.x = pack.x
+            this.y = pack.y
+            this.id = pack.id
+            Amethysts.set(this.id, this)
+        }
+        show(x, y){
+            ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+        }
+    }
     var CarrotFarms = new Map()
     class CarrotFarm {
         constructor(pack){
@@ -1764,6 +1788,12 @@ var init = function(name) {
             new Gold(initPack)
         })
         pack.diamond.forEach((initPack)=>{
+            new Diamond(initPack)
+        })
+        pack.emerald.forEach((initPack)=>{
+            new Gold(initPack)
+        })
+        pack.amethyst.forEach((initPack)=>{
             new Diamond(initPack)
         })
         pack.wall.forEach((initPack)=>{
