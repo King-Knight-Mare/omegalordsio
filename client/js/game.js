@@ -59,6 +59,8 @@ createImage('stone', 'png')
 createImage('iron', 'png')
 createImage('gold', 'png')
 createImage('diamond', 'png')
+createImage('emerald', 'png')
+createImage('amethyst', 'png')
 createImage('woodwall', 'png')
 createImage('stonewall', 'png')
 createImage('ironwall', 'png')
@@ -1521,7 +1523,7 @@ var init = function(name) {
             Emeralds.set(this.id, this)
         }
         show(x, y){
-            ctx.drawImage(Img['gold'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+            ctx.drawImage(Img['emerald'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
     var Amethysts = new Map()
@@ -1533,7 +1535,7 @@ var init = function(name) {
             Amethysts.set(this.id, this)
         }
         show(x, y){
-            ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+            ctx.drawImage(Img['amethyst'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
     var CarrotFarms = new Map()
@@ -1791,10 +1793,10 @@ var init = function(name) {
             new Diamond(initPack)
         })
         pack.emerald.forEach((initPack)=>{
-            new Gold(initPack)
+            new Emerald(initPack)
         })
         pack.amethyst.forEach((initPack)=>{
-            new Diamond(initPack)
+            new Amethyst(initPack)
         })
         pack.wall.forEach((initPack)=>{
             new Wall(initPack)
@@ -1863,6 +1865,12 @@ var init = function(name) {
         })
         pack.diamond.forEach((id) => {
             Diamonds.delete(id)
+        })
+        pack.emerald.forEach((id) => {
+            Emeralds.delete(id)
+        })
+        pack.amethyst.forEach((id) => {
+            Amethysts.delete(id)
         })
         pack.wall.forEach((id) => {
             Walls.delete(id)
@@ -1952,12 +1960,17 @@ var init = function(name) {
                 Irons.forEach((iron) => {
                     iron.show(x, y)
                 })
-                
                 Golds.forEach((gold) => {
                     gold.show(x, y)
                 })
                 Diamonds.forEach((diamond) => {
                     diamond.show(x, y)
+                })
+                Emeralds.forEach((emerald) => {
+                    emerald.show(x, y)
+                })
+                Amethysts.forEach((amethyst) => {
+                    amethyst.show(x, y)
                 })
                 Floors.forEach((floor) => {
                     floor.show(x, y)
@@ -2004,7 +2017,7 @@ var init = function(name) {
                 }
                 dropped = pack.dropped
                 dropped.forEach(item => {
-                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold' || item.slot.image == 'diamond'){
+                    if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold' || item.slot.image == 'diamond'|| item.slot.image == 'emerald' || item.slot.image == 'amethyst'){
                         ctx.drawImage(Img[item.slot.image], item.x + x - 20, item.y + y - 20, 40, 40)
                     }
                     if(/Axe|Pickaxe|Sword|Hammer/.test(item.slot.type)){
@@ -2370,7 +2383,7 @@ var init = function(name) {
                         ctx.drawImage(Img[slot.image], 0 - 40, 0 - 40, 80 , 80 )
                         ctx.restore()
                     }
-                    if(/^(stone|iron|gold|diamond)$/.test(slot.image)){
+                    if(/^(stone|iron|gold|diamond|emerald|amethyst)$/.test(slot.image)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
                         ctx.rotate(Math.PI/ 180 * 0)
