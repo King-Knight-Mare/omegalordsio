@@ -547,6 +547,128 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
+                    'Emerald Axe', 
+                    {
+                        recipe:[
+                            {id:'emerald', count:20},
+                            {id:'iron', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Emerald Pickaxe', 
+                    {
+                        recipe:[
+                            {id:'emerald', count:20},
+                            {id:'iron', count:15}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondpickaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Emerald Sword', 
+                    {
+                        recipe:[
+                            {id:'emerald', count:10},
+                            {id:'iron', count:15},
+                            {id:'diamond', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Emerald Hammer', 
+                    {
+                        recipe:[
+                            {id:'emerald', count:20},
+                            {id:'iron', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondhammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Amethyst Axe', 
+                    {
+                        recipe:[
+                            {id:'amethyst', count:20},
+                            {id:'iron', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Amethyst Pickaxe', 
+                    {
+                        recipe:[
+                            {id:'amethyst', count:20},
+                            {id:'iron', count:15}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondpickaxe',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Amethyst Sword', 
+                    {
+                        recipe:[
+                            {id:'amethyst', count:10},
+                            {id:'iron', count:15},
+                            {id:'emerald', count:10}
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondsword',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
+                    'Amethyst Hammer', 
+                    {
+                        recipe:[
+                            {id:'amethyst', count:20},
+                            {id:'iron', count:15},
+                        ],
+                        output:{
+                            count:1,
+                            image:'diamondhammer',
+                            stackSize:1,
+                            equipable:true
+                        }
+                    }
+                ],
+                [
                     'Iron Wall', 
                     {
                         recipe:[
@@ -741,13 +863,13 @@ module.exports = function (nsp, ns) {
     class Inventory extends Storage {
         constructor(){
             super([
-                ['1', new Slot('Diamond Axe', 1, 'diamondaxe', 1, true)],
-                ['2', new Slot('Diamond Pickaxe', 1, 'diamondpickaxe', 1, true)],
-                ['3', 'empty'],
-                ['4', 'empty'],
-                ['5', 'empty'],
-                ['6', 'empty'],
-                ['7', 'empty'],
+                ['1', new Slot('Amethyst Axe', 1, 'amethystaxe', 1, true)],
+                ['2', new Slot('Amethyst Pickaxe', 1, 'amethystpickaxe', 1, true)],
+                ['3', new Slot('Amethyst Sword', 1, 'amethystsword', 1, true)],
+                ['4', new Slot('Amethyst Hammer', 1, 'amethysthammer', 1, true)],
+                ['5', new Slot('wood', 255, 'draw')],
+                ['6', new Slot('stone', 255, 'stone')],
+                ['7', new Slot('iron', 255, 'iron')],
                 ['8', 'empty'],
                 ['9', 'empty'],
             ])
@@ -1257,6 +1379,8 @@ module.exports = function (nsp, ns) {
                         else if(/^Iron/.test(this.mainHands)) u = 'iron'
                         else if(/^Gold/.test(this.mainHands)) u = 'gold'
                         else if(/^Diamond/.test(this.mainHands)) u = 'diamond'
+                        else if(/^Emerald/.test(this.mainHands)) u = 'emerald'
+                        else if(/^Amethyst/.test(this.mainHands)) u = 'amethyst'
                         if(this.axe.timeout) clearTimeout(this.axe.timeout.timeout)
                         let axerad = this.rad/25 * 15
                         let axep = Vector.create(0, 70 * this.rad/25)
@@ -1352,7 +1476,6 @@ module.exports = function (nsp, ns) {
                         paxep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                         paxep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(paxep);
                         Vector.add(this.body.position, paxep, paxep)
-                        let treetargs = []
                         let targs = []
                         let rtargs = []
                         let walltargs = []
@@ -1445,13 +1568,10 @@ module.exports = function (nsp, ns) {
                         if(this.sword.timeout) clearTimeout(this.swor.timeout.timeout)
                         let saxerad = this.rad/25 * 30
                         let saxep = Vector.create(0, 70 * this.rad/25)
-                        saxep.x = Math.cos(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
-                        saxep.y = Math.sin(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
+                        saxep.x = Math.cos(this.move.ang * Math.PI / 180) * 60 * this.rad/25;
+                        saxep.y = Math.sin(this.move.ang * Math.PI / 180) * 60 * this.rad/25;
                         Vector.add(this.body.position, saxep, saxep)
                         let targs = []
-                        let dtargs = []
-                        let destargs = []
-                        let rtargs = []
                         this.sword.ready = false
                         this.hitting = true
                         this.sword.timeout = new Timeout(() => {
@@ -1460,59 +1580,25 @@ module.exports = function (nsp, ns) {
                             this.sword.ready = true
                             this.tool = null
                         }, 5000/3)
-                        for (var i = 0; i < Players.list.length; i++) {
-                            var p = Players.list[i]
-                            if (Vector.getDistance(saxep, p.body.position) < p.rad + saxerad
-                                  && this.id != p.id) {
-                                targs.push(p)
+                        Entities.forEach(e => {
+                            if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
+                                if(Vector.getDistance(saxep, e.body.position) < e.rad + saxerad) targs.push(e)
                             }
-                        }
-                        for (var i = 0; i < Demons.list.length; i++) {
-                            var d = Demons.list[i]
-                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
-                                dtargs.push(d)
-                            }
-                        }
-                        for (var i = 0; i < Destroyers.list.length; i++) {
-                            var d = Destroyers.list[i]
-                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
-                                destargs.push(d)
-                            }
-                        }
-                        for (var i = 0; i < Rabbits.list.length; i++) {
-                            var d = Rabbits.list[i]
-                            if (Vector.getDistance(saxep, d.body.position) < d.rad + saxerad) {
-                                rtargs.push(d)
-                            }
-                        }
-                        let self = this
+                        })
                         new Timeout(() => {
-                            targs.forEach( p => {
-                                p.health -= this.sword[u].damage
-                                if (p.health <= 0) {
-                                    this.score += p.score/2 + 2
+                            targs.forEach(t => {
+                                t.health -= this.sword[u].damage
+                                if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
+                                if(t.health < 0){
+                                    if(t instanceof Demon && timeOfDay == 'night') this.score += 300
+                                    if(t instanceof Demon && timeOfDay == 'day') this.score += 100
+                                    if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
+                                    if(t instanceof Destroyer && timeOfDay == 'day') this.score += 50
+                                    if(t instanceof Player) this.score += t.score/2 + 10
+                                    if(t instanceof Rabbit) this.score += 25
                                 }
                             })
-                            dtargs.forEach( d => {
-                                d.health -= this.sword[u].damage
-                                if(!d.agro.find(p => p == this)) d.agro.push(this)
-                                if (d.health <= 0) {
-                                    this.score += 300
-                                }
-                            })
-                            destargs.forEach( des => {
-                                des.health -= this.sword[u].damage
-                                if(!des.agro.find(p => p == this)) des.agro.push(this)
-                                if (d.health <= 0) {
-                                    this.score += 600
-                                }
-                            })
-                            rtargs.forEach( des => {
-                                des.health -= this.sword[u].damage
-                                if (d.health <= 0) {
-                                    this.score += 25
-                                }
-                            })
+                            
                         }, 2500/3)
                     }
                     if(/Hammer/.test(this.mainHands) && this.hammer.ready && this.move.att){
