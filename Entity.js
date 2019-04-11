@@ -49,8 +49,8 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:1000,
-        height:1000
+        width:5000,
+        height:5000
     }
     let clans = new Map()
     let Entities = []
@@ -547,128 +547,6 @@ module.exports = function (nsp, ns) {
                     }
                 ],
                 [
-                    'Emerald Axe', 
-                    {
-                        recipe:[
-                            {id:'emerald', count:20},
-                            {id:'iron', count:10}
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondaxe',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Emerald Pickaxe', 
-                    {
-                        recipe:[
-                            {id:'emerald', count:20},
-                            {id:'iron', count:15}
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondpickaxe',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Emerald Sword', 
-                    {
-                        recipe:[
-                            {id:'emerald', count:10},
-                            {id:'iron', count:15},
-                            {id:'diamond', count:10}
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondsword',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Emerald Hammer', 
-                    {
-                        recipe:[
-                            {id:'emerald', count:20},
-                            {id:'iron', count:15},
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondhammer',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Amethyst Axe', 
-                    {
-                        recipe:[
-                            {id:'amethyst', count:20},
-                            {id:'iron', count:10}
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondaxe',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Amethyst Pickaxe', 
-                    {
-                        recipe:[
-                            {id:'amethyst', count:20},
-                            {id:'iron', count:15}
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondpickaxe',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Amethyst Sword', 
-                    {
-                        recipe:[
-                            {id:'amethyst', count:10},
-                            {id:'iron', count:15},
-                            {id:'emerald', count:10}
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondsword',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
-                    'Amethyst Hammer', 
-                    {
-                        recipe:[
-                            {id:'amethyst', count:20},
-                            {id:'iron', count:15},
-                        ],
-                        output:{
-                            count:1,
-                            image:'diamondhammer',
-                            stackSize:1,
-                            equipable:true
-                        }
-                    }
-                ],
-                [
                     'Iron Wall', 
                     {
                         recipe:[
@@ -712,6 +590,7 @@ module.exports = function (nsp, ns) {
                 id:this.id
             }
             CraftingTables.list.push(this)
+            Entities.push(this)
             initPack.ctable.push(pack)
             
         }
@@ -968,14 +847,20 @@ module.exports = function (nsp, ns) {
             let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
             let inWay = false
             Entities.forEach(e => {
-                if((e.body.position.x == tempx && e.body.position.y == tempy ) || (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)) inWay = true
+                if(
+                    (e.body.position.x == tempx && e.body.position.y == tempy ) || 
+                    (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)
+                ) inWay = true
             })
             while(inWay){
                 tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
                 tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
                 inWay = false
                 Entities.forEach(e => {
-                    if((e.body.position.x == tempx && e.body.position.y == tempy ) || (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)) inWay = true
+                    if(
+                        (e.body.position.x == tempx && e.body.position.y == tempy ) || 
+                        (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)
+                    ) inWay = true
                 })
             }
             this.body = Bodies.circle(tempx, tempy, this.rad, {frictionAir:0.02, restitution:0.15})
@@ -1029,14 +914,14 @@ module.exports = function (nsp, ns) {
                     mines:[{item:'wood', count:12}]
                 },
                 emerald:{
-                    damage:8.5,
-                    walldam:31,
-                    mines:[{item:'wood', count:20}]
+                    damage:6.5,
+                    walldam:20,
+                    mines:[{item:'wood', count:10}]
                 },
                 amethyst:{
-                    damage:9.5,
-                    walldam:39,
-                    mines:[{item:'wood', count:30}]
+                    damage:6.5,
+                    walldam:20,
+                    mines:[{item:'wood', count:10}]
                 },
             }
             this.pickaxe = {
@@ -1060,17 +945,17 @@ module.exports = function (nsp, ns) {
                 diamond:{
                     damage:5,
                     walldam:15,
-                    mines:[{item:'stone', count:20}, {item:'iron', count:9}, {item:'gold', count:5}, {item:'diamond', count:3}, {item:'emerald', count:2}, {item:'amethyst', count:1}]
+                    mines:[{item:'stone', count:20}, {item:'iron', count:9}, {item:'gold', count:5}, {item:'diamond', count:4}, {item:'emerald', count:2}, {item:'amethyst', count:1}]
                 },
                 emerald:{
-                    damage:5,
-                    walldam:20,
-                    mines:[{item:'stone', count:50}, {item:'iron', count:20}, {item:'gold', count:9}, {item:'diamond', count:5}, {item:'emerald', count:3}, {item:'amethyst', count:2}]
+                    damage:4.75,
+                    walldam:12,
+                    mines:[{item:'stone', count:15}, {item:'iron', count:7}, {item:'gold', count:4}, {item:'diamond', count:3}, {item:'emerald', count:3}, {item:'amethyst', count:1}]
                 },
                 amethyst:{
-                    damage:5,
-                    walldam:30,
-                    mines:[{item:'stone', count:75}, {item:'iron', count:50}, {item:'gold', count:20}, {item:'diamond', count:9}, {item:'emerald', count:5}, {item:'amethyst', count:3}]
+                    damage:4.75,
+                    walldam:12,
+                    mines:[{item:'stone', count:15}, {item:'iron', count:7}, {item:'gold', count:4}, {item:'diamond', count:3}, {item:'emerald', count:2}, {item:'amethyst', count:2}]
                 },
             }
             this.sword = {
@@ -1085,20 +970,20 @@ module.exports = function (nsp, ns) {
                     walldam:5,
                 },
                 gold:{
-                    damage:9,
+                    damage:8,
                     walldam:7
                 },
                 diamond:{
-                    damage:12,
+                    damage:9,
                     walldam:10
                 },
                 emerald:{
-                    damage:15,
-                    walldam:15
+                    damage:8.75,
+                    walldam:9
                 },
                 amethyst:{
-                    damage:20,
-                    walldam:25
+                    damage:8.75,
+                    walldam:9
                 },
             }
             this.hammer = {
@@ -1121,12 +1006,12 @@ module.exports = function (nsp, ns) {
                     walldam:50
                 },
                 emerald:{
-                    damage:10,
-                    walldam:75
+                    damage:7.5,
+                    walldam:45
                 },
                 amethyst:{
-                    damage:12,
-                    walldam:100
+                    damage:7.5,
+                    walldam:45
                 },
             }
             this.hands = {
@@ -1404,12 +1289,11 @@ module.exports = function (nsp, ns) {
                                 if(Vector.getDistance(axep, e.body.position) < e.rad + axerad) targs.push(e)
                             }
                             if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond || e instanceof Emerald || e instanceof Amethyst){
-                                console.log('offPacito')
                                 if(Vector.getDistance(axep, e.body.position) < 50 + axerad) rtargs.push(e)
                             }
                             if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm){
                                 if(e instanceof Chest && RectCircleColliding(axep.x, axep.y, axerad, e.body.position.x, e.body.position.y, e.width, e.height)) walltargs.push(e) 
-                                else if(!e instanceof Chest && RectCircleColliding(axep.x, axep.y, axerad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
+                                else if(!(e instanceof Chest) && RectCircleColliding(axep.x, axep.y, axerad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
                             }
                         })
                         new Timeout(() => {
@@ -1497,7 +1381,7 @@ module.exports = function (nsp, ns) {
                             }
                             if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm){
                                 if(e instanceof Chest && RectCircleColliding(paxep.x, paxep.y, paxerad, e.body.position.x, e.body.position.y, e.width, e.height)) walltargs.push(e) 
-                                else if(!e instanceof Chest && RectCircleColliding(paxep.x, paxep.y, paxerad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
+                                else if(!(e instanceof Chest) && RectCircleColliding(paxep.x, paxep.y, paxerad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
                             }
                         })
                         new Timeout(() => {
@@ -1515,9 +1399,9 @@ module.exports = function (nsp, ns) {
                                     console.log(u, new Slot(restype, this.pickaxe[u].mines[resnum].count, restype, 255, false))
                                     if((un >= 3) || ((un > 0 && un < 3) && resnum <= 3) || (resnum == un)){
                                         rem = this.inventory.addItemMax(new Slot(restype, this.pickaxe[u].mines[resnum].count, restype, 255, false))
-                                        this.score += this.axe[u].mines[0].count * 1
+                                        this.score += this.pickaxe[u].mines[resnum].count * 1
                                     }
-                                    r.health -= this.axe[u].walldam
+                                    r.health -= this.pickaxe[u].walldam
                                     this.needsSelfUpdate = true
                                 }
                                 if(rem){
@@ -1538,10 +1422,10 @@ module.exports = function (nsp, ns) {
                                     }
                                     dropped.push(self)
                                 }
-                                r.health -= this.axe[u].walldam
+                                r.health -= this.pickaxe[u].walldam
                             })
                             targs.forEach(t => {
-                                t.health -= this.axe[u].damage
+                                t.health -= this.pickaxe[u].damage
                                 if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
                                 if(t.health < 0){
                                     if(t instanceof Demon && timeOfDay == 'night') this.score += 300
@@ -1553,18 +1437,22 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             walltargs.forEach(w => {
-                                w.health -= this.axe[u].walldam
+                                w.health -= this.pickaxe[u].walldam
                             })
                             
                         }, 2500/3)
                     }
                     if(/Sword/.test(this.mainHands) && this.sword.ready && this.move.att){
                         let u
+                        let un
                         this.tool = 'sword'
-                        if(/^Stone/.test(this.mainHands)) u = 'stone'
-                        else if(/^Iron/.test(this.mainHands)) u = 'iron'
-                        else if(/^Gold/.test(this.mainHands)) u = 'gold'
-                        else if(/^Diamond/.test(this.mainHands)) u = 'diamond'
+                      
+                        if(/^Stone/.test(this.mainHands)){ u = 'stone'; un = 0}
+                        else if(/^Iron/.test(this.mainHands)){ u = 'iron'; un = 1}
+                        else if(/^Gold/.test(this.mainHands)){ u = 'gold'; un = 2}
+                        else if(/^Diamond/.test(this.mainHands)){ u = 'diamond'; un = 3}
+                        else if(/^Emerald/.test(this.mainHands)){ u = 'emerald'; un = 4}
+                        else if(/^Amethyst/.test(this.mainHands)){ u = 'amethyst'; un = 5}
                         if(this.sword.timeout) clearTimeout(this.swor.timeout.timeout)
                         let saxerad = this.rad/25 * 30
                         let saxep = Vector.create(0, 70 * this.rad/25)
@@ -1579,7 +1467,7 @@ module.exports = function (nsp, ns) {
                             this.sword.timeout = null
                             this.sword.ready = true
                             this.tool = null
-                        }, 5000/3)
+                        }, un >= 3 ? 3000/3 : 5000/3)
                         Entities.forEach(e => {
                             if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
                                 if(Vector.getDistance(saxep, e.body.position) < e.rad + saxerad) targs.push(e)
@@ -1599,7 +1487,7 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             
-                        }, 2500/3)
+                        }, un >= 3 ? 1500/3 : 2500/3)
                     }
                     if(/Hammer/.test(this.mainHands) && this.hammer.ready && this.move.att){
                         let u
@@ -1608,22 +1496,17 @@ module.exports = function (nsp, ns) {
                         else if(/^Iron/.test(this.mainHands)) u = 'iron'
                         else if(/^Gold/.test(this.mainHands)) u = 'gold'
                         else if(/^Diamond/.test(this.mainHands)) u = 'diamond'
+                        else if(/^Amethyst/.test(this.mainHands)) u = 'amethyst'
+                        else if(/^Emerald/.test(this.mainHands)) u = 'emerald'
                         if(this.hammer.timeout) clearTimeout(this.hammer.timeout.timeout)
                         let axerad = this.rad/25 * 15
                         let axep = Vector.create(0, 70 * this.rad/25)
                         axep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
                         axep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
                         Vector.add(this.body.position, axep, axep)
-                        let treetargs = []
-                        let stonetargs = []
-                        let irontargs = []
-                        let goldtargs = []
-                        let diamondtargs = []
                         let targs = []
-                        let dtargs = []
-                        let destargs = []
-                        let walltargs = []
                         let rtargs = []
+                        let walltargs = []
                         this.hammer.ready = false
                         this.hitting = true
                         this.hammer.timeout = new Timeout(() => {
@@ -1632,129 +1515,40 @@ module.exports = function (nsp, ns) {
                             this.hammer.ready = true
                             this.tool = null
                         }, 5000/3)
-                        for (var i = 0; i < Players.list.length; i++) {
-                            var p = Players.list[i]
-                            if (Vector.getDistance(axep, p.body.position) < p.rad + axerad
-                                  && this.id != p.id) {
-                                targs.push(p)
+                        Entities.forEach(e => {
+                            console.log('wot')
+                            if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
+                                if(Vector.getDistance(axep, e.body.position) < e.rad + axerad) targs.push(e)
                             }
-                        }
-                        for (var i = 0; i < Demons.list.length; i++) {
-                            var d = Demons.list[i]
-                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
-                                dtargs.push(d)
+                            if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond || e instanceof Emerald || e instanceof Amethyst){
+                                if(Vector.getDistance(axep, e.body.position) < 50 + axerad) rtargs.push(e)
                             }
-                        }
-                        for (var i = 0; i < Destroyers.list.length; i++) {
-                            var des = Destroyers.list[i]
-                            if (Vector.getDistance(axep, d.body.position) < des.rad + axerad) {
-                                destargs.push(des)
-                            }
-                        }
-                        for (var i = 0; i < Rabbits.list.length; i++) {
-                            var d = Rabbits.list[i]
-                            if (Vector.getDistance(axep, d.body.position) < d.rad + axerad) {
-                                rtargs.push(d)
-                            }
-                        }
-                        this.game.STrees.list.forEach(tree => {
-                            if(Vector.getDistance(axep, tree) < axerad + 50) {
-                                treetargs.push(tree)
+                            if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm || e instanceof Chest){
+                                if(e instanceof Chest && RectCircleColliding(axep.x, axep.y, axerad, e.body.position.x, e.body.position.y, e.width, e.height)) walltargs.push(e) 
+                                if(!(e instanceof Chest) && RectCircleColliding(axep.x, axep.y, axerad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
                             }
                         })
-                        this.game.Stones.list.forEach(stone => {
-                            if(Vector.getDistance(axep, stone.body.position) < axerad + 50) {
-                                stonetargs.push(stone)
-                            }
-                        })
-                        this.game.Irons.list.forEach(iron => {
-                            if(Vector.getDistance(axep, iron.body.position) < axerad + 50) {
-                                irontargs.push(iron)
-                            }
-                        })
-                        this.game.Golds.list.forEach(gold => {
-                            if(Vector.getDistance(axep, gold.body.position) < axerad + 50) {
-                                goldtargs.push(gold)
-                            }
-                        })
-                        this.game.Diamonds.list.forEach(diamond => {
-                            if(Vector.getDistance(axep, diamond.body.position) < axerad + 50) {
-                                diamondtargs.push(diamond)
-                            }
-                        })
-                        Walls.list.forEach(wall => {
-                            if(Vector.getDistance(axep, wall.body.position) < axerad + 50) {
-                                walltargs.push(wall)
-                            }
-                        })
-                        Doors.list.forEach(door => {
-                            if(Vector.getDistance(axep, door.body.position) < axerad + 50) {
-                                walltargs.push(door)
-                            }
-                        })
-                        Floors.list.forEach(floor => {
-                            if(Vector.getDistance(axep, floor.body.position) < axerad + 50) {
-                                walltargs.push(floor)
-                            }
-                        })
-                        CraftingTables.list.forEach(ctable => {
-                            if(Vector.getDistance(axep, ctable.body.position) < axerad + 50) {
-                                walltargs.push(ctable)
-                                //console.log('Breaking crafting table')
-                            }
-                        })
-                        let self = this
                         new Timeout(() => {
-                            treetargs.forEach(tree => {
-                                self.needsSelfUpdate = true
-                                tree.health -= this.hammer[u].walldam
+                            rtargs.forEach(r => {
+                                r.health -= this.hammer[u].walldam
                             })
-                            stonetargs.forEach(stone => {
-                                self.needsSelfUpdate = true
-                                stone.health -= this.hammer[u].walldam
-                            })
-                            irontargs.forEach(iron => {
-                                self.needsSelfUpdate = true
-                                iron.health -= this.hammer[u].walldam
-                            })
-                            goldtargs.forEach(gold => {
-                                self.needsSelfUpdate = true
-                                gold.health -= this.hammer[u].walldam
-                            })
-                            diamondtargs.forEach(diamond => {
-                                self.needsSelfUpdate = true
-                                diamond.health -= this.hammer[u].walldam
-                            })
-                            walltargs.forEach(wall => {
-                                self.needsSelfUpdate = true
-                                wall.health -= this.hammer[u].walldam
-                            })
-                            targs.forEach( p => {
-                                p.health -= this.hammer[u].damage
-                                if (p.health <= 0) {
-                                    this.score += p.score/2 + 2
+                            targs.forEach(t => {
+                                t.health -= this.hammer[u].damage
+                                if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
+                                if(t.health < 0){
+                                    if(t instanceof Demon && timeOfDay == 'night') this.score += 300
+                                    if(t instanceof Demon && timeOfDay == 'day') this.score += 100
+                                    if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
+                                    if(t instanceof Destroyer && timeOfDay == 'day') this.score += 50
+                                    if(t instanceof Player) this.score += t.score/2 + 10
+                                    if(t instanceof Rabbit) this.score += 25
                                 }
                             })
-                            dtargs.forEach( d => {
-                                d.health -= this.hammer[u].damage
-                                if(!d.agro.find(p => p == this)) d.agro.push(this)
-                                if (d.health <= 0) {
-                                    this.score += 300
-                                }
+                            walltargs.forEach(w => {
+                                console.log(w.health)
+                                w.health -= this.hammer[u].walldam
                             })
-                            destargs.forEach( des => {
-                                des.health -= this.hammer[u].damage
-                                if(!des.agro.find(p => p == this)) des.agro.push(this)
-                                if (des.health <= 0) {
-                                    this.score += 600
-                                }
-                            })
-                            rtargs.forEach( des => {
-                                des.health -= this.hammer[u].damage
-                                if (d.health <= 0) {
-                                    this.score += 25
-                                }
-                            })
+                            
                         }, 2500/3)
                     }
                 }
@@ -3250,6 +3044,10 @@ module.exports = function (nsp, ns) {
             Walls.list.forEach(wall => {
                 if(wall.health <= 0) {
                     removePack.wall.push(wall.id)
+                    if(Players.list.find( p => p.structures.find( s => s == wall))){
+                        let p = Players.list.find( p => p.structures.find( s => s == wall))
+                        p.structures.splice(p.structures.findIndex(s => s == wall), 1)
+                    }
                     Walls.list.splice(Walls.list.findIndex(function (element) {
                         return element.id === wall.id
                     }), 1);
@@ -3267,6 +3065,10 @@ module.exports = function (nsp, ns) {
             Floors.list.forEach(floor => {
                 if(floor.health <= 0) {
                     removePack.floor.push(floor.id)
+                    if(Players.list.find( p => p.structures.find( s => s == floor))){
+                        let p = Players.list.find( p => p.structures.find( s => s == floor))
+                        p.structures.splice(p.structures.findIndex(s => s == floor), 1)
+                    }
                     Floors.list.splice(Floors.list.findIndex(function (element) {
                         return element.id === floor.id
                     }), 1);
@@ -3284,6 +3086,10 @@ module.exports = function (nsp, ns) {
                 pack.push(door.getUpdatePack())
                 if(door.health <= 0) {
                     removePack.door.push(door.id)
+                    if(Players.list.find( p => p.structures.find( s => s == door))){
+                        let p = Players.list.find( p => p.structures.find( s => s == door))
+                        p.structures.splice(p.structures.findIndex(s => s == door), 1)
+                    }
                     Doors.list.splice(Doors.list.findIndex(function (element) {
                         return element.id === door.id
                     }), 1);
@@ -3302,6 +3108,10 @@ module.exports = function (nsp, ns) {
                 if(ctable.health <= 0) {
                     console.log('broken')
                     removePack.ctable.push(ctable.id)
+                    if(Players.list.find( p => p.structures.find( s => s == ctable))){
+                        let p = Players.list.find( p => p.structures.find( s => s == ctable))
+                        p.structures.splice(p.structures.findIndex(s => s == ctable), 1)
+                    }
                     CraftingTables.list.splice(CraftingTables.list.findIndex(function (element) {
                         return element.id === ctable.id
                     }), 1);
@@ -3316,15 +3126,19 @@ module.exports = function (nsp, ns) {
         list:[],
         update:function(){
             var pack = []
-            Chests.list.forEach(ctable => {
-                if(ctable.health <= 0) {
+            Chests.list.forEach(chest => {
+                if(chest.health <= 0) {
                     console.log('broken')
-                    removePack.ctable.push(ctable.id)
+                    removePack.chest.push(chest.id)
+                    if(Players.list.find( p => p.structures.find( s => s == chest))){
+                        let p = Players.list.find( p => p.structures.find( s => s == chest))
+                        p.structures.splice(p.structures.findIndex(s => s == chest), 1)
+                    }
                     Chests.list.splice(Chests.list.findIndex(function (element) {
-                        return element.id === ctable.id
+                        return element.id === chest.id
                     }), 1);
-                    Entities.splice(Entities.findIndex(e => e.id === ctable.id), 1);
-                    World.remove(engine.world, ctable.body)
+                    Entities.splice(Entities.findIndex(e => e.id === chest.id), 1);
+                    World.remove(engine.world, chest.body)
                 }
             })
             return pack
@@ -4075,13 +3889,18 @@ module.exports = function (nsp, ns) {
     new Amethyst(150, 150)
     new Emerald(250, 150)
     new STree(350, 150)
+    new Wall(450, 150, 'wood')
     setInterval(function(){
         let canAdd = []
-        if(STrees.list.length < 55) canAdd.push('tree')
-        if(Stones.list.length < 25) canAdd.push('stone')
-        if(Irons.list.length < 20) canAdd.push('iron')
-        if(Golds.list.length < 16) canAdd.push('gold')
-        if(Diamonds.list.length < 10) canAdd.push('diamond')
+        if(STrees.list.length < 90) canAdd.push('tree')
+        if(Stones.list.length < 60) canAdd.push('stone')
+        if(Irons.list.length < 40) canAdd.push('iron')
+        if(Golds.list.length < 28) canAdd.push('gold')
+        if(Diamonds.list.length < 20) canAdd.push('diamond')
+        if(Golds.list.length < 12) canAdd.push('gold')
+        if(Diamonds.list.length < 9) canAdd.push('diamond')
+        if(Emeralds.list.length < 5) canAdd.push('emerald')
+        if(Amethysts.list.length < 3) canAdd.push('amethyst')
         if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
         if(CarrotFarms.list.length < 8) canAdd.push('cfarm')
         if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
@@ -4091,57 +3910,36 @@ module.exports = function (nsp, ns) {
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
         let tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
         let inWay = false
+        Entities.forEach(e => {
+            if(
+                (e.body.position.x == tempx && e.body.position.y == tempy ) || 
+                (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)
+            ) inWay = true
+        })
+        while(inWay){
+            tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
+            tempy = Math.getRandomInt(0, game.map.height/100 - 1) * 100 + 50
+            inWay = false
+            Entities.forEach(e => {
+                if(
+                    (e.body.position.x == tempx && e.body.position.y == tempy ) || 
+                    (e instanceof Player && Vector.getDistance({x:tempx, y:tempy}, e.body.position) <= 150)
+                ) inWay = true
+            })
+        }
         
-        Players.list.forEach(player => {
-            if(Vector.getDistance({x:tempx, y:tempy}, player.body.position) <= 150) inWay = true
-        })
-        
-        STrees.list.forEach(tree => {
-            if(tempx == tree.body.position.x && tempy == tree.body.position.y) inWay = true
-        })
-        Stones.list.forEach(stone => {
-            if(tempx == stone.body.position.x && tempy == stone.body.position.y) inWay = true
-        })
-        Irons.list.forEach(iron => {
-            if(tempx == iron.body.position.x && tempy == iron.body.position.y) inWay = true
-        })
-        Golds.list.forEach(gold => {
-            if(tempx == gold.body.position.x && tempy == gold.body.position.y) inWay = true
-        })
-        Diamonds.list.forEach(diamond => {
-            if(tempx == diamond.body.position.x && tempy == diamond.body.position.y) inWay = true
-        })
-        Walls.list.forEach(wall => {
-            if(tempx == wall.body.position.x && tempy == wall.body.position.y) inWay = true
-        })
-        Doors.list.forEach(door => {
-            if(tempx == door.body.position.x && tempy == door.body.position.y) inWay = true
-        })
-        Floors.list.forEach(floor => {
-            if(tempx == floor.body.position.x && tempy == floor.body.position.y) inWay = true
-        })
-        CarrotFarms.list.forEach(cfarm => {
-            if(tempx == cfarm.body.position.x && tempy == cfarm.body.position.y) inWay = true
-        })
-        Demons.list.forEach(demon => {
-            if(Vector.getDistance({x:tempx, y:tempy}, demon.body.position) <= 150) inWay = true
-        })
-        Destroyers.list.forEach(des => {
-            if(Vector.getDistance({x:tempx, y:tempy}, des.body.position) <= 150) inWay = true
-        })
-        Rabbits.list.forEach(rabbit => {
-            if(Vector.getDistance({x:tempx, y:tempy}, rabbit.body.position) <= 150) inWay = true
-        })
         if(inWay) return
-        //if(willAdd == 'tree') new STree(tempx, tempy, 10)
-        //if(willAdd == 'stone') new Stone(tempx, tempy, 10)
-        //if(willAdd == 'iron') new Iron(tempx, tempy, 10)
-        //if(willAdd == 'gold') new Gold(tempx, tempy, 10)
-        //if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        //if(willAdd == 'demon') new Demon(tempx, tempy)
-        //if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
-        //if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
-        //if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
+        if(willAdd == 'tree') new STree(tempx, tempy, 10)
+        if(willAdd == 'stone') new Stone(tempx, tempy, 10)
+        if(willAdd == 'iron') new Iron(tempx, tempy, 10)
+        if(willAdd == 'gold') new Gold(tempx, tempy, 10)
+        if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
+        if(willAdd == 'emerald') new Emerald(tempx, tempy, 10)
+        if(willAdd == 'amethyst') new Amethyst(tempx, tempy, 10)
+        if(willAdd == 'demon') new Demon(tempx, tempy)
+        if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {

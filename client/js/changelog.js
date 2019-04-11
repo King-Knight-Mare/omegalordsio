@@ -13,13 +13,9 @@ var changelog = {
         'If you find a glitch, shoot me an email at jwhite022@student.hampton.k12.va.us and please send a screenshot and accurate description. Assuming I\'m not too busy, I will try to fix it within 1.5 hours'
     ],
     Plans: [
-        'Add chat',
-        'Add a food source for passive AI',
-        'Add a passive AI',
-        'Add clans',
-        'Add stone floors, iron walls, and roads',
         'Change diamond to something else',
         'Add Armor', 
         'Add abiliies', 
-        'Add clothes', ]
+        'Add clothes', 
+    ]
 }
