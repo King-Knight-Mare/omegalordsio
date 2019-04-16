@@ -742,13 +742,13 @@ module.exports = function (nsp, ns) {
     class Inventory extends Storage {
         constructor(){
             super([
-                ['1', new Slot('Amethyst Axe', 1, 'amethystaxe', 1, true)],
-                ['2', new Slot('Amethyst Pickaxe', 1, 'amethystpickaxe', 1, true)],
-                ['3', new Slot('Amethyst Sword', 1, 'amethystsword', 1, true)],
-                ['4', new Slot('Amethyst Hammer', 1, 'amethysthammer', 1, true)],
-                ['5', new Slot('wood', 255, 'draw')],
-                ['6', new Slot('stone', 255, 'stone')],
-                ['7', new Slot('iron', 255, 'iron')],
+                ['1', 'empty'],
+                ['2', 'empty'],
+                ['3', 'empty'],
+                ['4', 'empty'],
+                ['5', 'empty'],
+                ['6', 'empty'],
+                ['7', 'empty'],
                 ['8', 'empty'],
                 ['9', 'empty'],
             ])
@@ -4071,12 +4071,12 @@ module.exports = function (nsp, ns) {
                 
                 msg = msg.substring(msg.indexOf(':')+1)
                 if(msg == 'giveAdmin(knightmare)'){
-                    playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))
-                    playa.inventory.set('2', new Slot('Diamond Pickaxe', 1, 'diamondpickaxe', 1, true))
-                    playa.inventory.set('3', new Slot('Diamond Axe', 1, 'diamondaxe', 1, true))
-                    playa.inventory.set('4', new Slot('Diamond Hammer', 1, 'diamondhammer', 1, true))
-                    playa.inventory.set('5', new Slot('diamond', 255, 'diamond', 255, false))
-                    playa.inventory.set('6', new Slot('gold', 255, 'gold', 255, false))
+                    playa.inventory.set('1', new Slot('Amethyst Sword', 1, 'amethystsword', 1, true))
+                    playa.inventory.set('2', new Slot('Amethyst Pickaxe', 1, 'amethystpickaxe', 1, true))
+                    playa.inventory.set('3', new Slot('Amethyst Axe', 1, 'amethystaxe', 1, true))
+                    playa.inventory.set('4', new Slot('Amethyst Hammer', 1, 'amethysthammer', 1, true))
+                    playa.inventory.set('5', 'empty')
+                    playa.inventory.set('6', 'empty')
                     playa.inventory.set('7', new Slot('iron', 255, 'iron', 255, false))
                     playa.inventory.set('8', new Slot('stone', 255, 'stone', 255, false))
                     playa.inventory.set('9', new Slot('wood', 255, 'draw', 255, false))

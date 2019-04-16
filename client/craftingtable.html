@@ -36,6 +36,8 @@
   
     createImage('stonehammer', 'png')
     setTimeout(() => {
+        ctx.save()
+        ctx.translate(0, 200)
         ctx.fillStyle = '#808080'
         ctx.fillRect(0, 0 , 200, 200)
         ctx.fillStyle = '#4E2D05'
@@ -63,7 +65,17 @@
         ctx.rotate(45 * Math.PI / 180)
         ctx.drawImage(Img.stonehammer, -30, -30, 70, 70)
         ctx.restore()
+        ctx.restore()
         //ctx.drawImage(Img['stonehammer'], 0, 0, 200, 200)
+        ctx.fillStyle = 'grey'
+        ctx.beginPath()
+        ctx.arc(50, 50, 50, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.fillStyle = 'red'
+        ctx.globalCompositeOperation = 'destination-out'
+        ctx.beginPath()
+        ctx.arc(50, 50, 30, 0, 2 * Math.PI)
+        ctx.fill()
     }, 500)
     //createImage('ironsword', 'png')
     //createImage('ironpickaxe', 'png')
