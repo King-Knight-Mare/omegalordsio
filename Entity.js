@@ -16,10 +16,8 @@ const sleep = ms => {
 function RectCircleColliding(cx, cy, cr, rx, ry, rw, rh){
     var distX = Math.abs(cx - rx);
     var distY = Math.abs(cy - ry);
-    console.log(cx - rx - rw/2)
     if (distX > (rw/2 + cr)) { return false; }
     if (distY > (rh/2 + cr)) { return false; }
-    console.log(distX, distY)
     if (distX <= (rw/2)) { return true; }
     if (distY <= (rh/2)) { return true; }
 
@@ -575,7 +573,22 @@ module.exports = function (nsp, ns) {
                         }
                         
                     }
-                ]
+                ],
+                [
+                    'Iron Armor', 
+                    {
+                        recipe:[
+                            {id:'iron', count:20},
+                        ],
+                        output:{
+                            count:1,
+                            image:'ironarmor',
+                            stackSize:1,
+                            armorable:true,
+                            
+                        }
+                    }
+                ],
             ])
             this.x = x
             this.y = y
@@ -631,7 +644,7 @@ module.exports = function (nsp, ns) {
                     if(slot.count == 0)inventory.set(num, 'empty')
                 })
             })
-            inventory.addItem(new Slot(item, output.count, output.image, output.stackSize, output.equipable))
+            inventory.addItem(new Slot(item, output.count, output.image, output.stackSize, output.equipable, output.edible, output.armorable, output.hatable))
             //if(inventory.findKey(slot => slot == 'empty')) inventory.set(inventory.findKey(slot => slot == 'empty'), {id: 'Axe', count:1, image:'draw'})\
         }
         getInitPack(){
@@ -643,14 +656,15 @@ module.exports = function (nsp, ns) {
         }
     }
     class Slot {
-        constructor(type, count, image, stackSize = 255, equipable = false, edible = false, wearable = false){
+        constructor(type, count, image, stackSize = 255, equipable = false, edible = false, armorable = false, hatables = false){
             this.id = type
             this.count = count
             this.image = image
             this.stackSize = stackSize
             this.equipable = equipable
             this.edible = edible
-            this.wearable = wearable
+            this.armorable = armorable
+            this.hatables = hatables
         }
     }
     class Storage extends Mapper {
@@ -880,6 +894,8 @@ module.exports = function (nsp, ns) {
             this.ctables = []
             this.structures = []
             this.pang = 'left'
+            this.armor = null
+            
             this.punch = {
                 speed: 3,
                 ready:true,
@@ -1020,7 +1036,8 @@ module.exports = function (nsp, ns) {
                 },
                 r: {
                     hit: false,
-                }
+                },
+                damage:1
             }
             this.ram = 1;
             this.usr = usr;
@@ -1061,9 +1078,7 @@ module.exports = function (nsp, ns) {
             this.maxFood = 20
             var self = this
             this.bulletSpeed = 1;
-            this.targets = []
-            this.treetargs = []
-            this.stonetargs = []
+            this.damages = []
             this.kills = 0;
             this.needsUpdate = false
             this.needsSelfUpdate = false
@@ -1107,16 +1122,21 @@ module.exports = function (nsp, ns) {
           Body.applyForce(this.body, this.body.position, this.acc)
         }
         update() {
-            if(this.move.run && this.stamina > .5 && Vector.magnitude(this.acc) > 0){
+            if(this.armor) this.armorParts = this.armor.id.toLowerCase().split(' ')
+            if(this.move.run && this.stamina > .5 && 
+              Vector.magnitude(this.acc) > 0 && 
+              this.food > this.maxFood * 30 / 100){
                 this.maxSpd = 3
                 this.stamina -= this.maxStamina/5/60
                 this.needsSelfUpdate = true
-            }else if(this.stamina < this.maxStamina){
+            }else if(this.stamina < this.maxStamina && 
+              this.food > this.maxFood * 30 / 100){
                 this.maxSpd = 2
                 if(Vector.magnitude(this.acc) <= 0) this.stamina += this.maxStamina/25/60
                 else this.stamina += this.maxStamina/100/60
                 this.needsSelfUpdate = true
             }
+            if(this.armor && this.armorParts[1] == 'armor') this.maxSpd *= 0.7
             if(this.food > 0 && this.stamina > 0) this.health += this.maxHealth/50/60
             else this.health -= this.maxHealth/50/60
             if(this.food > 0) this.food -= this.maxFood/300/60
@@ -1128,6 +1148,7 @@ module.exports = function (nsp, ns) {
                 this.needsSelfUpdate = true
                 //if()
             }
+            this.damages.forEach(d => this.handleDamage(d))
             if(this.chesting){
                 if(this.chest.health <= 0) this.crafting = false
                 this.chestables = this.chest.storage.listItems()
@@ -1247,10 +1268,10 @@ module.exports = function (nsp, ns) {
                     }
                 }
             }
-            if (this.punch.reload.timer > 0) {
+            if(this.punch.reload.timer > 0) {
                 this.punch.reload.timer--
             }
-            if (this.inventory.get(this.mainHand) == undefined) {
+            if(this.inventory.get(this.mainHand) == undefined) {
                 this.mainHands = 'hand'
                 
             } else {
@@ -1268,9 +1289,9 @@ module.exports = function (nsp, ns) {
                         else if(/^Amethyst/.test(this.mainHands)) u = 'amethyst'
                         if(this.axe.timeout) clearTimeout(this.axe.timeout.timeout)
                         let axerad = this.rad/25 * 15
-                        let axep = Vector.create(0, 70 * this.rad/25)
-                        axep.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
-                        axep.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(axep);
+                        let axep = Vector.create(0, 0)
+                        axep.x = Math.cos(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
+                        axep.y = Math.sin(this.move.ang * Math.PI / 180) * 70 * this.rad/25;
                         Vector.add(this.body.position, axep, axep)
                         let treetargs = []
                         let targs = []
@@ -1302,7 +1323,6 @@ module.exports = function (nsp, ns) {
                                 if(r instanceof STree){
                                     rem = this.inventory.addItemMax(new Slot('wood', this.axe[u].mines[0].count, 'draw', 255, false))
                                     this.score += this.axe[u].mines[0].count * 1
-                                    r.health -= this.axe[u].walldam
                                     this.needsSelfUpdate = true
                                 }
                                 if(rem){
@@ -1325,10 +1345,15 @@ module.exports = function (nsp, ns) {
                                 }
                                 r.health -= this.axe[u].walldam
                             })
+                            
                             targs.forEach(t => {
-                                t.health -= this.axe[u].damage
+                                t.takeDamage({
+                                    damage:this.axe[u].damage,
+                                    type:'melee',
+                                    length:5000/6
+                                })
                                 if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
-                                if(t.health < 0){
+                                if(t.health - this.axe[u].damage < 0){
                                     if(t instanceof Demon && timeOfDay == 'night') this.score += 300
                                     if(t instanceof Demon && timeOfDay == 'day') this.score += 100
                                     if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
@@ -1376,7 +1401,7 @@ module.exports = function (nsp, ns) {
                                 if(Vector.getDistance(paxep, e.body.position) < e.rad + paxerad) targs.push(e)
                             }
                             if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond || e instanceof Emerald || e instanceof Amethyst){
-                                console.log('offPacito')
+                                
                                 if(Vector.getDistance(paxep, e.body.position) < 50 + paxerad) rtargs.push(e)
                             }
                             if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm){
@@ -1396,12 +1421,10 @@ module.exports = function (nsp, ns) {
                                 if(r instanceof Emerald){restype = 'emerald'; resnum = 4}
                                 if(r instanceof Amethyst){restype = 'amethyst'; resnum = 5} 
                                 if(r instanceof Stone || r instanceof Iron || r instanceof Gold || r instanceof Diamond || r instanceof Amethyst || r instanceof Emerald){
-                                    console.log(u, new Slot(restype, this.pickaxe[u].mines[resnum].count, restype, 255, false))
                                     if((un >= 3) || ((un > 0 && un < 3) && resnum <= 3) || (resnum == un)){
                                         rem = this.inventory.addItemMax(new Slot(restype, this.pickaxe[u].mines[resnum].count, restype, 255, false))
-                                        this.score += this.pickaxe[u].mines[resnum].count * 1
+                                        this.score += this.pickaxe[u].mines[resnum].count * resnum + 2
                                     }
-                                    r.health -= this.pickaxe[u].walldam
                                     this.needsSelfUpdate = true
                                 }
                                 if(rem){
@@ -1425,9 +1448,13 @@ module.exports = function (nsp, ns) {
                                 r.health -= this.pickaxe[u].walldam
                             })
                             targs.forEach(t => {
-                                t.health -= this.pickaxe[u].damage
+                                t.takeDamage({
+                                    damage:this.pickaxe[u].damage,
+                                    type:'melee',
+                                    length:5000/6
+                                })
                                 if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
-                                if(t.health < 0){
+                                if(t.health - this.pickaxe[u].damage < 0){
                                     if(t instanceof Demon && timeOfDay == 'night') this.score += 300
                                     if(t instanceof Demon && timeOfDay == 'day') this.score += 100
                                     if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
@@ -1475,9 +1502,13 @@ module.exports = function (nsp, ns) {
                         })
                         new Timeout(() => {
                             targs.forEach(t => {
-                                t.health -= this.sword[u].damage
+                                t.takeDamage({
+                                    damage:this.sword[u].damage,
+                                    type:'melee',
+                                    length:un >= 3 ? 3000/3 : 5000/3
+                                })
                                 if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
-                                if(t.health < 0){
+                                if(t.health - this.sword[u].damage < 0 ){
                                     if(t instanceof Demon && timeOfDay == 'night') this.score += 300
                                     if(t instanceof Demon && timeOfDay == 'day') this.score += 100
                                     if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
@@ -1514,9 +1545,8 @@ module.exports = function (nsp, ns) {
                             this.hammer.timeout = null
                             this.hammer.ready = true
                             this.tool = null
-                        }, 5000/3)
+                        }, 6000/3)
                         Entities.forEach(e => {
-                            console.log('wot')
                             if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
                                 if(Vector.getDistance(axep, e.body.position) < e.rad + axerad) targs.push(e)
                             }
@@ -1533,9 +1563,13 @@ module.exports = function (nsp, ns) {
                                 r.health -= this.hammer[u].walldam
                             })
                             targs.forEach(t => {
-                                t.health -= this.hammer[u].damage
+                                t.takeDamage({
+                                    damage:this.hammer[u].damage,
+                                    type:'melee',
+                                    length:6000/6
+                                })
                                 if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
-                                if(t.health < 0){
+                                if(t.health - this.hammer[u].damage < 0){
                                     if(t instanceof Demon && timeOfDay == 'night') this.score += 300
                                     if(t instanceof Demon && timeOfDay == 'day') this.score += 100
                                     if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
@@ -1545,7 +1579,6 @@ module.exports = function (nsp, ns) {
                                 }
                             })
                             walltargs.forEach(w => {
-                                console.log(w.health)
                                 w.health -= this.hammer[u].walldam
                             })
                             
@@ -1720,12 +1753,11 @@ module.exports = function (nsp, ns) {
                     }, 2500/3)
                 }
             }
-            if (this.move.att) {
+            if(this.move.att) {
                 if (this.inventory.get(this.mainHand) == undefined) {
                     this.hit()
                 }
-            }
-            
+            }            
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
             if(this.health > this.maxHealth) this.health = this.maxHealth
             if(this.food > this.maxFood) this.food = this.maxFood
@@ -1734,83 +1766,28 @@ module.exports = function (nsp, ns) {
             if (this.punch.ready) {
                 //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
                 this.punch.ready = false
-                let dtargs = []
-                let destargs = []
                 let targs = []
+                let rtargs = []
                 let walltargs = []
-                let treetargs = []
-                let stonetargs = []
-                let cfarmtargs = []
                 this.punch.timeout = new Timeout(() => {
                     this.punch.timeout = null
                     this.punch.ready = true
                     this.lhit =  false
                     this.rhit = false
                 }, 1500/3)
-                for (var i = 0; i < Players.list.length; i++) {
-                    var p = Players.list[i]
-                    if ((
-                        Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad || 
-                        Vector.getDistance(this.hposfl, p.body.position) < p.rad + this.hrad) && this.id != p.id) {
-                        targs.push(p)
+                Entities.forEach(e => {
+                    if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
+                        if(Vector.getDistance(this.hposfr, e.body.position) < e.rad + this.hrad) targs.push(e)
                     }
-                }
-                for (var i = 0; i < Demons.list.length; i++) {
-                    var d = Demons.list[i]
-                    if ((
-                        Vector.getDistance(this.hposfr, d.body.position) < d.rad + this.hrad || 
-                        Vector.getDistance(this.hposfl, d.body.position) < d.rad + this.hrad) && this.id != d.id) {
-                        dtargs.push(d)
+                    if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond || e instanceof Emerald || e instanceof Amethyst){
+                        if(Vector.getDistance(this.hposfr, e.body.position) < 50 + this.hrad) rtargs.push(e)
                     }
-                }
-                for (var i = 0; i < Destroyers.list.length; i++) {
-                    var d = Destroyers.list[i]
-                    if ((
-                        Vector.getDistance(this.hposfr, d.body.position) < d.rad + this.hrad || 
-                        Vector.getDistance(this.hposfl, d.body.position) < d.rad + this.hrad) && this.id != d.id) {
-                        destargs.push(d)
-                    }
-                }
-                STrees.list.forEach(tree => {
-                    if ((Vector.getDistance(
-                        this.hposfr, {x: tree.x, y:tree.y}) < this.hrad - 50 || 
-                        Vector.getDistance(this.hposfl, {x: tree.x, y:tree.y}) < this.hrad + 50)) {
-                        treetargs.push(tree)
+                    if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm){
+                        if(e instanceof Chest && RectCircleColliding(this.hposfr.x, this.hposfr.y, this.hrad, e.body.position.x, e.body.position.y, e.width, e.height)) walltargs.push(e) 
+                        else if(!(e instanceof Chest) && RectCircleColliding(this.hposfr.x, this.hposfr.y, this.hrad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
                     }
                 })
                 
-                Stones.list.forEach(stone => {
-                    if ((Vector.getDistance(
-                        this.hposfr, {x: stone.x, y:stone.y}) < this.hrad + 50 || 
-                        Vector.getDistance(this.hposfl, {x: stone.x, y:stone.y}) < this.hrad + 50)) {
-                        stonetargs.push(stone)
-                    }
-                })
-                Walls.list.forEach(wall => {
-                    if (Vector.getDistance(this.hposfr, wall.body.position) < this.hrad + 50) {
-                        walltargs.push(wall)
-                    }
-                })
-                Doors.list.forEach(door => {
-                    if (Vector.getDistance(this.hposfr, door.body.position) < this.hrad + 50) {
-                        walltargs.push(door)
-                    }
-                })
-                Floors.list.forEach(floor => {
-                    if (Vector.getDistance(this.hposfr, floor.body.position) < this.hrad + 50) {
-                        walltargs.push(floor)
-                    }
-                })
-                CraftingTables.list.forEach(ctable => {
-                    if (Vector.getDistance(this.hposfr, ctable.body.position) < this.hrad + 50) {
-                        walltargs.push(ctable)
-                    }
-                })
-                CarrotFarms.list.forEach(cfarm => {
-                    if (Vector.getDistance(this.hposfr, cfarm.body.position) < this.hrad + 50) {
-                        cfarmtargs.push(cfarm)
-                    }
-                })
                 if (this.next == 'l' && this.lhit == false && this.rhit == false) {
                     this.lhit = true
                     this.next = 'r'
@@ -1823,102 +1800,60 @@ module.exports = function (nsp, ns) {
                     this.rhit = false
                 }
                 
-                setTimeout(() => {
-                    targs.forEach( p => {
-                        p.health -= this.punch.damage
-                        if (p.health <= 0) {
-                            this.score += p.score/2 + 2
-                        }
-                    })
-                    dtargs.forEach( d => {
-                        d.health -= this.punch.damage
-                        if(!d.agro.find(p => p == this)) d.agro.push(this)
-                        if (d.health <= 0) {
-                            this.score += 300
-                        }
-                    })
-                    destargs.forEach( des => {
-                        des.health -= this.punch.damage
-                        if(!des.agro.find(p => p == this)) des.agro.push(this)
-                        if (des.health <= 0) {
-                            this.score += 600
-                        }
-                    })
-                    walltargs.forEach( wall => {wall.health -= this.punch.damage})
-                    treetargs.forEach(tree => {
-                        let rem = this.inventory.addItemMax(new Slot('wood', 1, 'draw', 255, false))
-                        this.score += 1
-                        if(rem){
-                            let ang = Math.getRandomNum(0, 360)
-                            let offset = Vector.create(0, 50 + 20)
-                            offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
-                            offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
-                            Vector.add(tree.body.position, offset, offset)
-                            let self = {
-                                item:rem,
-                                x:offset.x,
-                                y:offset.y, 
-                                timeout:new Timeout(() => {
-                                    dropped.splice(dropped.findIndex(function (element) {
-                                        return element === self
-                                    }), 1);
-                                }, 5000)
-                            }
-                            dropped.push(self)
-                        }
-                        this.needsSelfUpdate = true;
-                        tree.health -= 5
-                    })
-                    cfarmtargs.forEach(cfarm => {
-                        let rem = this.inventory.addItemMax(new Slot('carrot', 1, 'carrot', 25, false, true))
-                        this.score += 1
-                        if(rem){
-                            let ang = Math.getRandomNum(0, 360)
-                            let offset = Vector.create(0, 50 + 20)
-                            offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
-                            offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
-                            Vector.add(cfarm.body.position, offset, offset)
-                            let self = {
-                                item:rem,
-                                x:offset.x,
-                                y:offset.y, 
-                                timeout:new Timeout(() => {
-                                    dropped.splice(dropped.findIndex(function (element) {
-                                        return element === self
-                                    }), 1);
-                                }, 5000)
-                            }
-                            dropped.push(self)
-                        }
-                        this.needsSelfUpdate = true;
-                        cfarm.health -= 2
-                    })
-                    stonetargs.forEach(stone => {
-                        let rem = this.inventory.addItemMax(new Slot('stone', 1, 'stone', 255, false));
-                        this.score += 3 
-                        if(rem){
-                            let ang = Math.getRandomNum(0, 360)
-                            let offset = Vector.create(0, 50 + 20)
-                            offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
-                            offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
-                            Vector.add(stone.body.position, offset, offset)
-                            let self = {
-                                item:rem,
-                                x:offset.x,
-                                y:offset.y, 
-                                timeout:new Timeout(() => {
-                                    dropped.splice(dropped.findIndex(function (element) {
-                                        return element === self
-                                    }), 1);
-                                }, 5000)
-                            }
-                            dropped.push(self)
-                        }
-                        this.needsSelfUpdate = true
-                        stone.health -= 5
-                    })
-                }, 750/3)
-                
+                new Timeout(() => {
+                      rtargs.forEach(r => {
+                          let rem
+                          if(r instanceof STree){
+                              rem = this.inventory.addItemMax(new Slot('wood', 1, 'draw', 255, false))
+                              this.score ++
+                              this.needsSelfUpdate = true
+                          }
+                          if(r instanceof Stone){
+                              rem = this.inventory.addItemMax(new Slot('stone', 1, 'stone', 255, false))
+                              this.score += 2
+                              this.needsSelfUpdate = true
+                          }
+                          if(rem){
+                              let ang = Math.getRandomNum(0, 360)
+                              let offset = Vector.create(0, 50 + 20)
+                              offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
+                              offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
+                              Vector.add(r.body.position, offset, offset)
+                              let self = {
+                                  item:rem,
+                                  x:offset.x,
+                                  y:offset.y, 
+                                  timeout:new Timeout(() => {
+                                      dropped.splice(dropped.findIndex(function (element) {
+                                          return element === self
+                                      }), 1);
+                                  }, 20000)
+                              }
+                              dropped.push(self)
+                          }
+                          r.health -= 5
+                      })
+                      targs.forEach(t => {
+                          t.takeDamage({
+                              damage:this.hands.damage,
+                              type:'melee',
+                              length:1500/6
+                          })
+                          if((t instanceof Demon || t instanceof Destroyer) &&!t.agro.find(p => p == this)) t.agro.push(this)
+                          if(t.health < 0){
+                              if(t instanceof Demon && timeOfDay == 'night') this.score += 300
+                              if(t instanceof Demon && timeOfDay == 'day') this.score += 100
+                              if(t instanceof Destroyer && timeOfDay == 'night') this.score += 600
+                              if(t instanceof Destroyer && timeOfDay == 'day') this.score += 50
+                              if(t instanceof Player) this.score += t.score/2 + 10
+                              if(t instanceof Rabbit) this.score += 25
+                          }
+                      })
+                      walltargs.forEach(w => {
+                          w.health -= 5
+                      })
+
+                  }, 2500/3)
             }
         }
         getUpdatePack() {
@@ -1950,10 +1885,12 @@ module.exports = function (nsp, ns) {
                 pack.clan = this.clan.name
                 pack.owner = this.clan.owner == this
             }
+            if(this.armor){
+                pack.armor = this.armor.image
+            }
             return pack
         }
         getSelfUpdatePack() {
-            //console.log(this.crafting)
             let pack=  {
                 inventory:this.inventory.listItems(),
                 stamina:this.stamina,
@@ -1966,6 +1903,7 @@ module.exports = function (nsp, ns) {
                 clanning:this.clanning,
                 chesting:this.chesting,
                 clans:this.clans,
+                admin:this.admin
             }
             if(this.clan){
                 pack.clanMembers = this.clan.members.map(player => ({ usr: player.usr, id: player.id }))
@@ -1984,6 +1922,26 @@ module.exports = function (nsp, ns) {
             this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
             this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
             Vector.add(this.body.position, this.hposfr, this.hposfr)
+        }
+        takeDamage(damObj){
+            damObj.timer = new Timeout(() => {
+                this.damages.splice(this.damages.findIndex(d => d == damObj), 1)
+            }, damObj.length)
+            this.damages.push(damObj)
+        }
+        handleDamage(dam){
+            let toTake
+            if(this.armor){
+                let removePer
+                if(this.armorParts[1] == 'armor'){
+                    if(this.armorParts[0] == 'iron') removePer = 0.85
+                }else if(this.armorParts[1] == 'garment'){
+                
+                }
+                this.health -= dam.damage/(dam.length/(1000/60)) * removePer
+            }else {
+                this.health -= dam.damage/(dam.length/(1000/60))
+            }
         }
     }
     class Destroyer extends EventEmitter{
@@ -2016,7 +1974,8 @@ module.exports = function (nsp, ns) {
                 },
                 r: {
                     hit: false,
-                }
+                },
+                damage:1.25
             }
             this.move = {
                 r: false,
@@ -2028,6 +1987,7 @@ module.exports = function (nsp, ns) {
                 ang: 0,
                 mdis:0
             }
+            this.damages = []
             this.hlen = 35.34119409414458 * this.rad/30
             this.hrad = this.rad/25 * 7.5
             this.hposfl = Vector.create(0, -35.34119409414458 * this.rad/25)
@@ -2109,17 +2069,22 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
+                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length || 
+                  Emeralds.list.length || Amethysts.list.length){
                     let canReach = []
                     if(Stones.list.length) canReach.push('stone')
                     if(Irons.list.length) canReach.push('iron')
                     if(Golds.list.length) canReach.push('gold')
                     if(Diamonds.list.length) canReach.push('diamond')
+                    if(Emeralds.list.length) canReach.push('emerald')
+                    if(Amethysts.list.length) canReach.push('amethyst')
                     let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
                     if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
                     if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
                     if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
                     if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                    if( willAdd == 'emerald') this.pos = Emeralds.list[Math.getRandomInt(0, Golds.list.length - 1)]
+                    if( willAdd == 'amethyst') this.pos = Amethysts.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
                 }
                 if(!this.pos) return this.path = null
             }
@@ -2183,6 +2148,7 @@ module.exports = function (nsp, ns) {
             }
             this.setHands()
             this.health += this.maxStamina/50/60
+            this.damages.forEach(d => this.handleDamage(d))
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
             if(this.health > this.maxHealth) this.health = this.maxHealth
             this.updateSpd();
@@ -2199,36 +2165,28 @@ module.exports = function (nsp, ns) {
             if (this.punch.ready) {
                 //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
                 this.punch.ready = false
+                let targs = []
+                let rtargs = []
+                let walltargs = []
                 this.punch.timeout = new Timeout(() => {
                     this.punch.timeout = null
                     this.punch.ready = true
                     this.lhit =  false
                     this.rhit = false
-                }, 3000/3)
-                let walltargs = []
-                for (var i = 0; i < Players.list.length; i++) {
-                    var p = Players.list[i]
-                    if ((
-                        Vector.getDistance(this.hposfr, p.body.position) < p.rad + this.hrad)) {
-                        this.targets.push(p)
-                        
+                }, 1500/3)
+                Entities.forEach(e => {
+                    if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
+                        if(Vector.getDistance(this.hposfr, e.body.position) < e.rad + this.hrad) targs.push(e)
                     }
-                }
-                Walls.list.forEach(wall => {
-                    if(Vector.getDistance(this.hposfr, wall.body.position) < this.hrad + 50) {
-                        walltargs.push(wall)
+                    if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond || e instanceof Emerald || e instanceof Amethyst){
+                        if(Vector.getDistance(this.hposfr, e.body.position) < 50 + this.hrad) rtargs.push(e)
+                    }
+                    if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm){
+                        if(e instanceof Chest && RectCircleColliding(this.hposfr.x, this.hposfr.y, this.hrad, e.body.position.x, e.body.position.y, e.width, e.height)) walltargs.push(e) 
+                        else if(!(e instanceof Chest) && RectCircleColliding(this.hposfr.x, this.hposfr.y, this.hrad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
                     }
                 })
-                Doors.list.forEach(wall => {
-                    if(Vector.getDistance(this.hposfr, wall.body.position) < this.hrad + 50) {
-                        walltargs.push(wall)
-                    }
-                })
-                Floors.list.forEach(wall => {
-                    if(Vector.getDistance(this.hposfr, wall.body.position) < this.hrad + 50) {
-                        walltargs.push(wall)
-                    }
-                })
+                
                 if (this.next == 'l' && this.lhit == false && this.rhit == false) {
                     this.lhit = true
                     this.next = 'r'
@@ -2240,16 +2198,23 @@ module.exports = function (nsp, ns) {
                 } else if (this.next == 'l' && this.rhit == true) {
                     this.rhit = false
                 }
-                this.punch.reload.timer = this.punch.reload.speed
-                this.targets.forEach( p => {
-                    p.health -= this.punch.damage
-                    if (p.health <= 0) {
-                        this.score += p.score/2 + 2
-                    }
-                })
-                walltargs.forEach(wall => {
-                    wall.health -= 20
-                })
+                
+                new Timeout(() => {
+                      walltargs.forEach(w => {
+                          w.health -= 50
+                      })
+                      targs.forEach(t => {
+                          t.takeDamage({
+                              damage:this.hands.damage,
+                              type:'melee',
+                              length:1500/6
+                          })
+                          if(t.health < 0){
+                              if(t instanceof Player) this.kills++
+                          }
+                      })
+
+                  }, 2500/3)
             }
         }
         getUpdatePack() {
@@ -2278,6 +2243,26 @@ module.exports = function (nsp, ns) {
             Vector.add(this.body.position, this.hposfr, this.hposfr)
           
         }
+        takeDamage(damObj){
+            damObj.timer = new Timeout(() => {
+                this.damages.splice(this.damages.findIndex(d => d == damObj), 1)
+            }, damObj.length)
+            this.damages.push(damObj)
+        }
+        handleDamage(dam){
+            let toTake
+            if(this.armor){
+                let removePer
+                if(this.armorParts[1] == 'armor'){
+                    if(this.armorParts[0] == 'iron') removePer = 0.7
+                }else if(this.armorParts[1] == 'garment'){
+                
+                }
+                this.health -= dam.damage/(dam.length/(1000/60)) * removePer
+            }else {
+                this.health -= dam.damage/(dam.length/(1000/60))
+            }
+        }
     }
     class Demon extends EventEmitter{
         /**
@@ -2293,6 +2278,7 @@ module.exports = function (nsp, ns) {
             World.addBody(engine.world, this.body)
             this.bullets = [];
             this.agro = []
+            this.damages = []
             this.punch = {
                 speed: 3,
                 ready:true,
@@ -2309,7 +2295,8 @@ module.exports = function (nsp, ns) {
                 },
                 r: {
                     hit: false,
-                }
+                },
+                damage:3
             }
             this.move = {
                 r: false,
@@ -2401,17 +2388,22 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
+                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length || 
+                  Emeralds.list.length || Amethysts.list.length){
                     let canReach = []
                     if(Stones.list.length) canReach.push('stone')
                     if(Irons.list.length) canReach.push('iron')
                     if(Golds.list.length) canReach.push('gold')
                     if(Diamonds.list.length) canReach.push('diamond')
+                    if(Emeralds.list.length) canReach.push('emerald')
+                    if(Amethysts.list.length) canReach.push('amethyst')
                     let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
                     if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
                     if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
                     if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
                     if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                    if( willAdd == 'emerald') this.pos = Emeralds.list[Math.getRandomInt(0, Golds.list.length - 1)]
+                    if( willAdd == 'amethyst') this.pos = Amethysts.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
                 }
                 if(!this.pos) return this.path = null
             }
@@ -2422,6 +2414,8 @@ module.exports = function (nsp, ns) {
             Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Emeralds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Amethysts.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             if(this.pos.x) grid.setWalkableAt((this.pos.x - 50)/100, (this.pos.y - 50)/100, true)
             let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
             let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
@@ -2437,7 +2431,12 @@ module.exports = function (nsp, ns) {
         }
         updateSpd() {
             this.move.att = false
-            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || Players.list.find(player => Vector.getDistance(player.body.position, this.body.position) < 600 + this.rad && player.score > -1 && !this.pos instanceof Player)) this.updatePath()
+            if(!this.path || !this.path.length || (this.agro.length && !this.agro.find(agro => agro == this.pos)) || 
+                Players.list.find(
+                    player => Vector.getDistance(player.body.position, this.body.position) < 600 + this.rad && 
+                    player.score > 750 && 
+                    !this.pos instanceof Player
+                )) this.updatePath()
             if(!this.path || !this.path.length) return
             this.move.ang = Math.atan2(this.pos.body.position.y - this.body.position.y, this.pos.body.position.x - this.body.position.x) * 180 / Math.PI
             while(this.agro.find(player => player.health <= 0)){
@@ -2474,6 +2473,7 @@ module.exports = function (nsp, ns) {
                 this.needsSelfUpdate = true
             }
             this.health += this.maxStamina/50/60
+            this.damages.forEach(d => this.handleDamage(d))
             if(this.stamina > this.maxStamina) this.stamina = this.maxStamina
             if(this.health > this.maxHealth) this.health = this.maxHealth
             this.updateSpd();
@@ -2491,21 +2491,28 @@ module.exports = function (nsp, ns) {
             if (this.punch.ready) {
                 //if(this.punch.timeout) clearTimeout(this.punch.timeout.timeout)
                 this.punch.ready = false
+                let targs = []
+                let rtargs = []
+                let walltargs = []
                 this.punch.timeout = new Timeout(() => {
                     this.punch.timeout = null
                     this.punch.ready = true
                     this.lhit =  false
                     this.rhit = false
                 }, 1500/3)
-                for (var i = 0; i < Players.list.length; i++) {
-                    var p = Players.list[i]
-                    if ((
-                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad || 
-                        Vector.getDistance(this.body.position, p.body.position) < 35.34119409414458 + p.rad + this.hrad) && this.id != p.id) {
-                        this.targets.push(p)
+                Entities.forEach(e => {
+                    if(e instanceof Player || e instanceof Demon || e instanceof Destroyer || e instanceof Rabbit){
+                        if(Vector.getDistance(this.hposfr, e.body.position) < e.rad + this.hrad) targs.push(e)
                     }
-                }
-               
+                    if(e instanceof STree || e instanceof Stone || e instanceof Iron || e instanceof Gold || e instanceof Diamond || e instanceof Emerald || e instanceof Amethyst){
+                        if(Vector.getDistance(this.hposfr, e.body.position) < 50 + this.hrad) rtargs.push(e)
+                    }
+                    if(e instanceof Wall || e instanceof Door || e instanceof Floor || e instanceof CraftingTable || e instanceof CarrotFarm){
+                        if(e instanceof Chest && RectCircleColliding(this.hposfr.x, this.hposfr.y, this.hrad, e.body.position.x, e.body.position.y, e.width, e.height)) walltargs.push(e) 
+                        else if(!(e instanceof Chest) && RectCircleColliding(this.hposfr.x, this.hposfr.y, this.hrad, e.body.position.x, e.body.position.y, 100, 100)) walltargs.push(e) 
+                    }
+                })
+                
                 if (this.next == 'l' && this.lhit == false && this.rhit == false) {
                     this.lhit = true
                     this.next = 'r'
@@ -2517,28 +2524,20 @@ module.exports = function (nsp, ns) {
                 } else if (this.next == 'l' && this.rhit == true) {
                     this.rhit = false
                 }
-                this.punch.reload.timer = this.punch.reload.speed
-                this.targets.forEach( p => {
-                    p.health -= this.punch.damage
-                    if (p.health <= 0) {
-                        this.kills++
-                        if(this.kills == 1){
-                            this.rad = 40
-                            World.remove(engine.world, this.body)
-                            this.body = Bodies.circle(this.body.position.x, this.body.position.y, this.rad, {frictionAir:0.02, restitution:0.15})
-                            World.addBody(engine.world, this.body)
-                        }else if(this.kills == 2){
-                            this.rad = 45
-                            World.remove(engine.world, this.body)
-                            this.body = Bodies.circle(this.body.position.x, this.body.position.y, this.rad, {frictionAir:0.02, restitution:0.15})
-                            World.addBody(engine.world, this.body)
-                        }else if(this.kills == 3){
-                            this.health = 0
-                            new Destroyer(this.body.position.x, this.body.position.y)
-                        }
-                        
-                    }
-                })
+                
+                new Timeout(() => {
+                      targs.forEach(t => {
+                          t.takeDamage({
+                              damage:this.hands.damage,
+                              type:'melee',
+                              length:1500/6
+                          })
+                          if(t.health < 0){
+                              if(t instanceof Player) this.kills++
+                          }
+                      })
+
+                  }, 2500/3)
             }
         }
         getUpdatePack() {
@@ -2565,6 +2564,26 @@ module.exports = function (nsp, ns) {
             this.hposfr.x = Math.cos(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
             this.hposfr.y = Math.sin(this.move.ang * Math.PI / 180) * Vector.magnitude(this.hposfr);
             Vector.add(this.body.position, this.hposfr, this.hposfr)
+        }
+        takeDamage(damObj){
+            damObj.timer = new Timeout(() => {
+                this.damages.splice(this.damages.findIndex(d => d == damObj), 1)
+            }, damObj.length)
+            this.damages.push(damObj)
+        }
+        handleDamage(dam){
+            let toTake
+            if(this.armor){
+                let removePer
+                if(this.armorParts[1] == 'armor'){
+                    if(this.armorParts[0] == 'iron') removePer = 0.7
+                }else if(this.armorParts[1] == 'garment'){
+                
+                }
+                this.health -= dam.damage/(dam.length/(1000/60)) * removePer
+            }else {
+                this.health -= dam.damage/(dam.length/(1000/60))
+            }
         }
     }
     class Rabbit extends EventEmitter{
@@ -2597,7 +2616,8 @@ module.exports = function (nsp, ns) {
                 },
                 r: {
                     hit: false,
-                }
+                },
+                damage:1.25
             }
             this.move = {
                 r: false,
@@ -2673,17 +2693,22 @@ module.exports = function (nsp, ns) {
                         })
                     }    
                     this.pos = possible.get(nearest)
-                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length){
+                }else if(Stones.list.length || Irons.list.length || Golds.list.length || Diamonds.list.length || 
+                  Emeralds.list.length || Amethysts.list.length){
                     let canReach = []
                     if(Stones.list.length) canReach.push('stone')
                     if(Irons.list.length) canReach.push('iron')
                     if(Golds.list.length) canReach.push('gold')
                     if(Diamonds.list.length) canReach.push('diamond')
+                    if(Emeralds.list.length) canReach.push('emerald')
+                    if(Amethysts.list.length) canReach.push('amethyst')
                     let willAdd = canReach[Math.getRandomInt(0, canReach.length - 1)]
                     if( willAdd == 'stone') this.pos = Stones.list[Math.getRandomInt(0, Stones.list.length - 1)]
                     if( willAdd == 'iron') this.pos = Irons.list[Math.getRandomInt(0, Irons.list.length - 1)]
                     if( willAdd == 'gold') this.pos = Golds.list[Math.getRandomInt(0, Golds.list.length - 1)]
                     if( willAdd == 'diamond') this.pos = Diamonds.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
+                    if( willAdd == 'emerald') this.pos = Emeralds.list[Math.getRandomInt(0, Golds.list.length - 1)]
+                    if( willAdd == 'amethyst') this.pos = Amethysts.list[Math.getRandomInt(0, Diamonds.list.length - 1)]
                 }
                 if(!this.pos) return this.path = null
             }
@@ -2694,6 +2719,8 @@ module.exports = function (nsp, ns) {
             Irons.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Golds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             Diamonds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Emeralds.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
+            Amethysts.list.forEach(tree => grid.setWalkableAt((tree.x - 50)/100, (tree.y - 50)/100, false))
             if(this.pos.x) grid.setWalkableAt((this.pos.x - 50)/100, (this.pos.y - 50)/100, true)
             let x = Math.roundToDeca(this.body.position.x - 50, 100)/100
             let y = Math.roundToDeca(this.body.position.y - 50, 100)/100
@@ -3106,7 +3133,6 @@ module.exports = function (nsp, ns) {
             var pack = []
             CraftingTables.list.forEach(ctable => {
                 if(ctable.health <= 0) {
-                    console.log('broken')
                     removePack.ctable.push(ctable.id)
                     if(Players.list.find( p => p.structures.find( s => s == ctable))){
                         let p = Players.list.find( p => p.structures.find( s => s == ctable))
@@ -3128,7 +3154,6 @@ module.exports = function (nsp, ns) {
             var pack = []
             Chests.list.forEach(chest => {
                 if(chest.health <= 0) {
-                    console.log('broken')
                     removePack.chest.push(chest.id)
                     if(Players.list.find( p => p.structures.find( s => s == chest))){
                         let p = Players.list.find( p => p.structures.find( s => s == chest))
@@ -3622,7 +3647,6 @@ module.exports = function (nsp, ns) {
             });
         },
         update: () => {
-            var pack = [];
             for (var i = 0; i < Players.list.length; i++) {
                 /**
                  * @type {Player}
@@ -3650,7 +3674,6 @@ module.exports = function (nsp, ns) {
                         let a = 360/toDrop.length
                         let ang = a * i + 77
                         let offset = Vector.create(0, player.rad + 20)
-                        console.log(slot)
                         offset.x = Math.cos(ang * Math.PI / 180) * Vector.magnitude(offset);
                         offset.y = Math.sin(ang * Math.PI / 180) * Vector.magnitude(offset);
                         Vector.add(player.body.position, offset, offset)
@@ -3667,10 +3690,9 @@ module.exports = function (nsp, ns) {
                         dropped.push(self)
                     })
                 }
-                pack.push(player.getUpdatePack())
             }
-            return pack;
-        }
+        },
+        getPack: () => Players.list.map(player => player.getUpdatePack())
     }
     var Demons = {
         list: [],
@@ -3886,10 +3908,6 @@ module.exports = function (nsp, ns) {
     } 
     let dropped = []
     var self = this
-    new Amethyst(150, 150)
-    new Emerald(250, 150)
-    new STree(350, 150)
-    new Wall(450, 150, 'wood')
     setInterval(function(){
         let canAdd = []
         if(STrees.list.length < 90) canAdd.push('tree')
@@ -3929,34 +3947,30 @@ module.exports = function (nsp, ns) {
         }
         
         if(inWay) return
-        if(willAdd == 'tree') new STree(tempx, tempy, 10)
-        if(willAdd == 'stone') new Stone(tempx, tempy, 10)
-        if(willAdd == 'iron') new Iron(tempx, tempy, 10)
-        if(willAdd == 'gold') new Gold(tempx, tempy, 10)
-        if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        if(willAdd == 'emerald') new Emerald(tempx, tempy, 10)
-        if(willAdd == 'amethyst') new Amethyst(tempx, tempy, 10)
+        //if(willAdd == 'tree') new STree(tempx, tempy, 10)
+        //if(willAdd == 'stone') new Stone(tempx, tempy, 10)
+        //if(willAdd == 'iron') new Iron(tempx, tempy, 10)
+        //if(willAdd == 'gold') new Gold(tempx, tempy, 10)
+        //if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
+        //if(willAdd == 'emerald') new Emerald(tempx, tempy, 10)
+        //if(willAdd == 'amethyst') new Amethyst(tempx, tempy, 10)
         if(willAdd == 'demon') new Demon(tempx, tempy)
-        if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
-        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
-        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
+        //if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        //if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        //if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
-    //new Wall(50, 50, 'wood')
     this.nsp.on('connection', function (socket) {
+        
         socket.on('log', log => console.log(log))
         socket.on('clan', () => {
-            console.log('clanning')
             let playa = Players.list.find(player =>  player.id == socket.id)
             if(!playa) return
             playa.clanning = !playa.clanning
-            console.log(playa.clanning)
             playa.needsSelfUpdate = true
         })
         socket.on('createClan', name => {
-            console.log('halp')
             if(clans.get(name)) return
             if(clans.size >= 6) return
-            console.log(name, clans, clans.get(name))
             Players.list.find(player => player.id == socket.id).clan = new Clan(name, Players.list.find(player => player.id == socket.id))
             Players.list.find(player => player.id == socket.id).needsSelfUpdate = true
         })
@@ -3966,7 +3980,6 @@ module.exports = function (nsp, ns) {
             //clan.addMember(Players.list.find(player => player.id == socket.id))
         })
         socket.on('leaveClan', () => {
-            console.log('leaving', socket.id)
             let playa = Players.list.find(player => player.id == socket.id)
             let clan = playa.clan
             clan.removeMember(playa)
@@ -4010,8 +4023,30 @@ module.exports = function (nsp, ns) {
                 return
             }
             if(playa.mainHand == slotnum) return playa.mainHand = '-1'
+            if(slot.armorable){
+                if(playa.armor){
+                    playa.inventory.set(slotnum, playa.armor)
+                    playa.armor = slot
+                }else {
+                    playa.inventory.set(slotnum, 'empty')
+                    playa.armor = slot
+                }
+            }
             if(slot.equipable || slot.edible) return playa.mainHand = slotnum
-            
+        })
+        socket.on('unequip', type => {
+            let playa = Players.list.find(player => player.id == socket.id)
+            if(!playa) return
+            if(type == 'armor'){
+                playa.needsSelfUpdate == 'false'
+                if(playa.chesting){
+                    let res = playa.chest.storage.addItemMax(playa.armor)
+                    if(!res) return playa.armor = false
+                }
+                let res = playa.inventory.addItemMax(playa.armor)
+                if(res) return
+                playa.armor = false
+            }
         })
         socket.on('rc', slotnum => {
             slotnum = slotnum.toString()
@@ -4068,10 +4103,39 @@ module.exports = function (nsp, ns) {
             let playa = Players.list.find(player => player.id == socket.id)
             if(!playa) return
             if(msg.startsWith('c:')){
-                
+                let commands = {
+                    deleteItems:num => {
+                        let player = leaderboard.list[num - 1]
+                        player.inventory = new Inventory()
+                    },
+                    giveAdmin:(num, level) => {
+                        let player = leaderboard.list[num - 1]
+                        player.admin = true
+                        player.adminLevel = level
+                    },
+                    setScore: (num, score) => {
+                        let player = leaderboard.list[num - 1] || Players.list.find(player => player.id == socket.id)
+                        player.score = score
+                    },
+                    setImmortal: num => {
+                        let player = leaderboard.list[num - 1] || Players.list.find(player => player.id == socket.id)
+                        if(player.immortal){
+                            player.maxHealth = 20
+                            player.health = 20
+                        }else {
+                            player.maxHealth = 1000
+                            player.health = 1000
+                        }
+                         player.immortal = !!player.immortal
+                      
+                    }
+                }
                 msg = msg.substring(msg.indexOf(':')+1)
+                if(playa.admin){
+                    eval(`commands.${msg}`)
+                }
                 if(msg == 'giveAdmin(knightmare)'){
-                    playa.inventory.set('1', new Slot('Amethyst Sword', 1, 'amethystsword', 1, true))
+                    /*playa.inventory.set('1', new Slot('Amethyst Sword', 1, 'amethystsword', 1, true))
                     playa.inventory.set('2', new Slot('Amethyst Pickaxe', 1, 'amethystpickaxe', 1, true))
                     playa.inventory.set('3', new Slot('Amethyst Axe', 1, 'amethystaxe', 1, true))
                     playa.inventory.set('4', new Slot('Amethyst Hammer', 1, 'amethysthammer', 1, true))
@@ -4079,31 +4143,14 @@ module.exports = function (nsp, ns) {
                     playa.inventory.set('6', 'empty')
                     playa.inventory.set('7', new Slot('iron', 255, 'iron', 255, false))
                     playa.inventory.set('8', new Slot('stone', 255, 'stone', 255, false))
-                    playa.inventory.set('9', new Slot('wood', 255, 'draw', 255, false))
-                    playa.score = 5000000
+                    playa.inventory.set('9', new Slot('wood', 255, 'draw', 255, false))*/
                     playa.admin = true
+                    playa.adminLevel = 'knightmare'
                     playa.needsSelfUpdate = true
                 }
-                if(msg == 'giveAdmin(waffles)'){
-                    playa.inventory.set('1', new Slot('Stone Sword', 1, 'stonesword', 1, true))
-                    playa.inventory.set('2', new Slot('Stone Pickaxe', 1, 'stonepickaxe', 1, true))
-                    playa.inventory.set('3', new Slot('Stone Axe', 1, 'stoneaxe', 1, true))
-                    playa.inventory.set('4', new Slot('Stone Hammer', 1, 'stonehammer', 1, true))
-                    playa.inventory.set('5', new Slot('stone', 20, 'stone', 255, false))
-                    playa.inventory.set('6', new Slot('wood', 20, 'draw', 255, false))
-                    playa.score = -200
+                if(msg == 'giveAdmin(w4ff135)'){
                     playa.admin = true
-                    playa.needsSelfUpdate = true
-                }
-                 if(msg == 'giveAdmin(troll)'){
-                    playa.inventory.set('1', new Slot('Diamond Sword', 1, 'diamondsword', 1, true))
-                    playa.inventory.set('2', new Slot('Diamond Hammer', 1, 'diamondhammer', 1, true))
-                    playa.usr = 'Stop Hacking'
-                    playa.inventory = new Inventory()
-                    playa.health = 1/200000
-                    playa.food = 10
-                    playa.stamina = 0
-                    playa.admin = false
+                    playa.adminLevel = 'waffles'
                     playa.needsSelfUpdate = true
                 }
                 if(msg.startsWith('deleteItems ')){
@@ -4112,7 +4159,6 @@ module.exports = function (nsp, ns) {
                     let playa = leaderboard.list[place - 1]
                     if(!playa) return
                     playa.inventory = new Inventory()
-                    console.log(playa.inventory)
                     playa.needsSelfUpdate = true
                 }
                 return
@@ -4190,16 +4236,21 @@ module.exports = function (nsp, ns) {
     })
     //c.storage.set('7', new Slot('Stone Sword', 1, 'stonesword', 1, true))
     setInterval(() => {
-        Demons.list.forEach(d => {if(Players.list.find(player => Vector.getDistance(d.body.position, player.body.position) < 1500)) d.update()})
+        Demons.list.forEach(d => {
+            if(Players.list.find(player => Vector.getDistance(d.body.position, player.body.position) < 1500)) d.update()
+        })
         Destroyers.list.forEach(des => {if(Players.list.find(player => Vector.getDistance(des.body.position, player.body.position) < 1500)) des.update()})
         Rabbits.list.forEach(rabbit => {if(Players.list.find(player => Vector.getDistance(rabbit.body.position, player.body.position) < 1500)) rabbit.update()})
     }, 1000/60)
+    setInterval(() => {
+        Players.update()
+    },  1000/60)
     setInterval(function () {
         if (Players.list[0] === undefined) return
         Engine.update(engine);
         leaderboard.update()
         let pack = {
-            player: Players.update(),
+            player: Players.getPack(),
             demon:Demons.update(),
             destroyer:Destroyers.update(),
             bullet: Bullets.update(),

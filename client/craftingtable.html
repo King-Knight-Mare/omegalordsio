@@ -37,7 +37,7 @@
     createImage('stonehammer', 'png')
     setTimeout(() => {
         ctx.save()
-        ctx.translate(0, 200)
+        ctx.translate(0, 400)
         ctx.fillStyle = '#808080'
         ctx.fillRect(0, 0 , 200, 200)
         ctx.fillStyle = '#4E2D05'
@@ -66,16 +66,30 @@
         ctx.drawImage(Img.stonehammer, -30, -30, 70, 70)
         ctx.restore()
         ctx.restore()
-        //ctx.drawImage(Img['stonehammer'], 0, 0, 200, 200)
+        ctx.fillStyle = '#444444'
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = '#545454'
+        ctx.fillRect(10, 0, 130, 150)
+        ctx.fillStyle = '#545454'
+        ctx.fillRect(0, 10, 150, 130)
         ctx.fillStyle = 'grey'
-        ctx.beginPath()
-        ctx.arc(50, 50, 50, 0, 2 * Math.PI)
-        ctx.fill()
-        ctx.fillStyle = 'red'
-        ctx.globalCompositeOperation = 'destination-out'
-        ctx.beginPath()
-        ctx.arc(50, 50, 30, 0, 2 * Math.PI)
-        ctx.fill()
+        ctx.fillRect(30, 0, 90, 150)
+        ctx.fillStyle = 'grey'
+        ctx.fillRect(0, 30, 150, 90)
+        ctx.fillStyle = 'lightgrey'
+        ctx.fillRect(50, 0, 50, 150)
+        ctx.fillStyle = 'lightgrey'
+        ctx.fillRect(0, 50, 150, 50)
+      
+        ctx.translate(160, 0)
+        ctx.fillStyle = '#444444'
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = '#545454'
+        ctx.fillRect(10, 10, 130, 130)
+        ctx.fillStyle = 'grey'
+        ctx.fillRect(30, 30, 90, 90)
+        ctx.fillStyle = 'lightgrey'
+        ctx.fillRect(50, 50, 50, 50)
     }, 500)
     //createImage('ironsword', 'png')
     //createImage('ironpickaxe', 'png')
