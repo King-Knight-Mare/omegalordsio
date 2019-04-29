@@ -81,6 +81,8 @@ createImage('craftingtable', 'png')
 createImage('carrotfarm', 'png')
 createImage('carrot', 'png')
 createImage('chest', 'png')
+createImage('leather', 'png')
+createImage('ironarmor', 'png')
 
 Img.rbullet.src = '/client/img/rbullet.png'
 Img.bbullet.src = '/client/img/bbullet.png'
@@ -267,6 +269,32 @@ var init = function(name) {
                 else if(e.button == 2) socket.emit('rc', i + 1)
             }
         })
+        if(playa.armor){
+            if(e.clientX > 10 && e.clientX < 10 + 90 &&
+               e.clientY > 350 && e.clientY < 350 + 90){
+                ctx.fillStyle = '#696969'
+                ctx.beginPath()
+                ctx.lineWidth = 1.5
+                ctx.globalAlpha = 0.75
+                ctx.rect(10, 350, 90, 90)
+                ctx.fillRect(10, 350, 90, 90)
+                ctx.stroke()
+                socket.emit('unequip', 'armor')
+            }
+        }
+        if(playa.hat){
+            if(e.clientX > 10 && e.clientX < 10 + 90 &&
+               e.clientY > 240 && e.clientY < 240 + 90){
+                ctx.fillStyle = '#696969'
+                ctx.beginPath()
+                ctx.lineWidth = 1.5
+                ctx.globalAlpha = 0.75
+                ctx.rect(10, 240, 90, 90)
+                ctx.fillRect(10, 240, 90, 90)
+                ctx.stroke()
+                socket.emit('unequip', 'hat')
+            }
+        }
         if(playa.chesting){
             playa.chestables.forEach((item, i) => {
                 ctx.lineWidth = 2
@@ -717,6 +745,7 @@ var init = function(name) {
             this.angle = initPack.angle
             this.lhit = initPack.lhit
             this.rhit = initPack.rhit
+            this.armor = initPack.armor
             this.rad = 28
             this.msg = []
             this.clan = initPack.clan
@@ -747,7 +776,6 @@ var init = function(name) {
                 var foodBar = 80 * this.rad/25 * this.food / this.maxFood
                 ctx.fillRect(currx - 40 * this.rad/25, curry - 50 * this.rad/25 - 10, foodBar, 10　);
             }
-            
             if(this.clan){ 
                 ctx.textAlign = "center"
                 ctx.font = '18px Zorque';
@@ -766,6 +794,17 @@ var init = function(name) {
                 ctx.strokeText(this.usr, currx, curry + 55 * this.rad/25); 
                 ctx.fillStyle = 'white';
                 ctx.fillText(this.usr, currx, curry + 55 * this.rad/25);
+            }
+            if(playa.admin){
+                let p = leaderboard.findIndex(player => player.id == this.id) + 1
+                ctx.textAlign = "center"
+                ctx.font = '18px Zorque';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.beginPath()
+                ctx.strokeText(p, currx, curry + 73 * this.rad/25); 
+                ctx.fillStyle = 'white';
+                ctx.fillText(p, currx, curry + 73 * this.rad/25);
             }
             this.msg.forEach((msgObj, i) => {
                 if(this.msg.length == 1 && i == 0){
@@ -961,6 +1000,7 @@ var init = function(name) {
             ctx.fillStyle = '#C3C3C3'
             ctx.arc(currx, curry, this.rad - 2, 0, 2 * Math.PI)
             ctx.fill()
+            if(this.armor) ctx.drawImage(Img[this.armor], currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
             ctx.translate(currx, curry)
             ctx.rotate((Math.PI / 180) * this.angle)
             ctx.fillStyle = 'black'
@@ -1095,6 +1135,7 @@ var init = function(name) {
             this.angle = initPack.angle
             this.lhit = initPack.lhit
             this.rhit = initPack.rhit
+            this.armor = initPack.armor
             this.hitting = initPack.hitting
             this.punchper = initPack.punchper
             this.per = initPack.per
@@ -1116,6 +1157,7 @@ var init = function(name) {
             this.clans = initPack.clans
             this.clanMembers = initPack.clanMembers
             this.req = initPack.req
+            this.admin = initPack.admin
             //if(this.clans) console.log(this.clans)
         }
     }
@@ -2029,6 +2071,7 @@ var init = function(name) {
                     if(item.slot.image == 'stone' || item.slot.image == 'iron' || item.slot.image == 'gold' || item.slot.image == 'diamond'|| item.slot.image == 'emerald' || item.slot.image == 'amethyst'){
                         ctx.drawImage(Img[item.slot.image], item.x + x - 20, item.y + y - 20, 40, 40)
                     }
+                    if(/^leather$/.test(item.slot.type)) ctx.drawImage(Img[item.slot.image], item.x + x - 24.5, item.y + y - 28.5, 49, 57)
                     if(/Axe|Pickaxe|Sword|Hammer/.test(item.slot.type)){
                         ctx.save()
                         ctx.translate(item.x + x, item.y + y)
@@ -2043,7 +2086,7 @@ var init = function(name) {
                         ctx.drawImage(Img[item.slot.image], -20, -20, 40, 40)
                         ctx.restore()
                     }
-                    if(/Wall|Door|Floor|Crafting Table|Chest/.test(item.slot.type)){
+                    if(/Wall|Door|Floor|Crafting Table|Chest|Armor/.test(item.slot.type)){
                         ctx.save()
                         ctx.translate(item.x + x, item.y + y)
                         ctx.rotate(Math.PI/ 180 * 10)
@@ -2219,9 +2262,9 @@ var init = function(name) {
                             ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                         }
-                        if(/Wall|Door|Floor|Crafting Table|Chest/.test(craft.craft)){
+                        if(/Wall|Door|Floor|Crafting Table|Chest|Armor/.test(craft.craft)){
                             let img = craft.craft.toLowerCase().replace(/\s/, '')
-                              
+                            console.log(img)
                             ctx.globalAlpha = 1
                             ctx.save()
                             ctx.translate(120 + offSetX + 30, 120 + offSetY + 30)
@@ -2252,7 +2295,7 @@ var init = function(name) {
                             ctx.drawImage(Img[img], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                         }
-                        if(/Wall|Door|Floor|Crafting Table|Chest/.test(craft)){
+                        if(/Wall|Door|Floor|Crafting Table|Chest|Armor/.test(craft)){
                             let img = craft.toLowerCase().replace(/\s/, '')
                             ctx.globalAlpha = 0.875
                             ctx.lineWidth = 2
@@ -2292,6 +2335,22 @@ var init = function(name) {
                         ctx.globalAlpha = 0.5
                         ctx.beginPath()
                         ctx.fillRect((canvas.width - 300)/2 + 40 + offSetX, (canvas.height - 300)/2 + 40 + offSetY, 60, 60)
+                        if(/^leather$/.test(item.type)) ctx.drawImage(Img[item.image], item.x + x - 24.5, item.y + y - 28.5, 49, 57)
+                        if(/^(stone|iron|gold|diamond|emerald|amethyst)$/.test(item.type)){
+                            ctx.save()
+                            ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
+                            ctx.rotate(Math.PI/ 180 * 0)
+                            ctx.drawImage(Img[item.image], 0 - 20, 0 - 20, 40, 40)
+                            ctx.restore()
+                            ctx.beginPath()
+                            ctx.lineWidth = 1.5
+                            ctx.font = "15px Arial"
+                            ctx.strokeStyle = 'black'
+                            ctx.fillStyle = 'white'
+                            ctx.strokeText(item.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                            ctx.fillText(item.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                            ctx.stroke()
+                        }
                         if(/Axe|Pickaxe|Sword|Hammer/.test(item.type)){
                             ctx.globalAlpha = 1
                             ctx.save()
@@ -2300,7 +2359,7 @@ var init = function(name) {
                             ctx.drawImage(Img[item.image], 0 - 27.5, 0 - 27.5, 55, 55)
                             ctx.restore()
                         }
-                        if(/Wall|Door|Floor|Crafting Table|Chest/.test(item.type)){
+                        if(/Wall|Door|Floor|Crafting Table|Chest|Armor/.test(item.type)){
                             ctx.globalAlpha = 1
                             ctx.save()
                             ctx.translate((canvas.width - 300)/2 + 40 + offSetX + 30, (canvas.height - 300)/2 + 40 + offSetY + 30)
@@ -2407,7 +2466,22 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(/Wall|Door|Floor|Crafting Table|Chest/.test(slot.type)){
+                    if(/^leather$/.test(slot.type)){
+                        ctx.save()
+                        ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100)
+                        ctx.rotate(Math.PI/ 180 * 0)
+                        ctx.drawImage(Img[slot.image], 0 - 24.5, 0 - 28.5, 49, 57)
+                        ctx.restore()
+                        ctx.beginPath()
+                        ctx.lineWidth = 1.5
+                        ctx.font = "15px Arial"
+                        ctx.strokeStyle = 'black'
+                        ctx.fillStyle = 'white'
+                        ctx.strokeText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
+                        ctx.stroke()
+                    }
+                    if(/Wall|Door|Floor|Crafting Table|Chest|Armor/.test(slot.type)){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 10)
@@ -2422,7 +2496,7 @@ var init = function(name) {
                         ctx.fillText(slot.count, (canvas.width)/10 + (canvas.width)/10 * i  + 18, canvas.height - 58)
                         ctx.stroke()
                     }
-                    if(slot.image == 'carrot'){
+                    if(slot.type == 'carrot'){
                         ctx.save()
                         ctx.translate((canvas.width)/10 + (canvas.width)/10 * i , canvas.height - 100 + 7)
                         ctx.rotate(Math.PI/ 180 * 45)
@@ -2478,8 +2552,24 @@ var init = function(name) {
                     //if(playa.inventory[i] != ' ') ctx.drawImage(Img[playa.inventory[i]], 200  + 120.75 * i - 50, canvas.height - 100 - 50, 100, 100)
                     
                 })
+                ctx.fillStyle = '#696969'
+                ctx.beginPath()
+                ctx.lineWidth = 1.5
+                ctx.globalAlpha = 0.75
+                ctx.rect(10, 350, 90, 90)
+                ctx.fillRect(10, 350, 90, 90)
+                ctx.stroke()
                 
-                ctx.restore()
+                ctx.globalAlpha = 1
+                if(playa.armor){
+                    ctx.drawImage(Img[playa.armor], 30, 370, 50, 50)
+                }
+                ctx.globalAlpha = 0.75
+                ctx.beginPath()
+                ctx.rect(10, 240, 90, 90)
+                ctx.fillRect(10, 240, 90, 90)
+                ctx.globalAlpha = 1
+                ctx.stroke();
                 if(pack.tod == 'day'){
                     //ctx.globalAlpha = pack.per * 0.5
                     //ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2500, 2500)
