@@ -3947,17 +3947,17 @@ module.exports = function (nsp, ns) {
         }
         
         if(inWay) return
-        //if(willAdd == 'tree') new STree(tempx, tempy, 10)
-        //if(willAdd == 'stone') new Stone(tempx, tempy, 10)
-        //if(willAdd == 'iron') new Iron(tempx, tempy, 10)
-        //if(willAdd == 'gold') new Gold(tempx, tempy, 10)
-        //if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
-        //if(willAdd == 'emerald') new Emerald(tempx, tempy, 10)
-        //if(willAdd == 'amethyst') new Amethyst(tempx, tempy, 10)
+        if(willAdd == 'tree') new STree(tempx, tempy, 10)
+        if(willAdd == 'stone') new Stone(tempx, tempy, 10)
+        if(willAdd == 'iron') new Iron(tempx, tempy, 10)
+        if(willAdd == 'gold') new Gold(tempx, tempy, 10)
+        if(willAdd == 'diamond') new Diamond(tempx, tempy, 10)
+        if(willAdd == 'emerald') new Emerald(tempx, tempy, 10)
+        if(willAdd == 'amethyst') new Amethyst(tempx, tempy, 10)
         if(willAdd == 'demon') new Demon(tempx, tempy)
-        //if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
-        //if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
-        //if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
+        if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
+        if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
+        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
     }, 1000)
     this.nsp.on('connection', function (socket) {
         
