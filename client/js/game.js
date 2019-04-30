@@ -1,5 +1,32 @@
 //Sets a few core values and then sets up onsubmits
 /* global changelog io usr loadingTimer*/
+class Mapper extends Map {
+    constructor(iterator){
+        super(iterator)
+    }
+    find(fn, thisArg){
+        if (typeof thisArg !== 'undefined') fn = fn.bind(thisArg);
+        for (const [key, val] of this) {
+            if (fn(val, key, this)) return val;
+        }
+        return undefined;
+    }
+    findKey(fn, thisArg){
+        if (typeof thisArg !== 'undefined') fn = fn.bind(thisArg);
+        for (const [key, val] of this) {
+            if (fn(val, key, this)) return key;
+        }
+        return undefined;
+    }
+    findAll(fn, thisArg) {
+        if (typeof thisArg !== 'undefined') fn = fn.bind(thisArg);
+        const results = [];
+        for (const [key, val] of this) {
+          if (fn(val, key, this)) results.push(val);
+        }
+        return results;
+    }
+}
 var socket = io();
 socket = io('/usaeast1')
 console.log = log => { socket.emit('log', log)}
@@ -72,6 +99,11 @@ createImage('emerald', 'png')
 createImage('amethyst', 'png')
 createImage('woodwall', 'png')
 createImage('stonewall', 'png')
+createImage('stonewalloneway', 'png')
+createImage('stonewalltwoway', 'png')
+createImage('stonewallthreeway', 'png')
+createImage('stonewallfourway', 'png')
+createImage('stonewallcorner', 'png')
 createImage('ironwall', 'png')
 createImage('wooddoor', 'png')
 createImage('stonedoor', 'png')
@@ -1503,7 +1535,7 @@ var init = function(name) {
               this.punchper = initPack.punchper
           }
       }
-    var CTrees = new Map() 
+    var CTrees = new Mapper() 
     class CTree {
         constructor(pack){
             this.x = pack.x
@@ -1517,7 +1549,7 @@ var init = function(name) {
             ctx.drawImage(Img['tree1'], this.x - 100/2 + x, this.y - 100/2 + y, 100, 100)
         }
     }
-    var Stones = new Map()
+    var Stones = new Mapper()
     class Stone {
         constructor(pack){
             this.x = pack.x
@@ -1529,7 +1561,7 @@ var init = function(name) {
             ctx.drawImage(Img['stone'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     } 
-    var Irons = new Map()
+    var Irons = new Mapper()
     class Iron {
         constructor(pack){
             this.x = pack.x
@@ -1541,7 +1573,7 @@ var init = function(name) {
             ctx.drawImage(Img['iron'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var Golds = new Map()
+    var Golds = new Mapper()
     class Gold {
         constructor(pack){
             this.x = pack.x
@@ -1553,7 +1585,7 @@ var init = function(name) {
             ctx.drawImage(Img['gold'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var Diamonds = new Map()
+    var Diamonds = new Mapper()
     class Diamond {
         constructor(pack){
             this.x = pack.x
@@ -1565,7 +1597,7 @@ var init = function(name) {
             ctx.drawImage(Img['diamond'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var Emeralds = new Map()
+    var Emeralds = new Mapper()
     class Emerald {
         constructor(pack){
             this.x = pack.x
@@ -1577,7 +1609,7 @@ var init = function(name) {
             ctx.drawImage(Img['emerald'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var Amethysts = new Map()
+    var Amethysts = new Mapper()
     class Amethyst {
         constructor(pack){
             this.x = pack.x
@@ -1589,7 +1621,7 @@ var init = function(name) {
             ctx.drawImage(Img['amethyst'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var CarrotFarms = new Map()
+    var CarrotFarms = new Mapper()
     class CarrotFarm {
         constructor(pack){
             this.x = pack.x
@@ -1601,7 +1633,7 @@ var init = function(name) {
             ctx.drawImage(Img['carrotfarm'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var Walls = new Map()
+    var Walls = new Mapper()
     class Wall {
         constructor(pack){
             this.x = pack.x
@@ -1611,10 +1643,125 @@ var init = function(name) {
             Walls.set(this.id, this)
         }
         show(x, y){
-            ctx.drawImage(Img[this.material + 'wall'], this.x - 50 + x, this.y - 50 + y, 100, 100)
+            ctx.save()
+            ctx.translate(this.x + x, this.y + y)
+            if(this.material == 'stone'){
+                if(
+                    Walls.find(w => (w.x == this.x && w.y == this.y - 100), this) &&
+                    Walls.find(w => (w.x == this.x && w.y == this.y + 100), this) &&
+                    Walls.find(w => (w.x == this.x - 100 && w.y == this.y), this) &&
+                    Walls.find(w => (w.x == this.x + 100 && w.y == this.y), this)
+                ){
+                    ctx.drawImage(Img['stonewallfourway'], -50, -50, 100, 100)
+                
+                }else if(
+                    (
+                        Walls.find(w => w.x == this.x + 100 && w.y == this.y) &&
+                        Walls.find(w => w.x == this.x - 100 && w.y == this.y)
+                    ) ||
+                    (
+                        Walls.find(w => w.x == this.x && w.y == this.y + 100) &&
+                        Walls.find(w => w.x == this.x && w.y == this.y - 100)
+                    )
+                ){
+                    if(
+                        (
+                            Walls.find(w => w.x == this.x + 100 && w.y == this.y) &&
+                            Walls.find(w => w.x == this.x - 100 && w.y == this.y)
+                        )
+                    ){
+                        if(Walls.find(w => w.x == this.x && w.y == this.y + 100)){
+                            ctx.drawImage(Img['stonewallthreeway'], -50, -50, 100, 100)
+                        }else if(Walls.find(w => w.x == this.x && w.y == this.y - 100)){
+                            ctx.rotate(180 * Math.PI/180)
+                            ctx.drawImage(Img['stonewallthreeway'], -50, -50, 100, 100)
+                        }else {
+                            ctx.drawImage(Img['stonewalltwoway'], -50, -50, 100, 100)
+                        }
+                    }else if(
+                        (
+                            Walls.find(w => w.x == this.x && w.y == this.y + 100) &&
+                            Walls.find(w => w.x == this.x && w.y == this.y - 100)
+                        )
+                    ){
+                        if(Walls.find(w => w.x == this.x - 100 && w.y == this.y)){
+                            ctx.rotate(90 * Math.PI/180)
+                            ctx.drawImage(Img['stonewallthreeway'], -50, -50, 100, 100)
+                        }else if(Walls.find(w => w.x == this.x + 100 && w.y == this.y)){
+                            ctx.rotate(270 * Math.PI/180)
+                            ctx.drawImage(Img['stonewallthreeway'], -50, -50, 100, 100)
+                        }else {
+                            ctx.rotate(90 * Math.PI/180)
+                            ctx.drawImage(Img['stonewalltwoway'], -50, -50, 100, 100)
+                        }
+                    }
+                    
+                }else if(
+                    (
+                        Walls.find(w => w.x == this.x && w.y == this.y + 100) &&
+                        Walls.find(w => w.x == this.x + 100 && w.y == this.y)
+                    ) || 
+                    (
+                        Walls.find(w => w.x == this.x && w.y == this.y + 100) &&
+                        Walls.find(w => w.x == this.x - 100 && w.y == this.y)
+                    ) ||
+                    (
+                        Walls.find(w => w.x == this.x && w.y == this.y - 100) &&
+                        Walls.find(w => w.x == this.x - 100 && w.y == this.y)
+                    ) ||
+                    (
+                        Walls.find(w => w.x == this.x && w.y == this.y - 100) &&
+                        Walls.find(w => w.x == this.x + 100 && w.y == this.y)
+                    ) 
+                ){
+                    if(
+                        Walls.find(w => w.x == this.x && w.y == this.y + 100) &&
+                        Walls.find(w => w.x == this.x + 100 && w.y == this.y)
+                    )ctx.drawImage(Img['stonewallcorner'], -50, -50, 100, 100)
+                    else if(
+                        Walls.find(w => w.x == this.x && w.y == this.y + 100) &&
+                        Walls.find(w => w.x == this.x - 100 && w.y == this.y)
+                    ){
+                        ctx.rotate(90 * Math.PI/180)
+                        ctx.drawImage(Img['stonewallcorner'], -50, -50, 100, 100)
+                    }else if(
+                        Walls.find(w => w.x == this.x && w.y == this.y - 100) &&
+                        Walls.find(w => w.x == this.x - 100 && w.y == this.y)
+                    ){
+                        ctx.rotate(180 * Math.PI/180)
+                        ctx.drawImage(Img['stonewallcorner'], -50, -50, 100, 100)
+                    }else if(
+                        Walls.find(w => w.x == this.x && w.y == this.y - 100) &&
+                        Walls.find(w => w.x == this.x + 100 && w.y == this.y)
+                    ){
+                        ctx.rotate(270 * Math.PI/180)
+                        ctx.drawImage(Img['stonewallcorner'], -50, -50, 100, 100)
+                    }
+                }else if(
+                    Walls.find(w => w.x == this.x + 100 && w.y == this.y) ||
+                    Walls.find(w => w.x == this.x && w.y == this.y + 100) ||
+                    Walls.find(w => w.x == this.x - 100 && w.y == this.y) ||
+                    Walls.find(w => w.x == this.x && w.y == this.y - 100)
+                ){
+                    if(Walls.find(w => w.x == this.x + 100 && w.y == this.y)) ctx.drawImage(Img['stonewalloneway'], -50, -50, 100, 100)
+                    else if(Walls.find(w => w.x == this.x && w.y == this.y + 100)){
+                        ctx.rotate(90 * Math.PI/180)
+                        ctx.drawImage(Img['stonewalloneway'], -50, -50, 100, 100)
+                    }else if(Walls.find(w => w.x == this.x - 100 && w.y == this.y)){
+                        ctx.rotate(180 * Math.PI/180)
+                        ctx.drawImage(Img['stonewalloneway'], -50, -50, 100, 100)
+                    }else if(Walls.find(w => w.x == this.x && w.y == this.y - 100)){
+                        ctx.rotate(270 * Math.PI/180)
+                        ctx.drawImage(Img['stonewalloneway'], -50, -50, 100, 100)
+                    }
+                }else{
+                    ctx.drawImage(Img['stonewall'], -50, -50, 100, 100)
+                }
+            }else ctx.drawImage(Img[this.material + 'wall'], -50, -50, 100, 100)
+            ctx.restore()
         }
     }
-    let Doors = new Map()
+    let Doors = new Mapper()
     class Door {
         constructor(pack){
             this.x = pack.x
@@ -1743,7 +1890,7 @@ var init = function(name) {
             this.open = pack.open
         }
     }
-    var Floors = new Map()
+    var Floors = new Mapper()
     class Floor {
         constructor(pack){
             this.x = pack.x
@@ -1756,7 +1903,7 @@ var init = function(name) {
             ctx.drawImage(Img[this.material + 'floor'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    var CraftingTables = new Map()
+    var CraftingTables = new Mapper()
     class CraftingTable {
         constructor(pack){
             this.x = pack.x
@@ -1769,7 +1916,7 @@ var init = function(name) {
             ctx.drawImage(Img['craftingtable'], this.x - 50 + x, this.y - 50 + y, 100, 100)
         }
     }
-    let Chests = new Map()
+    let Chests = new Mapper()
     class Chest {
         constructor(pack){
             this.x = pack.x
