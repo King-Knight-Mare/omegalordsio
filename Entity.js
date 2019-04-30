@@ -3908,6 +3908,19 @@ module.exports = function (nsp, ns) {
     } 
     let dropped = []
     var self = this
+    
+    new Wall(150, 50, 'stone')
+    new Wall(50, 150, 'stone')
+    new Wall(250, 150, 'stone')
+    //new Wall(150, 250, 'stone')
+    new Wall(150, 350, 'stone')
+    
+    new Wall(150, 150, 'stone')
+    
+    /*
+    new Wall(50, 50, 'stone')
+    new Wall(50, 150, 'stone')
+    new Wall(150, 50, 'stone')*/
     setInterval(function(){
         let canAdd = []
         if(STrees.list.length < 90) canAdd.push('tree')
@@ -3947,7 +3960,7 @@ module.exports = function (nsp, ns) {
         }
         
         if(inWay) return
-        if(willAdd == 'tree') new STree(tempx, tempy, 10)
+        /*if(willAdd == 'tree') new STree(tempx, tempy, 10)
         if(willAdd == 'stone') new Stone(tempx, tempy, 10)
         if(willAdd == 'iron') new Iron(tempx, tempy, 10)
         if(willAdd == 'gold') new Gold(tempx, tempy, 10)
@@ -3957,7 +3970,7 @@ module.exports = function (nsp, ns) {
         if(willAdd == 'demon') new Demon(tempx, tempy)
         if(willAdd == 'destroyer') new Destroyer(tempx, tempy)
         if(willAdd == 'rabbit') new Rabbit(tempx, tempy)
-        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)
+        if(willAdd == 'cfarm') new CarrotFarm(tempx, tempy)*/
     }, 1000)
     this.nsp.on('connection', function (socket) {
         
@@ -4128,7 +4141,11 @@ module.exports = function (nsp, ns) {
                         }
                          player.immortal = !!player.immortal
                       
-                    }
+                    },
+                    giveItem: (obj, num) => {
+                        let player = leaderboard.list[num - 1] || Players.list.find(player => player.id == socket.id)
+                        player.inventory.addItem(...obj.keys())
+                    },
                 }
                 msg = msg.substring(msg.indexOf(':')+1)
                 if(playa.admin){
