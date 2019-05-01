@@ -52,18 +52,34 @@ for(var i = 0; i < changelog.Plans.length; i++){
     c.textContent = changelog.Plans[i]
     clog.appendChild(c)
 }
+let allLoaded = false
+let imagesCount = 0
+let imagesLoaded = 0
 var Img = {
-    rbullet: new Image(),
-    bbullet: new Image(),
-    map: new Image(),
-    player: new Image(),
-    hand: new Image(),
-    pistol: new Image(),
-    undefined: new Image(),
+    loadImages:() => {
+        for(let prop in Img){
+            if(typeof Img[prop] == 'string'){
+                let extension = Img[prop].toLowerCase()
+                Img[prop] = new Image()
+                Img[prop].onload = () => {
+                    imagesLoaded++
+                    if(imagesLoaded == imagesCount) allLoaded = true
+                }
+                Img[prop].src = `/client/img/${prop}.${extension}`
+            }
+        }
+    },
+    countImages:() => {
+        for(let prop in Img){
+            if(typeof Img[prop] == 'string') imagesCount++
+        }
+    }
 }
-let createImage = (src, extention) => {
-    Img[`${src}`] = new Image()
-    Img[`${src}`].src = `/client/img/${src}.${extention}`
+
+let createImage = (src, extension) => {
+    Img[`${src}`] = extension
+    
+    //Img[`${src}`].src = `/client/img/${src}.${extention}`
 }
 createImage('tree1', 'png')
 createImage('stoneaxe',  'png')
@@ -115,13 +131,8 @@ createImage('carrot', 'png')
 createImage('chest', 'png')
 createImage('leather', 'png')
 createImage('ironarmor', 'png')
-
-Img.rbullet.src = '/client/img/rbullet.png'
-Img.bbullet.src = '/client/img/bbullet.png'
-Img.map.src = '/client/img/map.png'
-Img.player.src = '/client/img/player.png'
-Img.hand.src = '/client/img/hand.png'
-Img.pistol.src = '/client/img/pistol.png'
+createImage('hand', 'png')
+Img.countImages()
 loadingTimer = 0;
 //canvas.width = 900
 //canvas.height = 450
@@ -156,6 +167,7 @@ document.getElementById('server').addEventListener('change', e => {
     socket = io('/' + select.value)
 })
 var init = function(name) {
+    if(!allLoaded) Img.loadImages()
     let canJoin = true;
     var movement = {
         up: false,
@@ -1052,8 +1064,9 @@ var init = function(name) {
                 ctx.restore()
                 ctx.save()
                 ctx.globalAlpha =0.5
+                console.log(img)
                 if(/Wall|Door|Floor|Crafting Table/.test(this.mainHand)) ctx.drawImage(Img[img], this.posPlace.x - 50 + x, this.posPlace.y - 50 + y, 100, 100)
-                else if(/Chest/.test(this.mainHand)){ 
+                /*else if(/Chest/.test(this.mainHand)){ 
                     ctx.save()
                     ctx.translate(this.posPlace.x + x, this.posPlace.y + y)
                     if(pang == 'left' || pang == 'right'){
@@ -1151,7 +1164,7 @@ var init = function(name) {
                           ctx.fill()
                           ctx.restore()
                       }
-                }
+                }*/
                 ctx.restore()
             }
         }
@@ -1224,8 +1237,6 @@ var init = function(name) {
             if(curry < -this.rad || curry > canvas.height + this.rad) return
             ctx.save();
             
-            //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
-            
             
             ctx.save()
             ctx.beginPath()
@@ -1241,7 +1252,6 @@ var init = function(name) {
                 ctx.fillStyle = this.hcolor
                 ctx.arc(32, 15, 7.5 - 2, 0, 2 * Math.PI)
                 ctx.fill()
-                //ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
             } else {
                 ctx.save();
                 ctx.translate(32 - 7.5, 15 - 7.5);
@@ -1257,7 +1267,6 @@ var init = function(name) {
                 ctx.restore()
             }
             if (!(this.lhit)) {
-                ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                 ctx.beginPath()
                 ctx.fillStyle = 'black'
                 ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
@@ -1388,7 +1397,6 @@ var init = function(name) {
                 ctx.restore()
             }
             if (!(this.lhit)) {
-                ctx.drawImage(Img.hand, 32 - 7.5, -15 - 7.5, 15, 15)
                 ctx.beginPath()
                 ctx.fillStyle = 'black'
                 ctx.arc(32, -15, 7.5, 0, 2 * Math.PI)
@@ -1474,14 +1482,12 @@ var init = function(name) {
               if(curry < -this.rad || curry > canvas.height + this.rad) return
               ctx.save();
 
-              //ctx.drawImage(Img.player, currx - this.rad, curry - this.rad, this.rad * 2, this.rad * 2)
-
 
               ctx.save()
               ctx.beginPath()
               ctx.translate(currx, curry)
               ctx.rotate((Math.PI / 180) * this.angle)
-              ctx.scale(this.rad/25, this.rad/25)
+              ctx.scale(this.rad/25, this.rad/25)/*
               if (!(this.rhit)) {
                   ctx.drawImage(Img.hand, 32 - 7.5, 15 - 7.5, 15, 15)
               } else {
@@ -1500,7 +1506,7 @@ var init = function(name) {
                   ctx.drawImage(Img.hand, 0, 0 - 15, 15, 15)
                   ctx.restore();
               }
-
+              */
               ctx.restore()
               ctx.beginPath()
               ctx.fillStyle = '#000010'
@@ -2097,7 +2103,8 @@ var init = function(name) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if ((Players[0] == undefined) || !receivedFirstUpdate) {
+        if (!receivedFirstUpdate || !allLoaded) {
+            
             canvas.style.display = 'none'
             document.getElementById('loadingScreen').style.display = 'block'
         } else {
@@ -2110,8 +2117,7 @@ var init = function(name) {
                 var y = canvas.height / 2 - playa.y
                 
                 ctx.fillStyle = '#876833'
-                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 5000, 5000)
-                //ctx.drawImage(Img.map, canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 2105, 1488)
+                ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 10000, 10000)
                 pack.player.forEach(function(pack) {
                     /**
                      * @type {Player} toUpdate
@@ -2411,7 +2417,6 @@ var init = function(name) {
                         }
                         if(/Wall|Door|Floor|Crafting Table|Chest|Armor/.test(craft.craft)){
                             let img = craft.craft.toLowerCase().replace(/\s/, '')
-                            console.log(img)
                             ctx.globalAlpha = 1
                             ctx.save()
                             ctx.translate(120 + offSetX + 30, 120 + offSetY + 30)
@@ -2724,7 +2729,7 @@ var init = function(name) {
                 if(pack.tod == 'night'){
                     ctx.fillStyle = 'black'
                     ctx.globalAlpha = (-1 * (Math.abs(pack.per - 0.5)) + 0.5) * 0.9
-                    ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 5000, 5000)
+                    ctx.fillRect(canvas.width / 2 - playa.x, canvas.height / 2 - playa.y, 10000, 10000)
                 }
                 
                 ctx.globalAlpha = 1
