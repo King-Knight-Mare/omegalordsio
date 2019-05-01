@@ -1,4 +1,4 @@
-<head>
+ <head>
   <style>
     body {
         width:100%;
@@ -35,6 +35,102 @@
     createImage('stonepickaxe', 'png')
   
     createImage('stonehammer', 'png')
+    let firstColor = '#CECECE'
+    let secondColor = '#bababa'
+    let thirdColor = '#999999'
+    let fourthColor = 'grey'
+    let drawFourWay = (x, y) => {
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.fillStyle = firstColor
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(10, 0, 130, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(0, 10, 150, 130)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(30, 0, 90, 150)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(0, 30, 150, 90)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(50, 0, 50, 150)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(0, 50, 150, 50)
+        ctx.restore()
+    }
+    let drawThreeWay = (x, y) => {
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.fillStyle = firstColor
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(10, 10, 130, 140)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(0, 10, 150, 130)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(30, 30, 90, 120)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(0, 30, 150, 90)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(50, 50, 50, 100)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(0, 50, 150, 50)
+        ctx.restore()
+    }
+    let drawTwoWay = (x, y) => {
+        ctx.fillStyle = firstColor
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(0, 10, 150, 130)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(0, 30, 150, 90)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(0, 50, 150, 50)
+    }
+    let drawCorner = (x, y) => {
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.fillStyle = firstColor
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(10, 10, 130, 140)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(10, 10, 140, 130)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(30, 30, 90, 120)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(30, 30, 120, 90)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(50, 50, 50, 100)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(50, 50, 100, 50)
+        ctx.restore()
+    }
+    let drawOneWay = (x, y) => {
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.fillStyle = firstColor
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(10, 10, 140, 130)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(30, 30, 120, 90)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(50, 50, 100, 50)
+    }
+    
+    let drawWall = (x, y) => {
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.fillStyle = firstColor
+        ctx.fillRect(0, 0, 150, 150)
+        ctx.fillStyle = secondColor
+        ctx.fillRect(10, 10, 130, 130)
+        ctx.fillStyle = thirdColor
+        ctx.fillRect(30, 30, 90, 90)
+        ctx.fillStyle = fourthColor
+        ctx.fillRect(50, 50, 50, 50)
+    }
     setTimeout(() => {
         ctx.save()
         ctx.translate(0, 400)
@@ -66,30 +162,8 @@
         ctx.drawImage(Img.stonehammer, -30, -30, 70, 70)
         ctx.restore()
         ctx.restore()
-        ctx.fillStyle = '#444444'
-        ctx.fillRect(0, 0, 150, 150)
-        ctx.fillStyle = '#545454'
-        ctx.fillRect(10, 0, 130, 150)
-        ctx.fillStyle = '#545454'
-        ctx.fillRect(0, 10, 150, 130)
-        ctx.fillStyle = 'grey'
-        ctx.fillRect(30, 0, 90, 150)
-        ctx.fillStyle = 'grey'
-        ctx.fillRect(0, 30, 150, 90)
-        ctx.fillStyle = 'lightgrey'
-        ctx.fillRect(50, 0, 50, 150)
-        ctx.fillStyle = 'lightgrey'
-        ctx.fillRect(0, 50, 150, 50)
-      
-        ctx.translate(160, 0)
-        ctx.fillStyle = '#444444'
-        ctx.fillRect(0, 0, 150, 150)
-        ctx.fillStyle = '#545454'
-        ctx.fillRect(10, 10, 130, 130)
-        ctx.fillStyle = 'grey'
-        ctx.fillRect(30, 30, 90, 90)
-        ctx.fillStyle = 'lightgrey'
-        ctx.fillRect(50, 50, 50, 50)
+        drawOneWay(0, 0)
+        drawWall(160, 0)
     }, 500)
     //createImage('ironsword', 'png')
     //createImage('ironpickaxe', 'png')

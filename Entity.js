@@ -47,9 +47,10 @@ module.exports = function (nsp, ns) {
         setDayTimeout()
     }, 360000)
     this.map = {
-        width:5000,
-        height:5000
+        width:10000,
+        height:10000
     }
+    
     let clans = new Map()
     let Entities = []
     class Clan {
@@ -756,9 +757,9 @@ module.exports = function (nsp, ns) {
     class Inventory extends Storage {
         constructor(){
             super([
-                ['1', 'empty'],
-                ['2', 'empty'],
-                ['3', 'empty'],
+                ['1', new Slot('Wood Wall', 255, 'woodwall', 255, true)],
+                ['2', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
+                ['3', new Slot('Iron Wall', 255, 'ironewall', 255, true)],
                 ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
@@ -1170,7 +1171,8 @@ module.exports = function (nsp, ns) {
             this.stonetargs = []
             this.setHands()
             if(this.move.grab){
-                if((dropped.length || this.structures.find(s => s instanceof Door) || CraftingTables.list.length ||Chests.list.length || (this.clan) && this.clan.members.find(member => member.structures.find(s => s instanceof Door))) && !this.alusd){
+                if((dropped.length || this.structures.find(s => s instanceof Door) || globalDoors.length || CraftingTables.list.length ||
+                    Chests.list.length || (this.clan) && this.clan.members.find(member => member.structures.find(s => s instanceof Door))) && !this.alusd){
                     let possible = new Mapper()
                     dropped.forEach((item, i)=> {
                         if(Vector.getDistance(item, this.body.position) < 32 + this.rad) possible.set(i, item)
@@ -1192,6 +1194,11 @@ module.exports = function (nsp, ns) {
                             member.structures.forEach(s => {
                                 if(s instanceof Door && Vector.getDistance(s, this.body.position) < 70.7 + this.rad && member != this) posd.set(Math.random(), s)
                             })
+                        })
+                    }
+                    if(globalDoors.length){
+                        globalDoors.forEach(d => {
+                            if(d instanceof Door && Vector.getDistance(d, this.body.position) < 70.7 + this.rad) posd.set(Math.random(), d)
                         })
                     }
                     let disd
@@ -3117,6 +3124,7 @@ module.exports = function (nsp, ns) {
                         let p = Players.list.find( p => p.structures.find( s => s == door))
                         p.structures.splice(p.structures.findIndex(s => s == door), 1)
                     }
+                    if(globalDoors.list.find(d => d == door)) globalDoors.splice(globalDoors.findIndex(d => d== door), 1)
                     Doors.list.splice(Doors.list.findIndex(function (element) {
                         return element.id === door.id
                     }), 1);
@@ -3127,6 +3135,7 @@ module.exports = function (nsp, ns) {
             return pack
         }
     }
+    let globalDoors = []
     var CraftingTables = {
         list:[],
         update:function(){
@@ -3908,34 +3917,59 @@ module.exports = function (nsp, ns) {
     } 
     let dropped = []
     var self = this
-    
-    new Wall(150, 50, 'stone')
-    new Wall(50, 150, 'stone')
-    new Wall(250, 150, 'stone')
-    //new Wall(150, 250, 'stone')
-    new Wall(150, 350, 'stone')
-    
-    new Wall(150, 150, 'stone')
-    
-    /*
-    new Wall(50, 50, 'stone')
-    new Wall(50, 150, 'stone')
-    new Wall(150, 50, 'stone')*/
+    class House {
+        constructor(x, y, ang){
+            let width = 9
+            let height = 5
+            this.topWall = []
+            this.leftWall = []
+            this.bottomWall = []
+            this.rightWall = []
+            this.topLeft = new Wall(x, y, 'stone')
+            this.topRight = new Wall(x + (width - 1) * 100, y, 'stone')
+            this.bottomLeft = new Wall(x, y + (height - 1) * 100, 'stone')
+            this.bottomRight = new Wall(x + (width - 1) * 100, y + (height - 1) * 100, 'stone')
+            for(let i = 0; i < width - 2;i++){
+                let w
+                w = new Wall(x + (i + 1) * 100, y, 'wood')
+            }
+            for(let i = 0; i < height - 2;i++){
+                let w
+                w = new Wall(x, y + (i + 1) * 100, 'wood')
+            }
+            for(let i = 0; i < width - 2;i++){
+                let w
+                if(i == 3){ 
+                    w = new Door(x + (i + 1) * 100, y + (height - 1 ) * 100, 'wood', 'down')
+                    
+                    globalDoors.push(w)
+                }
+                else w = new Wall(x + (i + 1) * 100, y + (height - 1 ) * 100, 'wood')
+                this.bottomWall.push(w)
+            }
+            
+            for(let i = 0; i < height - 2;i++){
+                let w
+                w = new Wall(x + (width - 1) * 100, y + (i + 1) * 100, 'wood')
+            }
+        }
+    }
+    //new House(50, 50)
     setInterval(function(){
         let canAdd = []
-        if(STrees.list.length < 90) canAdd.push('tree')
-        if(Stones.list.length < 60) canAdd.push('stone')
-        if(Irons.list.length < 40) canAdd.push('iron')
-        if(Golds.list.length < 28) canAdd.push('gold')
-        if(Diamonds.list.length < 20) canAdd.push('diamond')
-        if(Golds.list.length < 12) canAdd.push('gold')
-        if(Diamonds.list.length < 9) canAdd.push('diamond')
-        if(Emeralds.list.length < 5) canAdd.push('emerald')
-        if(Amethysts.list.length < 3) canAdd.push('amethyst')
-        if(Demons.list.length < 12 && timeOfDay == 'night') canAdd.push('demon')
-        if(CarrotFarms.list.length < 8) canAdd.push('cfarm')
-        if(Destroyers.list.length < 7 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
-        if(Rabbits.list.length < 4 && timeOfDay == 'day') canAdd.push('rabbit')
+        if(STrees.list.length < 360) canAdd.push('tree')
+        if(Stones.list.length < 240) canAdd.push('stone')
+        if(Irons.list.length < 160) canAdd.push('iron')
+        if(Golds.list.length < 112) canAdd.push('gold')
+        if(Diamonds.list.length < 80) canAdd.push('diamond')
+        if(Golds.list.length < 48) canAdd.push('gold')
+        if(Diamonds.list.length < 36) canAdd.push('diamond')
+        if(Emeralds.list.length < 20) canAdd.push('emerald')
+        if(Amethysts.list.length < 12) canAdd.push('amethyst')
+        if(Demons.list.length < 36 && timeOfDay == 'night') canAdd.push('demon')
+        if(CarrotFarms.list.length < 32) canAdd.push('cfarm')
+        if(Destroyers.list.length < 28 && timeOfDay == 'night' && dayTimeout.percntDone > 0.45 && dayTimeout.percntDone < 0.55) canAdd.push('destroyer')
+        if(Rabbits.list.length < 16 && timeOfDay == 'day') canAdd.push('rabbit')
         if(!canAdd.length) return
         let willAdd = canAdd[Math.getRandomInt(0, canAdd.length - 1)]
         let tempx = Math.getRandomInt(0, game.map.width/100 - 1) * 100 + 50
@@ -4141,10 +4175,6 @@ module.exports = function (nsp, ns) {
                         }
                          player.immortal = !!player.immortal
                       
-                    },
-                    giveItem: (obj, num) => {
-                        let player = leaderboard.list[num - 1] || Players.list.find(player => player.id == socket.id)
-                        player.inventory.addItem(...obj.keys())
                     },
                 }
                 msg = msg.substring(msg.indexOf(':')+1)
