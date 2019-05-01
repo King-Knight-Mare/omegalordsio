@@ -757,9 +757,9 @@ module.exports = function (nsp, ns) {
     class Inventory extends Storage {
         constructor(){
             super([
-                ['1', new Slot('Wood Wall', 255, 'woodwall', 255, true)],
-                ['2', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
-                ['3', new Slot('Iron Wall', 255, 'ironewall', 255, true)],
+                ['1', new Slot('Stone Wall', 255, 'stonewall', 255, true)],
+                ['2', 'empty'],
+                ['3', 'empty'],
                 ['4', 'empty'],
                 ['5', 'empty'],
                 ['6', 'empty'],
